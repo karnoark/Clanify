@@ -10,6 +10,7 @@ import {
 import React, { useState } from "react";
 import { Pdstyles } from "@/constants/Styles";
 import { Link } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 const Page = () => {
   //   const [countryCode, setCountryCode] = useState("+91");
@@ -52,14 +53,14 @@ const Page = () => {
               {/* <TextInput
                 style={[styles.input, styles.countryInput]}
                 placeholder="Country code"
-                // placeholderTextColor={"#8A1D3B"}
+                // placeholderTextColor={"#f5a9b2"}
                 placeholderTextColor={"rgba(253, 53, 109, 0.6)"}
                 value={countryCode}
               /> */}
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Email"
-                placeholderTextColor={"#8A1D3B"}
+                placeholderTextColor={"#f5a9b2"}
                 keyboardType="numeric"
                 value={email}
                 onChangeText={setEmail}
@@ -68,7 +69,7 @@ const Page = () => {
             <View style={styles.passwordContainer}>
               <TextInput
                 placeholder="Password"
-                placeholderTextColor={"#8A1D3B"}
+                placeholderTextColor={"#f5a9b2"}
                 value={password}
                 onChangeText={setPassword}
                 style={[styles.input]}
@@ -100,6 +101,49 @@ const Page = () => {
                 </Link>{" "}
               </Text>
             </View>
+
+            <View
+              style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  height: StyleSheet.hairlineWidth,
+                  backgroundColor: "#f5a9b2",
+                }}
+              />
+              <Text style={{ color: "#f5a9b2", fontSize: 20 }}>or</Text>
+              <View
+                style={{
+                  flex: 1,
+                  height: StyleSheet.hairlineWidth,
+                  backgroundColor: "#f5a9b2",
+                }}
+              />
+            </View>
+
+            <TouchableOpacity
+              onPress={() => {}}
+              style={[
+                Pdstyles.pillButton,
+                {
+                  flexDirection: "row",
+                  gap: 16,
+                  marginTop: 20,
+                  backgroundColor: "#2E0A14",
+                  borderWidth: 1,
+                  borderColor: "rgba(253, 53, 109, 0.5)",
+                  //   backgroundColor: "#fff",
+                },
+              ]}
+            >
+              <Ionicons name="logo-google" size={24} color={"#FD356D"} />
+              <Text
+                style={[styles.buttonText, { color: "#FD356D", fontSize: 20 }]}
+              >
+                Continue with Google{" "}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>

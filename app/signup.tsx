@@ -15,8 +15,8 @@ import { router } from "expo-router";
 const { width } = Dimensions.get("window");
 
 const Page = () => {
-  const [countryCode, setCountryCode] = useState("+91");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const keyboardVerticalOffset = Platform.OS === "ios" ? 80 : 0;
@@ -49,19 +49,21 @@ const Page = () => {
             {/* Phone number input group */}
             <View style={styles.phoneInputContainer}>
               <TextInput
-                style={[styles.input, styles.countryCode]}
-                placeholder="Code"
+                style={[styles.input, styles.phoneInput]}
+                placeholder="Email"
                 placeholderTextColor={"rgba(253, 53, 109, 0.6)"}
-                value={countryCode}
-                onChangeText={setCountryCode}
+                value={email}
+                onChangeText={setEmail}
               />
+            </View>
+
+            <View style={styles.phoneInputContainer}>
               <TextInput
                 style={[styles.input, styles.phoneInput]}
-                placeholder="Phone number"
+                placeholder="Password"
                 placeholderTextColor={"rgba(253, 53, 109, 0.6)"}
-                keyboardType="numeric"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                value={password}
+                onChangeText={setPassword}
               />
             </View>
 
@@ -87,12 +89,12 @@ const Page = () => {
             <TouchableOpacity
               style={[
                 styles.verifyButton,
-                phoneNumber && firstName && lastName
+                email && firstName && lastName
                   ? styles.enabled
                   : styles.disabled,
               ]}
               onPress={handleVerify}
-              disabled={!phoneNumber || !firstName || !lastName}
+              disabled={!email || !firstName || !lastName}
             >
               <Text style={styles.buttonText}>Verify</Text>
             </TouchableOpacity>
