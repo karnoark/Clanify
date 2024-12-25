@@ -12,8 +12,8 @@ import { Pdstyles } from "@/constants/Styles";
 import { Link } from "expo-router";
 
 const Page = () => {
-  const [countryCode, setCountryCode] = useState("+91");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  //   const [countryCode, setCountryCode] = useState("+91");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const keyboardVerticalOffset = Platform.OS === "ios" ? 80 : 0;
 
@@ -45,24 +45,24 @@ const Page = () => {
               <Text
                 style={[Pdstyles.descriptionText, styles.enhancedDescription]}
               >
-                Enter the phone number & password associated with your account
+                Enter the Email & password associated with your account
               </Text>
             </View>
             <View style={styles.inputContainer}>
-              <TextInput
+              {/* <TextInput
                 style={[styles.input, styles.countryInput]}
                 placeholder="Country code"
                 // placeholderTextColor={"#8A1D3B"}
                 placeholderTextColor={"rgba(253, 53, 109, 0.6)"}
                 value={countryCode}
-              />
+              /> */}
               <TextInput
                 style={[styles.input, { flex: 1 }]}
-                placeholder="Mobile number"
+                placeholder="Email"
                 placeholderTextColor={"#8A1D3B"}
                 keyboardType="numeric"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                value={email}
+                onChangeText={setEmail}
               />
             </View>
             <View style={styles.passwordContainer}>
@@ -75,11 +75,16 @@ const Page = () => {
                 secureTextEntry
               />
             </View>
+            <View style={{ marginLeft: 10, marginVertical: 6 }}>
+              <Link href={"/signup"}>
+                <Text style={styles.forgotPasswordText}>forgot password ?</Text>
+              </Link>
+            </View>
 
             <TouchableOpacity
               style={[
                 Pdstyles.pillButton,
-                phoneNumber !== "" ? styles.enabled : styles.disabled,
+                email !== "" ? styles.enabled : styles.disabled,
                 styles.enhancedButton,
               ]}
             >
@@ -105,6 +110,11 @@ const Page = () => {
 export default Page;
 
 const styles = StyleSheet.create({
+  forgotPasswordText: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#FD356D", // Your accent color
+  },
   signupPromptContainer: {
     alignItems: "center",
     padding: 16,
@@ -125,16 +135,6 @@ const styles = StyleSheet.create({
     color: "#FD356D", // Your accent color
     fontWeight: "600",
     textDecorationLine: "none", // Removes default underline
-    ...Platform.select({
-      ios: {
-        textShadowColor: "rgba(253, 53, 109, 0.3)",
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
   },
   container: {
     flex: 1,
