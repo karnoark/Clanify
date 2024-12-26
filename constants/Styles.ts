@@ -10,9 +10,17 @@ export const Pdstyles = StyleSheet.create({
     padding: 16,
   },
   header: {
-    fontSize: 40,
+    // fontSize: 40,
     // fontWeight: '700',
     fontFamily: "PlayRegular",
+    textAlign: "center",
+    fontSize: 32,
+    color: "#FD356D",
+    // fontWeight: "bold",
+    marginBottom: 8,
+    textShadowColor: "rgba(253, 53, 109, 0.3)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 8,
   },
   pillButton: {
     margin: 20,
@@ -32,6 +40,8 @@ export const Pdstyles = StyleSheet.create({
     fontFamily: "PlayRegular",
     fontSize: 18,
     marginTop: 20,
+    color: "rgba(255, 255, 255, 0.8)",
+    textAlign: "center",
     // color: Colors.gray,
   },
   buttonText: {

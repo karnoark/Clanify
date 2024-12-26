@@ -43,9 +43,7 @@ const Page = () => {
               <Text style={[Pdstyles.header, styles.enhancedHeader]}>
                 Welcome Back
               </Text>
-              <Text
-                style={[Pdstyles.descriptionText, styles.enhancedDescription]}
-              >
+              <Text style={Pdstyles.descriptionText}>
                 Enter the Email & password associated with your account
               </Text>
             </View>
@@ -53,14 +51,14 @@ const Page = () => {
               {/* <TextInput
                 style={[styles.input, styles.countryInput]}
                 placeholder="Country code"
-                // placeholderTextColor={"#f5a9b2"}
+                // placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
                 placeholderTextColor={"rgba(253, 53, 109, 0.6)"}
                 value={countryCode}
               /> */}
               <TextInput
                 style={[styles.input, { flex: 1 }]}
                 placeholder="Email"
-                placeholderTextColor={"#f5a9b2"}
+                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
                 keyboardType="numeric"
                 value={email}
                 onChangeText={setEmail}
@@ -69,7 +67,7 @@ const Page = () => {
             <View style={styles.passwordContainer}>
               <TextInput
                 placeholder="Password"
-                placeholderTextColor={"#f5a9b2"}
+                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
                 value={password}
                 onChangeText={setPassword}
                 style={[styles.input]}
@@ -310,11 +308,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   input: {
-    // backgroundColor: "rgba(69, 14, 30, 0.75)",
-    // backgroundColor: "#17050A",
-    padding: 20,
+    padding: 16,
     borderRadius: 16,
-    fontSize: 20,
+    fontSize: 18,
     color: "#ffffff",
     borderWidth: 1,
     borderColor: "rgba(253, 53, 109, 0.2)",
@@ -345,10 +341,6 @@ const styles = StyleSheet.create({
         textShadowRadius: 10,
       },
     }),
-  },
-  enhancedDescription: {
-    color: "rgba(255, 255, 255, 0.8)",
-    textAlign: "center",
   },
   enhancedButton: {
     ...Platform.select({

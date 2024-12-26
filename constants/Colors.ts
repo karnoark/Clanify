@@ -29,6 +29,7 @@ export const Colors = {
 /*
 primary: #FD356D 
 placeholder of primary : #f5a9b2
+dim placeholder of primary: rgba(245, 169, 178, 0.7)
 dim_white: rgba(255, 255, 255, 0.7)",
 borderColor: "rgba(253, 53, 109, 0.5)",
 disabled_backgroundColor: "rgba(161, 34, 69, 0.7)"
