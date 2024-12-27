@@ -1,147 +1,193 @@
-import {
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
 import React, { useState } from "react";
 import { Pdstyles } from "@/constants/Styles";
 import { Link } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Button, HelperText, TextInput, useTheme } from "react-native-paper";
+import { Text } from "@/components/Text";
 
 const Page = () => {
-  //   const [countryCode, setCountryCode] = useState("+91");
+  const theme = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const keyboardVerticalOffset = Platform.OS === "ios" ? 80 : 0;
 
-  const onSignin = async () => {};
+  const hasErrorsInEmail = () => {
+    const pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const noError = pattern.test(email);
+    return !noError;
+  };
+
+  const hasErrorsInPassword = () => {
+    const minLength = 8;
+    const pattern =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const noError = password.length > minLength && pattern.test(password);
+    return !noError;
+  };
 
   return (
     <View style={styles.container}>
       {/* These circles create a soft, glowing background effect */}
-      {/* <View style={[styles.glowCircle, styles.topCircle]} /> */}
-      <View style={[styles.glowCircle, styles.bottomCircle]} />
-      <View style={styles.topRightBlob} />
-      <View style={styles.bottomLeftBlob} />
+      <View
+        style={[
+          styles.topRightBlob,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.bottomLeftBlob,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
       <View style={styles.gradientOverlay} />
-      <View style={styles.centerGlow} />
-      <View style={styles.accentDot1} />
-      <View style={styles.accentDot2} />
+      <View
+        style={[
+          styles.centerGlow,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.accentDot1,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.accentDot2,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
       <KeyboardAvoidingView
         style={styles.keyboardView}
         behavior="padding"
         keyboardVerticalOffset={keyboardVerticalOffset}
       >
-        {/* The glass-like card container */}
         <View style={styles.glassCard}>
           <View style={styles.cardContent}>
-            <View style={{ justifyContent: "center", alignItems: "center" }}>
-              <Text style={[Pdstyles.header, styles.enhancedHeader]}>
+            <View style={{}}>
+              <Text variant="displayMedium" style={{ textAlign: "center" }}>
                 Welcome Back
               </Text>
-              <Text style={Pdstyles.descriptionText}>
+              <Text
+                style={{
+                  textAlign: "center",
+                  color: theme.colors.primary,
+                  margin: 10,
+                }}
+              >
                 Enter the Email & password associated with your account
               </Text>
             </View>
-            <View style={styles.inputContainer}>
-              {/* <TextInput
-                style={[styles.input, styles.countryInput]}
-                placeholder="Country code"
-                // placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-                placeholderTextColor={"rgba(253, 53, 109, 0.6)"}
-                value={countryCode}
-              /> */}
-              <TextInput
-                style={[styles.input, { flex: 1 }]}
-                placeholder="Email"
-                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-                keyboardType="numeric"
-                value={email}
-                onChangeText={setEmail}
-              />
+            <View style={{ width: "100%", margin: 10 }}>
+              <TextInput label="Email" value={email} onChangeText={setEmail} />
+              <HelperText type="error" visible={hasErrorsInEmail()}>
+                Email address is invalid!
+              </HelperText>
             </View>
-            <View style={styles.passwordContainer}>
+            <View style={{ width: "100%", margin: 10 }}>
               <TextInput
-                placeholder="Password"
-                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
+                label={"password"}
                 value={password}
                 onChangeText={setPassword}
-                style={[styles.input]}
                 secureTextEntry
               />
+              <HelperText type="error" visible={hasErrorsInPassword()}>
+                Password must be at least 8 characters and contain uppercase,
+                lowercase, number and special character
+              </HelperText>
             </View>
-            <View style={{ marginLeft: 10, marginVertical: 6 }}>
+
+            <View
+              style={{
+                marginLeft: 10,
+                width: "100%",
+              }}
+            >
               <Link href={"/signup"}>
-                <Text style={styles.forgotPasswordText}>forgot password ?</Text>
+                <Text
+                  style={[
+                    styles.forgotPasswordText,
+                    { color: theme.colors.onBackground },
+                  ]}
+                >
+                  forgot password ?
+                </Text>
               </Link>
             </View>
 
-            <TouchableOpacity
-              style={[
-                Pdstyles.pillButton,
-                email !== "" ? styles.enabled : styles.disabled,
-                styles.enhancedButton,
-              ]}
+            <View
+              style={{
+                width: "40%",
+                margin: 10,
+              }}
             >
-              <Text style={[Pdstyles.buttonText, styles.buttonText]}>
+              <Button
+                labelStyle={Pdstyles.buttonLabelStyle}
+                mode="contained"
+                onPress={() => {}}
+              >
                 Continue
-              </Text>
-            </TouchableOpacity>
-            <View style={styles.signupPromptContainer}>
-              <Text style={styles.signupPromptText}>
+              </Button>
+            </View>
+            <View style={{ margin: 10 }}>
+              <Text
+                style={{
+                  color: theme.colors.onSurfaceVariant, // Slightly muted white for the main text
+                  fontSize: 16,
+                  textAlign: "center",
+                }}
+              >
                 Don't have an account?{"  "}
                 <Link href={"/signup"}>
-                  <Text style={styles.signupLink}>Sign Up</Text>
+                  <Text
+                    style={{
+                      color: theme.colors.onBackground, // Your accent color
+                    }}
+                  >
+                    Sign Up
+                  </Text>
                 </Link>{" "}
               </Text>
             </View>
 
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
-            >
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
               <View
-                style={{
-                  flex: 1,
-                  height: StyleSheet.hairlineWidth,
-                  backgroundColor: "#f5a9b2",
-                }}
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.primary },
+                ]}
               />
-              <Text style={{ color: "#f5a9b2", fontSize: 20 }}>or</Text>
+              <Text
+                style={[styles.dividerText, { color: theme.colors.primary }]}
+              >
+                or
+              </Text>
               <View
-                style={{
-                  flex: 1,
-                  height: StyleSheet.hairlineWidth,
-                  backgroundColor: "#f5a9b2",
-                }}
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.primary },
+                ]}
               />
             </View>
 
-            <TouchableOpacity
-              onPress={() => {}}
-              style={[
-                Pdstyles.pillButton,
-                {
-                  flexDirection: "row",
-                  gap: 16,
-                  marginTop: 20,
-                  backgroundColor: "#2E0A14",
-                  borderWidth: 1,
-                  borderColor: "rgba(253, 53, 109, 0.5)",
-                  //   backgroundColor: "#fff",
-                },
-              ]}
+            <View
+              style={{
+                marginTop: 20,
+                width: "80%",
+              }}
             >
-              <Ionicons name="logo-google" size={24} color={"#FD356D"} />
-              <Text
-                style={[styles.buttonText, { color: "#FD356D", fontSize: 20 }]}
+              <Button
+                labelStyle={Pdstyles.buttonLabelStyle}
+                icon={"google"}
+                mode="contained"
+                onPress={() => {}}
               >
-                Continue with Google{" "}
-              </Text>
-            </TouchableOpacity>
+                Continue with Google
+              </Button>
+            </View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -152,35 +198,24 @@ const Page = () => {
 export default Page;
 
 const styles = StyleSheet.create({
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 16,
+  },
+  divider: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+  },
+  dividerText: {
+    fontSize: 20,
+  },
   forgotPasswordText: {
     fontSize: 16,
     textAlign: "center",
-    color: "#FD356D", // Your accent color
-  },
-  signupPromptContainer: {
-    alignItems: "center",
-    padding: 16,
-    justifyContent: "center",
-    // backgroundColor: "rgba(253, 53, 109, 0.03)", // Very subtle accent color background
-    // borderRadius: 12,
-  },
-  signupPromptText: {
-    color: "rgba(255, 255, 255, 0.7)", // Slightly muted white for the main text
-    fontSize: 16,
-    textAlign: "center",
-    fontFamily: Platform.select({
-      ios: "System",
-      android: "Roboto",
-    }),
-  },
-  signupLink: {
-    color: "#FD356D", // Your accent color
-    fontWeight: "600",
-    textDecorationLine: "none", // Removes default underline
   },
   container: {
     flex: 1,
-    backgroundColor: "#1A1A1A", // Dark background for contrast
     position: "relative",
     overflow: "hidden", // This ensures our background elements don't spill out
   },
@@ -189,7 +224,6 @@ const styles = StyleSheet.create({
     width: 400,
     height: 400,
     borderRadius: 200,
-    backgroundColor: "#FD356D",
     top: -200,
     right: -100,
     opacity: 0.08,
@@ -201,7 +235,6 @@ const styles = StyleSheet.create({
     width: 300,
     height: 300,
     borderRadius: 150,
-    backgroundColor: "#FD356D",
     bottom: -150,
     left: -50,
     opacity: 0.05,
@@ -225,7 +258,6 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#FD356D",
     top: "30%",
     left: "20%",
     opacity: 0.2,
@@ -235,7 +267,6 @@ const styles = StyleSheet.create({
     width: 15,
     height: 15,
     borderRadius: 7.5,
-    backgroundColor: "#FD356D",
     top: "60%",
     right: "25%",
     opacity: 0.15,
@@ -246,7 +277,6 @@ const styles = StyleSheet.create({
     width: 600,
     height: 600,
     borderRadius: 300,
-    backgroundColor: "#FD356D",
     top: "50%",
     left: "50%",
     transform: [{ translateX: -300 }, { translateY: -300 }, { scale: 1.2 }],
@@ -259,16 +289,6 @@ const styles = StyleSheet.create({
     borderRadius: 150,
     opacity: 0.15,
   },
-  topCircle: {
-    backgroundColor: "#FD356D",
-    top: -50,
-    left: -50,
-  },
-  bottomCircle: {
-    backgroundColor: "#FD356D",
-    bottom: -50,
-    right: -50,
-  },
   keyboardView: {
     flex: 1,
     justifyContent: "center",
@@ -277,109 +297,16 @@ const styles = StyleSheet.create({
   },
   glassCard: {
     width: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.05)", // Very subtle white for glass effect
+    // backgroundColor: "rgba(255, 255, 255, 0.05)", // Very subtle white for glass effect
     borderRadius: 24,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.1)", // Subtle border
+    // borderWidth: 1,
+    // borderColor: "rgba(255, 255, 255, 0.1)", // Subtle border
     overflow: "hidden",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#FD356D",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-      },
-      android: {
-        // elevation: 8,
-      },
-    }),
   },
   cardContent: {
     padding: 24,
-    backgroundColor: "rgba(253, 53, 109, 0.03)", // Very subtle accent color
+    // backgroundColor: "rgba(253, 53, 109, 0.03)", // Very subtle accent color
+    justifyContent: "center",
+    alignItems: "center",
   },
-  inputContainer: {
-    marginVertical: 40,
-    flexDirection: "row",
-    gap: 10,
-  },
-  passwordContainer: {
-    width: "100%",
-    marginBottom: 20,
-  },
-  input: {
-    padding: 16,
-    borderRadius: 16,
-    fontSize: 18,
-    color: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(253, 53, 109, 0.2)",
-  },
-  countryInput: {
-    width: 120,
-  },
-  enabled: {
-    backgroundColor: "rgba(207, 43, 89, 0.9)",
-    borderWidth: 1,
-    borderColor: "rgba(253, 53, 109, 0.5)",
-  },
-  disabled: {
-    backgroundColor: "rgba(161, 34, 69, 0.7)",
-  },
-  enhancedHeader: {
-    fontSize: 32,
-    color: "#FD356D",
-    // fontWeight: "bold",
-    marginBottom: 8,
-    textShadowColor: "rgba(253, 53, 109, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-    ...Platform.select({
-      ios: {
-        textShadowColor: "rgba(253, 53, 109, 0.5)",
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 10,
-      },
-    }),
-  },
-  enhancedButton: {
-    ...Platform.select({
-      ios: {
-        shadowColor: "#FD356D",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
-  },
-  buttonText: {
-    ...Platform.select({
-      ios: {
-        textShadowColor: "rgba(0, 0, 0, 0.3)",
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
-      },
-    }),
-  },
-
-  // inputContainer: {
-  //     marginVertical: 40,
-  //     flexDirection: 'row',
-  //   },
-  //   input: {
-  //     backgroundColor: '#450E1E',
-  //     padding: 20,
-  //     borderRadius: 16,
-  //     fontSize: 20,
-  //     marginRight: 10,
-  //   },
-  //   enabled: {
-  //     backgroundColor:    "#CF2B59",
-  //   },
-  //   disabled: {
-  //     backgroundColor: "#A12245",
-  //   },
 });

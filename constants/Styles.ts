@@ -2,6 +2,10 @@ import { StyleSheet } from "react-native";
 import { Colors } from "@/constants/Colors";
 
 export const Pdstyles = StyleSheet.create({
+  buttonLabelStyle: {
+    fontSize: 20,
+    marginVertical: 15,
+  },
   container: {
     flex: 1,
     alignItems: "center",

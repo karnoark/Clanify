@@ -1,7 +1,7 @@
 {
-  "codeium.enable": false,
-  "codeium.enableCodeLens": false,
-  "codeium.disableSupercomplete": true,
+  // "codeium.enable": false,
+  // "codeium.enableCodeLens": false,
+  // "codeium.disableSupercomplete": true,
   // "editor.codeActionsOnSave": {
   //   "source.fixAll.eslint": "always"
   // },

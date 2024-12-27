@@ -1,45 +1,104 @@
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   Dimensions,
+  useColorScheme,
 } from "react-native";
 import React from "react";
 import { Pdstyles } from "@/constants/Styles";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
+import { Button } from "react-native-paper";
+import { Text } from "@/components/Text";
+import { Colors } from "@/constants/Colors";
 
 const { width, height } = Dimensions.get("window");
 
 const Page = () => {
+  const colorScheme = useColorScheme() ?? "dark";
   return (
     <View style={styles.container}>
       {/* Background elements that create depth and visual interest */}
-      <View style={styles.mainGlow} />
-      <View style={styles.topDecoration} />
-      <View style={styles.bottomDecoration} />
-      <View style={styles.accentLine} />
+      <View
+        style={[
+          styles.mainGlow,
+          { backgroundColor: Colors[colorScheme].onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.topDecoration,
+          { backgroundColor: Colors[colorScheme].onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.bottomDecoration,
+          { backgroundColor: Colors[colorScheme].onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.accentLine,
+          { backgroundColor: Colors[colorScheme].onBackground },
+        ]}
+      />
 
       {/* Content container */}
       <View style={styles.contentContainer}>
         <View style={styles.headerContainer}>
-          <Text style={styles.header}>From mess to bless</Text>
+          <Text
+            style={[
+              styles.header,
+              {
+                textShadowColor:
+                  colorScheme === "dark" ? "rgba(253, 53, 109, 0.3)" : "",
+              },
+            ]}
+          >
+            From mess to bless
+          </Text>
           <Text style={styles.headerSecondary}>your meals, sorted</Text>
         </View>
       </View>
 
       {/* Button container with enhanced styling */}
       <View style={styles.buttonContainer}>
-        <Link href={"/signin"} asChild>
-          <TouchableOpacity style={styles.signInButton}>
-            <Text style={styles.buttonText}>Sign in</Text>
-          </TouchableOpacity>
-        </Link>
-        <Link href={"/signup"} asChild>
-          <TouchableOpacity style={styles.signUpButton}>
-            <Text style={styles.buttonText}>Sign up</Text>
-          </TouchableOpacity>
-        </Link>
+        <Button
+          mode="contained"
+          // style={styles.signInButton}
+          labelStyle={Pdstyles.buttonLabelStyle}
+          onPress={() => {
+            console.log("Paper button pressed");
+            router.push("/signin");
+          }}
+        >
+          <Text style={styles.buttonText}>Sign In</Text>
+        </Button>
+
+        <Button
+          mode="contained"
+          // style={styles.signInButton}
+          labelStyle={Pdstyles.buttonLabelStyle}
+          onPress={() => {
+            console.log("Paper button pressed");
+            router.push("/signup");
+          }}
+        >
+          <Text style={styles.buttonText}>Sign Up</Text>
+        </Button>
+
+        <Button
+          mode="contained"
+          // style={styles.signInButton}
+          labelStyle={Pdstyles.buttonLabelStyle}
+          onPress={() => {
+            console.log("Paper button pressed");
+            router.push("/help");
+          }}
+        >
+          <Text style={styles.buttonText}>help</Text>
+        </Button>
       </View>
     </View>
   );
@@ -48,7 +107,7 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#202024",
+    // backgroundColor: "#202024",
     overflow: "hidden", // Important for containing background elements
   },
   // Background decorative elements
@@ -57,7 +116,6 @@ const styles = StyleSheet.create({
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
-    backgroundColor: "#FD356D",
     top: -width * 0.75,
     left: -width * 0.25,
     opacity: 0.08,
@@ -67,7 +125,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: width,
     height: height * 0.3,
-    backgroundColor: "#FD356D",
+    // backgroundColor: "#FD356D",
     top: 0,
     right: -width * 0.5,
     opacity: 0.05,
@@ -78,7 +136,7 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
-    backgroundColor: "#FD356D",
+    // backgroundColor: "#FD356D",
     bottom: -width * 0.4,
     right: -width * 0.2,
     opacity: 0.06,
@@ -87,7 +145,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     width: width * 2,
     height: 2,
-    backgroundColor: "#FD356D",
+    // backgroundColor: "#FD356D",
     top: height * 0.3,
     left: -width * 0.5,
     opacity: 0.1,
@@ -105,19 +163,17 @@ const styles = StyleSheet.create({
   },
   header: {
     fontSize: 42,
-    color: "#FD356D",
+    // color: "#FD356D",
     textTransform: "uppercase",
-    fontFamily: "PlayRegular",
     lineHeight: 48,
-    textShadowColor: "rgba(253, 53, 109, 0.3)",
+    // textShadowColor: "rgba(253, 53, 109, 0.3)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
   headerSecondary: {
     fontSize: 36,
-    color: "#FD356D",
+    // color: "#FD356D",
     textTransform: "uppercase",
-    fontFamily: "PlayRegular",
     opacity: 0.9,
     marginTop: 8,
   },
@@ -131,8 +187,8 @@ const styles = StyleSheet.create({
   },
   signInButton: {
     flex: 1,
-    backgroundColor: "#FD356D",
-    paddingVertical: 16,
+    // backgroundColor: "#FD356D",
+    paddingVertical: 10,
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
@@ -144,8 +200,9 @@ const styles = StyleSheet.create({
   },
   signUpButton: {
     flex: 1,
-    backgroundColor: "#FD356D",
-    paddingVertical: 16,
+    // backgroundColor: "#FD356D",
+    paddingVertical: 10,
+    // fontSize: 20,
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
@@ -158,8 +215,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontSize: 18,
-    fontWeight: "600",
-    textTransform: "uppercase",
+    fontWeight: "300",
   },
 });
 
