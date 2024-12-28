@@ -1,32 +1,126 @@
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from "react-native";
-import React, { useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
 import { Pdstyles } from "@/constants/Styles";
 import { Link } from "expo-router";
 import { Button, HelperText, TextInput, useTheme } from "react-native-paper";
 import { Text } from "@/components/Text";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  hasErrorsInEmail,
+  hasErrorsInPassword,
+} from "@/components/InputValidation";
+
+interface FormState {
+  email: string;
+  password: string;
+  isSubmitting: boolean;
+  touched: {
+    email: boolean;
+    password: boolean;
+  };
+}
+
+interface FormErrors {
+  email?: string;
+  password?: string;
+}
 
 const Page = () => {
+  const { top } = useSafeAreaInsets();
   const theme = useTheme();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const keyboardVerticalOffset = Platform.OS === "ios" ? 80 : 0;
+  const [formState, setFormState] = useState<FormState>({
+    email: "",
+    password: "",
+    isSubmitting: false,
+    touched: {
+      email: false,
+      password: false,
+    },
+  });
 
-  const hasErrorsInEmail = () => {
-    const pattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const noError = pattern.test(email);
-    return !noError;
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  // Determine platform-specific keyboard behavior
+  const keyboardVerticalOffset = Platform.OS === "ios" ? 40 : 0;
+  const keyboardBehavior = Platform.OS === "ios" ? "padding" : "height";
+
+  // Reference to ScrollView for programmatic scrolling
+  const scrollViewRef = useRef(null);
+
+  //input handler that tracks when fields are touched and validates in real-time
+  const handleInputChange = (field: keyof FormState) => (value: string) => {
+    setFormState((prev) => ({
+      ...prev,
+      [field]: value,
+      touched: {
+        ...prev.touched,
+        [field]: true,
+      },
+    }));
   };
 
-  const hasErrorsInPassword = () => {
-    const minLength = 8;
-    const pattern =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-    const noError = password.length > minLength && pattern.test(password);
-    return !noError;
+  // Add real-time validation
+  useEffect(() => {
+    if (formState.touched.email) {
+      setErrors((prev) => ({
+        ...prev,
+        email: hasErrorsInEmail(formState.email)
+          ? "Please enter a valid email address"
+          : undefined,
+      }));
+    }
+    if (formState.touched.password) {
+      setErrors((prev) => ({
+        ...prev,
+        password: hasErrorsInPassword(formState.password)
+          ? "Password must meet requirements"
+          : undefined,
+      }));
+    }
+  }, [formState.email, formState.password]);
+
+  const handleSubmit = async () => {
+    const formErrors: FormErrors = {};
+    if (hasErrorsInEmail(formState.email)) {
+      formErrors.email = "Please enter a valid email address";
+    }
+    if (hasErrorsInPassword(formState.password)) {
+      formErrors.password = "Invalid password format";
+    }
+
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
+
+    setFormState((prev) => ({ ...prev, isSubmitting: true }));
+    console.log("Attempting submission...");
+
+    // TODO remove following line later, the purpose of the following line was to have isSubmitting to be true for 2 seconds
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    try {
+      // Add your sign-in logic here
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setFormState((prev) => ({ ...prev, isSubmitting: false }));
+    }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={[styles.container, { paddingTop: top }]}
+      behavior={keyboardBehavior}
+      keyboardVerticalOffset={keyboardVerticalOffset}
+    >
       {/* These circles create a soft, glowing background effect */}
       <View
         style={[
@@ -59,10 +153,12 @@ const Page = () => {
           { backgroundColor: theme.colors.onBackground },
         ]}
       />
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior="padding"
-        keyboardVerticalOffset={keyboardVerticalOffset}
+      <ScrollView
+        ref={scrollViewRef}
+        contentContainerStyle={styles.scrollContentContainer}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        keyboardShouldPersistTaps="handled"
       >
         <View style={styles.glassCard}>
           <View style={styles.cardContent}>
@@ -81,19 +177,47 @@ const Page = () => {
               </Text>
             </View>
             <View style={{ width: "100%", margin: 10 }}>
-              <TextInput label="Email" value={email} onChangeText={setEmail} />
-              <HelperText type="error" visible={hasErrorsInEmail()}>
+              <TextInput
+                label="Email"
+                value={formState.email}
+                onChangeText={handleInputChange("email")}
+                error={!!errors.email}
+                disabled={formState.isSubmitting}
+                autoCapitalize="none"
+                left={<TextInput.Icon icon="email" />}
+                style={{ marginBottom: 8 }}
+              />
+              <HelperText
+                type="error"
+                // visible={hasErrorsInEmail(formState.email)}
+                visible={errors.email !== undefined}
+              >
                 Email address is invalid!
               </HelperText>
             </View>
-            <View style={{ width: "100%", margin: 10 }}>
+            <View style={{ width: "100%" }}>
               <TextInput
                 label={"password"}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
+                value={formState.password}
+                onChangeText={handleInputChange("password")}
+                secureTextEntry={!passwordVisible}
+                error={!!errors.password}
+                disabled={formState.isSubmitting}
+                right={
+                  <TextInput.Icon
+                    icon={passwordVisible ? "eye-off" : "eye"}
+                    onPress={() => {
+                      setPasswordVisible((prev) => !prev);
+                    }}
+                  />
+                }
+                left={<TextInput.Icon icon="lock" />}
               />
-              <HelperText type="error" visible={hasErrorsInPassword()}>
+              <HelperText
+                type="error"
+                // visible={hasErrorsInPassword(formState.password)}
+                visible={errors.password !== undefined}
+              >
                 Password must be at least 8 characters and contain uppercase,
                 lowercase, number and special character
               </HelperText>
@@ -102,10 +226,17 @@ const Page = () => {
             <View
               style={{
                 marginLeft: 10,
+                marginBottom: 10,
                 width: "100%",
               }}
             >
-              <Link href={"/signup"}>
+              {/* <Link
+                href={{
+                  pathname: "/resetPassword",
+                  params: { id: 123, name: "mayuresh", token: "I'm in" },
+                }}
+              > */}
+              <Link href={"/forgotPassword"}>
                 <Text
                   style={[
                     styles.forgotPasswordText,
@@ -119,16 +250,22 @@ const Page = () => {
 
             <View
               style={{
-                width: "40%",
+                width: "100%",
                 margin: 10,
               }}
             >
               <Button
                 labelStyle={Pdstyles.buttonLabelStyle}
                 mode="contained"
-                onPress={() => {}}
+                onPress={handleSubmit}
+                disabled={
+                  formState.isSubmitting ||
+                  errors.password !== undefined ||
+                  errors.email !== undefined
+                }
+                loading={formState.isSubmitting}
               >
-                Continue
+                {formState.isSubmitting ? "Signing in..." : "Continue"}
               </Button>
             </View>
             <View style={{ margin: 10 }}>
@@ -176,7 +313,7 @@ const Page = () => {
             <View
               style={{
                 marginTop: 20,
-                width: "80%",
+                width: "100%",
               }}
             >
               <Button
@@ -190,8 +327,8 @@ const Page = () => {
             </View>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -289,7 +426,7 @@ const styles = StyleSheet.create({
     borderRadius: 150,
     opacity: 0.15,
   },
-  keyboardView: {
+  scrollContentContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",

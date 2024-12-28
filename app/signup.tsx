@@ -2,52 +2,34 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
   Dimensions,
-  Pressable,
-  Alert,
-  ActivityIndicator,
   ScrollView,
 } from "react-native";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Pdstyles } from "@/constants/Styles";
-import { router } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import { Link, router } from "expo-router";
+import {
+  useTheme,
+  TextInput,
+  HelperText,
+  Checkbox,
+  Button,
+  Portal,
+  Dialog,
+} from "react-native-paper";
+import { Text } from "@/components/Text";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  hasErrorsInEmail,
+  hasErrorsInName,
+  hasErrorsInPassword,
+} from "@/components/InputValidation";
 
 const { width } = Dimensions.get("window");
 
 // We'll use this type to manage different states of the verification process
 type VerificationStatus = "idle" | "sending" | "success" | "error";
-
-// Validation rules using regular expressions and constraints
-const VALIDATION_RULES = {
-  email: {
-    pattern: /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    message: "Please enter a valid email address",
-  },
-  password: {
-    minLength: 8,
-    pattern:
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-    message:
-      "Password must be at least 8 characters and contain uppercase, lowercase, number and special character",
-  },
-  firstName: {
-    minLength: 2,
-    pattern: /^[a-zA-Z\s-']+$/,
-    message:
-      "First name must be at least 2 characters and contain only letters, spaces, hyphens and apostrophes",
-  },
-  lastName: {
-    minLength: 2,
-    pattern: /^[a-zA-Z\s-']+$/,
-    message:
-      "Last name must be at least 2 characters and contain only letters, spaces, hyphens and apostrophes",
-  },
-};
 
 interface ValidationErrors {
   email?: string;
@@ -56,16 +38,34 @@ interface ValidationErrors {
   lastName?: string;
 }
 
-const Page = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [termsAccepted, setTermsAccepted] = useState(false);
+interface SignupFormState {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  termsAccepted: boolean;
+  touched: {
+    email: boolean;
+    password: boolean;
+    firstName: boolean;
+    lastName: boolean;
+  };
+  isSubmitting: boolean;
+}
 
-  // Validation state
-  const [errors, setErrors] = useState<ValidationErrors>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({});
+interface FormErrors {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+const Page = () => {
+  const { top } = useSafeAreaInsets();
+
+  const [showEmailVerificationDialog, setShowEmailVerificationDialog] =
+    useState(false);
+  const theme = useTheme();
 
   // Determine platform-specific keyboard behavior
   const keyboardVerticalOffset = Platform.OS === "ios" ? 40 : 0;
@@ -77,66 +77,56 @@ const Page = () => {
   const [errorMessage, setErrorMessage] = useState("");
 
   // Validate a single field
-  const validateField = (name: string, value: string): string => {
-    const rules = VALIDATION_RULES[name];
-    if (!value)
-      return `${name.charAt(0).toUpperCase() + name.slice(1)} is required`;
-
-    if (rules.minLength && value.length < rules.minLength) {
-      return `${
-        name.charAt(0).toUpperCase() + name.slice(1)
-      } must be at least ${rules.minLength} characters`;
-    }
-
-    if (rules.pattern && !rules.pattern.test(value)) {
-      return rules.message;
-    }
-
-    return "";
-  };
-
-  // Validate all fields
-  const validateForm = (): boolean => {
-    const newErrors: ValidationErrors = {};
-
-    // Validate each field
-    newErrors.email = validateField("email", email);
-    newErrors.password = validateField("password", password);
-    newErrors.firstName = validateField("firstName", firstName);
-    newErrors.lastName = validateField("lastName", lastName);
-
-    // Update errors state
-    setErrors(newErrors);
-
-    // Form is valid if there are no error messages
-    return !Object.values(newErrors).some((error) => error !== "");
-  };
-
-  // Handle field blur events
-  const handleBlur = (fieldName: string) => {
-    setTouched((prev) => ({ ...prev, [fieldName]: true }));
-
-    const error = validateField(
-      fieldName,
-      fieldName === "email"
-        ? email
-        : fieldName === "password"
-        ? password
-        : fieldName === "firstName"
-        ? firstName
-        : lastName
-    );
-
-    setErrors((prev) => ({ ...prev, [fieldName]: error }));
-  };
-
-  // Show error for a field if it's been touched
-  const showError = (fieldName: string): boolean => {
-    return touched[fieldName] && !!errors[fieldName];
-  };
 
   // Reference to ScrollView for programmatic scrolling
   const scrollViewRef = useRef(null);
+
+  const initialFormState = {
+    email: "",
+    password: "",
+    firstName: "",
+    lastName: "",
+    termsAccepted: false,
+    touched: {
+      email: false,
+      password: false,
+      firstName: false,
+      lastName: false,
+    },
+    isSubmitting: false,
+  };
+  const [formState, setFormState] = useState<SignupFormState>(initialFormState);
+
+  // Dedicated error state
+  const [errors, setErrors] = useState<FormErrors>({});
+
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  //input handler that provides real-time validation feedback
+  const handleInputChange =
+    (
+      field: keyof Omit<
+        SignupFormState,
+        "touched" | "isSubmitting" | "termsAccepted"
+      >
+    ) =>
+    (value: string) => {
+      setFormState((prev) => ({
+        ...prev,
+        [field]: value,
+        touched: {
+          ...prev.touched,
+          [field]: true,
+        },
+      }));
+
+      // Clear error when user starts typing
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    };
 
   // Simulate sending verification email
   // In production, this would connect to your backend API
@@ -153,138 +143,111 @@ const Page = () => {
     });
   };
 
+  const emptyTheForm = () => {
+    setFormState(initialFormState);
+  };
+
   const handleVerify = async () => {
-    console.log("handleVerify");
-    if (!termsAccepted) {
-      setErrorMessage("Please accept the Terms and Privacy Policy to continue");
-      setVerificationStatus("error");
-      return;
-    }
-
     try {
-      setVerificationStatus("sending");
-      await sendVerificationEmail(email);
-      setVerificationStatus("success");
+      // Validate all fields before submission
+      const formErrors: FormErrors = {};
 
-      // Wait for 2 seconds to show success message before navigation
-      setTimeout(() => {
-        // router.push("/verify");
-        console.log("Verification mail sent");
-      }, 2000);
+      if (hasErrorsInEmail(formState.email)) {
+        formErrors.email = "Please enter a valid email address";
+      }
+      if (hasErrorsInPassword(formState.password)) {
+        formErrors.password = "Password doesn't meet requirements";
+      }
+      if (hasErrorsInName(formState.firstName)) {
+        formErrors.firstName = "First name should be 2-15 characters";
+      }
+      if (hasErrorsInName(formState.lastName)) {
+        formErrors.lastName = "Last name should be 2-15 characters";
+      }
+
+      if (Object.keys(formErrors).length > 0) {
+        setErrors(formErrors);
+        return;
+      }
+
+      setFormState((prev) => ({ ...prev, isSubmitting: true }));
+      await sendVerificationEmail(formState.email);
+      setShowEmailVerificationDialog(true);
     } catch (error) {
-      setVerificationStatus("error");
       setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Failed to send verification email"
+        error instanceof Error ? error.message : "Verification failed"
       );
+    } finally {
+      setFormState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
-  // Render input field with error message
-  const renderInput = (
-    fieldName: string,
-    value: string,
-    onChange: (text: string) => void,
-    placeholder: string,
-    keyboardType: "default" | "email-address" = "default",
-    secureTextEntry: boolean = false
-  ) => (
-    <View style={styles.inputContainer}>
-      <TextInput
-        style={[
-          styles.input,
-          styles.phoneInput,
-          showError(fieldName) && styles.inputError,
-        ]}
-        placeholder={placeholder}
-        placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-        value={value}
-        onChangeText={(text) => {
-          onChange(text);
-          if (verificationStatus !== "idle") {
-            setVerificationStatus("idle");
-            setErrorMessage("");
-          }
-        }}
-        onBlur={() => handleBlur(fieldName)}
-        autoCapitalize={keyboardType === "email-address" ? "none" : "words"}
-        // keyboardType={keyboardType }
-        secureTextEntry={secureTextEntry}
-        editable={verificationStatus !== "sending"}
-      />
-      {showError(fieldName) && (
-        <Text style={styles.errorText}>{errors[fieldName]}</Text>
-      )}
-    </View>
-  );
-
-  // Helper function to render verification status message
-  const renderVerificationMessage = () => {
-    const renderIconAndText = (iconName, iconColor, message, textColor) => (
-      <View style={styles.messageContainer}>
-        <Ionicons
-          name={iconName}
-          size={24}
-          color={iconColor}
-          // style={styles.icon}
-        />
-        <Text style={[styles.messageText, { color: textColor }]}>
-          {message}
-        </Text>
-      </View>
-    );
-
-    switch (verificationStatus) {
-      case "sending":
-        return (
-          <View style={styles.messageContainer}>
-            <ActivityIndicator color="#FD356D" />
-            <Text style={styles.messageText}>
-              Sending verification email...
-            </Text>
-          </View>
-        );
-      case "success":
-        return renderIconAndText(
-          "checkmark-circle",
-          "#4CAF50",
-          "Verification email sent! Please check your inbox.",
-          "#4CAF50"
-        );
-      case "error":
-        return renderIconAndText(
-          "alert-circle",
-          "#FD356D",
-          errorMessage || "An error occurred. Please try again.",
-          "#FD356D"
-        );
-      default:
-        return null;
+  // Add real-time validation
+  useEffect(() => {
+    if (formState.touched.email) {
+      setErrors((prev) => ({
+        ...prev,
+        email: hasErrorsInEmail(formState.email)
+          ? "Please enter a valid email address"
+          : undefined,
+      }));
     }
-  };
-
-  // checkbox component
-
-  const Checkbox = ({ checked, onPress }) => (
-    <Pressable
-      onPress={onPress}
-      style={[styles.checkbox, checked && styles.checkboxChecked]}
-    >
-      {checked && <Ionicons name="checkmark" size={16} color="#FFF" />}
-    </Pressable>
-  );
+    if (formState.touched.password) {
+      setErrors((prev) => ({
+        ...prev,
+        password: hasErrorsInPassword(formState.password)
+          ? "Password must meet requirements"
+          : undefined,
+      }));
+    }
+    if (formState.touched.firstName) {
+      setErrors((prev) => ({
+        ...prev,
+        firstName: hasErrorsInName(formState.firstName)
+          ? "FirstfirstName must meet requirements"
+          : undefined,
+      }));
+    }
+    if (formState.touched.lastName) {
+      setErrors((prev) => ({
+        ...prev,
+        lastName: hasErrorsInName(formState.lastName)
+          ? "LastlastName must meet requirements"
+          : undefined,
+      }));
+    }
+  }, [
+    formState.email,
+    formState.password,
+    formState.firstName,
+    formState.lastName,
+  ]);
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { paddingTop: top }]}
       behavior={keyboardBehavior}
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
       {/* Background elements for visual depth */}
-      <View style={styles.mainGlow} />
-      <View style={styles.topAccent} />
-      <View style={styles.bottomAccent} />
+      <View
+        style={[
+          styles.mainGlow,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.topAccent,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.bottomAccent,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
 
       <ScrollView
         ref={scrollViewRef}
@@ -297,164 +260,219 @@ const Page = () => {
         <View style={styles.contentContainer}>
           {/* Engaging header section */}
           <View style={styles.headerSection}>
-            <Text style={styles.mainHeader}>Join Our Community</Text>
-            <Text style={Pdstyles.descriptionText}>
+            <Text variant="displaySmall" style={{}}>
+              Join Our Community
+            </Text>
+            <Text
+              variant="bodyLarge"
+              style={{
+                textAlign: "center",
+                color: theme.colors.primary,
+                margin: 2,
+              }}
+            >
               Where every meal tells a story
             </Text>
           </View>
 
           {/* Form section with enhanced visual hierarchy */}
           <View style={styles.formSection}>
-            {renderInput("email", email, setEmail, "Email", "email-address")}
+            <View style={{ width: "100%", margin: 3 }}>
+              <TextInput
+                label="Email"
+                value={formState.email}
+                onChangeText={handleInputChange("email")}
+                error={!!errors.email}
+                disabled={formState.isSubmitting}
+                left={<TextInput.Icon icon="email" />}
+              />
+              <HelperText type="error" visible={errors.email !== undefined}>
+                Email address is invalid!
+              </HelperText>
+            </View>
 
-            {renderInput(
-              "password",
-              password,
-              setPassword,
-              "Password",
-              "default",
-              true
-            )}
+            <View style={{ width: "100%", margin: 3 }}>
+              <TextInput
+                label={"password"}
+                value={formState.password}
+                onChangeText={handleInputChange("password")}
+                secureTextEntry={!passwordVisible}
+                error={!!errors.password}
+                disabled={formState.isSubmitting}
+                right={
+                  <TextInput.Icon
+                    icon={passwordVisible ? "eye-off" : "eye"}
+                    onPress={() => {
+                      setPasswordVisible((prev) => !prev);
+                    }}
+                  />
+                }
+              />
+              <HelperText type="error" visible={errors.password !== undefined}>
+                Password must be at least 8 characters and contain uppercase,
+                lowercase, number and special character
+              </HelperText>
+            </View>
 
             <View style={styles.nameInputContainer}>
-              {renderInput("firstName", firstName, setFirstName, "First name")}
-              {renderInput("lastName", lastName, setLastName, "Last name")}
+              <View style={{ flex: 1 }}>
+                <TextInput
+                  label={"First Name"}
+                  value={formState.firstName}
+                  onChangeText={handleInputChange("firstName")}
+                  error={!!errors.firstName}
+                  disabled={formState.isSubmitting}
+                />
+                <HelperText
+                  type="error"
+                  visible={errors.firstName !== undefined}
+                >
+                  Name should be between 2 to 15 characters
+                </HelperText>
+              </View>
+              <View style={{ flex: 1 }}>
+                <TextInput
+                  label={"Last Name"}
+                  value={formState.lastName}
+                  onChangeText={handleInputChange("lastName")}
+                  error={!!errors.lastName}
+                  disabled={formState.isSubmitting}
+                />
+                <HelperText
+                  type="error"
+                  visible={errors.lastName !== undefined}
+                >
+                  Name should be between 2 to 15 characters
+                </HelperText>
+              </View>
             </View>
-            {/* Email input */}
-            {/* <View style={styles.phoneInputContainer}>
-              <TextInput
-                style={[styles.input, styles.phoneInput]}
-                placeholder="Email"
-                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-                value={email}
-                onChangeText={(text) => {
-                  setEmail(text);
-                  // Reset verification status when email changes
-                  if (verificationStatus !== "idle") {
-                    setVerificationStatus("idle");
-                    setErrorMessage("");
-                  }
-                }}
-                autoCapitalize="none"
-                // keyboardType="email-address"
-                editable={verificationStatus !== "sending"}
-              />
-            </View> */}
 
-            {/* <View style={styles.phoneInputContainer}>
-              <TextInput
-                style={[styles.input, styles.phoneInput]}
-                placeholder="Password"
-                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-                editable={verificationStatus !== "sending"}
-              />
-            </View> */}
-
-            {/* Name input fields */}
-            {/* <View style={styles.nameInputContainer}>
-              <TextInput
-                style={[styles.input, styles.nameInput]}
-                placeholder="First name"
-                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-                value={firstName}
-                onChangeText={setFirstName}
-                editable={verificationStatus !== "sending"}
-              />
-              <TextInput
-                style={[styles.input, styles.nameInput]}
-                placeholder="Last name"
-                placeholderTextColor={"rgba(245, 169, 178, 0.7)"}
-                value={lastName}
-                onChangeText={setLastName}
-                editable={verificationStatus !== "sending"}
-              />
-            </View> */}
-
-            {/* Terms and services */}
-            <View style={styles.termsContainer}>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Checkbox
-                checked={termsAccepted}
-                onPress={() => setTermsAccepted(!termsAccepted)}
+                status={termsAccepted ? "checked" : "unchecked"}
+                onPress={() => {
+                  setTermsAccepted(!termsAccepted);
+                }}
               />
-              <Text style={styles.termsText}>
-                I agree to the{" "}
-                <Text
-                  style={styles.termsLink}
-                  // onPress={() => router.push("/terms")}
-                >
-                  Terms of Service
-                </Text>{" "}
-                and{" "}
-                <Text
-                  style={styles.termsLink}
-                  // onPress={() => router.push("/privacy")}
-                >
-                  Privacy Policy
-                </Text>
+              <Text style={{ color: theme.colors.onSurfaceVariant }}>
+                I agree to the Terms of Service and Privacy Policy
               </Text>
             </View>
 
-            {/* Verification status message */}
-            {renderVerificationMessage()}
-
             {/* Verify button */}
-            <TouchableOpacity
-              style={[
-                styles.verifyButton,
-                email && firstName && lastName && termsAccepted
-                  ? // && verificationStatus !== "sending"
-                    styles.enabled
-                  : styles.disabled,
-              ]}
-              onPress={handleVerify}
-              // disabled={
-              //   !email ||
-              //   !firstName ||
-              //   !lastName ||
-              //   !termsAccepted ||
-              //   verificationStatus !== "sending"
-              // }
+            <View
+              style={{
+                width: "100%",
+                margin: 2,
+              }}
             >
-              {verificationStatus === "sending" ? (
-                <ActivityIndicator color="#FFF" />
-              ) : (
-                <Text style={styles.buttonText}>Verify</Text>
-              )}
-            </TouchableOpacity>
+              <Button
+                labelStyle={Pdstyles.buttonLabelStyle}
+                mode="contained"
+                loading={formState.isSubmitting}
+                onPress={handleVerify}
+                disabled={
+                  formState.isSubmitting ||
+                  errors.password !== undefined ||
+                  errors.email !== undefined ||
+                  errors.firstName !== undefined ||
+                  errors.lastName !== undefined ||
+                  !termsAccepted
+                }
+              >
+                {formState.isSubmitting ? "Verifying..." : "Verify"}
+              </Button>
+            </View>
+
+            <Portal>
+              <Dialog
+                visible={showEmailVerificationDialog}
+                onDismiss={() => {
+                  setShowEmailVerificationDialog(false);
+                  emptyTheForm();
+                }}
+              >
+                <Dialog.Title>Verification Email Sent</Dialog.Title>
+                <Dialog.Content>
+                  <Text variant="bodyMedium">
+                    We've sent a verification link to {formState.email}. Please
+                    check your inbox and follow the instructions to complete
+                    your registration.
+                  </Text>
+                </Dialog.Content>
+                <Dialog.Actions>
+                  <Button
+                    onPress={() => {
+                      setShowEmailVerificationDialog(false);
+                      emptyTheForm();
+                      // Optionally navigate to sign in page
+                      router.push("/signin");
+                    }}
+                  >
+                    Ok
+                  </Button>
+                </Dialog.Actions>
+              </Dialog>
+            </Portal>
 
             {/* Sign in prompt */}
-            <View style={styles.signinPromptContainer}>
-              <Text style={styles.promptText}>
+            <View style={{ margin: 2 }}>
+              <Text
+                style={{
+                  color: theme.colors.onSurfaceVariant, // Slightly muted white for the main text
+                  fontSize: 16,
+                  textAlign: "center",
+                }}
+              >
                 Already have an account?{"  "}
-                <Text
-                  style={styles.signInLink}
-                  onPress={() => router.push("/signin")}
-                >
-                  Sign In
-                </Text>
+                <Link href={"/signin"}>
+                  <Text
+                    style={{
+                      color: theme.colors.onBackground, // Your accent color
+                    }}
+                  >
+                    Sign In
+                  </Text>
+                </Link>{" "}
               </Text>
             </View>
 
             {/* Divider */}
             <View style={styles.dividerContainer}>
-              <View style={styles.divider} />
-              <Text style={styles.dividerText}>or</Text>
-              <View style={styles.divider} />
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              />
+              <Text
+                style={[styles.dividerText, { color: theme.colors.primary }]}
+              >
+                or
+              </Text>
+              <View
+                style={[
+                  styles.divider,
+                  { backgroundColor: theme.colors.primary },
+                ]}
+              />
             </View>
 
-            {/* Google sign in */}
-            <TouchableOpacity
-              onPress={() => {}}
-              style={[Pdstyles.pillButton, styles.googleButton]}
+            <View
+              style={{
+                // marginTop: 20,
+                width: "100%",
+              }}
             >
-              <Ionicons name="logo-google" size={24} color={"#FD356D"} />
-              <Text style={[styles.buttonText, styles.googleButtonText]}>
-                Continue with Google{" "}
-              </Text>
-            </TouchableOpacity>
+              <Button
+                labelStyle={Pdstyles.buttonLabelStyle}
+                icon={"google"}
+                mode="contained"
+                onPress={() => {}}
+              >
+                Continue with Google
+              </Button>
+            </View>
           </View>
         </View>
       </ScrollView>
@@ -465,7 +483,6 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1A1A1A",
     overflow: "hidden",
   },
   mainGlow: {
@@ -473,7 +490,6 @@ const styles = StyleSheet.create({
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
-    backgroundColor: "#FD356D",
     top: -width * 0.5,
     left: -width * 0.25,
     opacity: 0.08,
@@ -483,7 +499,6 @@ const styles = StyleSheet.create({
     width: width,
     height: width,
     transform: [{ rotate: "-45deg" }],
-    backgroundColor: "#FD356D",
     top: -width * 0.7,
     right: -width * 0.5,
     opacity: 0.05,
@@ -493,7 +508,6 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
-    backgroundColor: "#FD356D",
     bottom: -width * 0.4,
     left: -width * 0.2,
     opacity: 0.06,
@@ -510,141 +524,23 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingTop: 10,
     justifyContent: "center",
   },
   headerSection: {
-    marginBottom: 40,
+    marginBottom: 15,
     justifyContent: "center",
     alignItems: "center",
   },
-  mainHeader: {
-    fontSize: 32,
-    color: "#FD356D",
-    // fontWeight: "bold",
-    fontFamily: "PlayRegular",
-    marginBottom: 8,
-    textShadowColor: "rgba(253, 53, 109, 0.3)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  subHeader: {
-    fontSize: 18,
-    color: "rgba(255, 255, 255, 0.7)",
-    marginBottom: 20,
-    fontFamily: "PlayRegular",
-  },
   formSection: {
     gap: 24,
-  },
-  phoneInputContainer: {
-    flexDirection: "row",
-    gap: 12,
   },
   nameInputContainer: {
     flexDirection: "row",
     gap: 12,
   },
-  input: {
-    // backgroundColor: "rgba(69, 14, 30, 0.75)",
-    padding: 16,
-    borderRadius: 16,
-    fontSize: 18,
-    color: "#ffffff",
-    borderWidth: 1,
-    borderColor: "rgba(253, 53, 109, 0.2)",
-  },
-  countryCode: {
-    width: 70,
-  },
-  phoneInput: {
-    flex: 1,
-  },
-  nameInput: {
-    flex: 1,
-  },
-  verifyButton: {
-    padding: 18,
-    borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 12,
-  },
-  enabled: {
-    backgroundColor: "#FD356D",
-    shadowColor: "#FD356D",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  disabled: {
-    backgroundColor: "rgba(161, 34, 69, 0.7)",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "600",
-  },
-  signinPromptContainer: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  promptText: {
-    color: "rgba(255, 255, 255, 0.7)",
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  signInLink: {
-    color: "#FD356D",
-    fontWeight: "600",
-  },
-  // New styles for Terms and Privacy section
-  termsContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginTop: 8,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: "rgba(253, 53, 109, 0.5)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxChecked: {
-    backgroundColor: "#FD356D",
-    borderColor: "#FD356D",
-  },
-  termsText: {
-    flex: 1,
-    color: "rgba(255, 255, 255, 0.7)",
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  termsLink: {
-    color: "#FD356D",
-    textDecorationLine: "underline",
-  },
 
-  // New styles for verification messages
-  messageContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    marginTop: 8,
-    padding: 12,
-    backgroundColor: "rgba(253, 53, 109, 0.1)",
-    borderRadius: 8,
-  },
-  messageText: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: "rgba(255, 255, 255, 0.9)",
-  },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -653,37 +549,9 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: "#f5a9b2",
   },
   dividerText: {
-    color: "#f5a9b2",
     fontSize: 20,
-  },
-  googleButton: {
-    flexDirection: "row",
-    gap: 16,
-    marginTop: 20,
-    backgroundColor: "#2E0A14",
-    borderWidth: 1,
-    borderColor: "rgba(253, 53, 109, 0.5)",
-  },
-  googleButtonText: {
-    color: "#FD356D",
-    fontSize: 20,
-  },
-  // New styles for validation
-  inputContainer: {
-    marginBottom: 8,
-  },
-  inputError: {
-    borderColor: "#FD356D",
-    borderWidth: 1,
-  },
-  errorText: {
-    color: "#FD356D",
-    fontSize: 12,
-    marginTop: 4,
-    marginLeft: 4,
   },
 });
 
