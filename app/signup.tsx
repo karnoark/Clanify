@@ -25,6 +25,7 @@ import {
   hasErrorsInName,
   hasErrorsInPassword,
 } from "@/components/InputValidation";
+import { useAuthStore } from "@/utils/auth";
 
 const { width } = Dimensions.get("window");
 
@@ -62,6 +63,7 @@ interface FormErrors {
 
 const Page = () => {
   const { top } = useSafeAreaInsets();
+  const signUp = useAuthStore((state) => state.signUp);
 
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] =
     useState(false);
@@ -131,6 +133,7 @@ const Page = () => {
   // Simulate sending verification email
   // In production, this would connect to your backend API
   const sendVerificationEmail = async (email: string) => {
+    /*
     return new Promise((resolve, reject) => {
       // Simulate API call delay
       setTimeout(() => {
@@ -141,6 +144,16 @@ const Page = () => {
         }
       }, 1500);
     });
+    */
+
+    console.log("signUp attempting");
+    await signUp({
+      email: formState.email,
+      password: formState.password,
+      firstName: formState.firstName,
+      lastName: formState.lastName,
+    });
+    console.log("signup completed");
   };
 
   const emptyTheForm = () => {

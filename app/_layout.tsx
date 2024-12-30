@@ -23,6 +23,7 @@ import {
   useTheme,
 } from "react-native-paper";
 import merge from "deepmerge";
+import { initializeAuth, useAuthStore } from "@/utils/auth";
 
 const customLightTheme = { ...MD3DarkTheme, colors: Colors.light };
 const customDarkTheme = { ...MD3LightTheme, colors: Colors.dark };
@@ -39,6 +40,7 @@ const CombinedDarkTheme = merge(DarkTheme, customDarkTheme);
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const user = useAuthStore((state) => state.user);
   // const theme = useTheme();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -51,6 +53,11 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    console.log("Initializing Auth");
+    initializeAuth();
+  }, []);
 
   if (!loaded) {
     return null;

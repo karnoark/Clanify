@@ -1,4 +1,7 @@
+//todo add something like toast notification for messages like "invalid login credentials"
+
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -7,7 +10,7 @@ import {
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Pdstyles } from "@/constants/Styles";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { Button, HelperText, TextInput, useTheme } from "react-native-paper";
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +18,7 @@ import {
   hasErrorsInEmail,
   hasErrorsInPassword,
 } from "@/components/InputValidation";
+import { useAuthStore } from "@/utils/auth";
 
 interface FormState {
   email: string;
@@ -34,6 +38,7 @@ interface FormErrors {
 const Page = () => {
   const { top } = useSafeAreaInsets();
   const theme = useTheme();
+  const signIn = useAuthStore((state) => state.signIn);
   const [formState, setFormState] = useState<FormState>({
     email: "",
     password: "",
@@ -101,15 +106,19 @@ const Page = () => {
     }
 
     setFormState((prev) => ({ ...prev, isSubmitting: true }));
-    console.log("Attempting submission...");
+    console.log("Attempting signin submission...");
 
     // TODO remove following line later, the purpose of the following line was to have isSubmitting to be true for 2 seconds
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     try {
-      // Add your sign-in logic here
+      // Supabase sign-in logic here
+      console.log("Initializing signIn");
+      await signIn({ email: formState.email, password: formState.password });
+      router.push("/(authenticated)/(tabs)/explore");
     } catch (error) {
       console.error(error);
+      Alert.alert("not able to login: ", error.message);
     } finally {
       setFormState((prev) => ({ ...prev, isSubmitting: false }));
     }
@@ -261,7 +270,9 @@ const Page = () => {
                 disabled={
                   formState.isSubmitting ||
                   errors.password !== undefined ||
-                  errors.email !== undefined
+                  errors.email !== undefined ||
+                  formState.email === "" ||
+                  formState.password === ""
                 }
                 loading={formState.isSubmitting}
               >

@@ -5,17 +5,30 @@ import {
   Dimensions,
   useColorScheme,
 } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { Pdstyles } from "@/constants/Styles";
-import { Link, router } from "expo-router";
+import { Link, Redirect, router } from "expo-router";
 import { Button } from "react-native-paper";
 import { Text } from "@/components/Text";
 import { Colors } from "@/constants/Colors";
+import { initializeAuth, useAuthStore } from "@/utils/auth";
 
 const { width, height } = Dimensions.get("window");
 
 const Page = () => {
+  const user = useAuthStore((state) => state.user);
+
   const colorScheme = useColorScheme() ?? "dark";
+
+  useEffect(() => {
+    console.log("Initializing Auth");
+    initializeAuth();
+  }, []);
+
+  if (user) {
+    return <Redirect href={"/(authenticated)/(tabs)/explore"} />;
+  }
+
   return (
     <View style={styles.container}>
       {/* Background elements that create depth and visual interest */}
