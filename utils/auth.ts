@@ -13,11 +13,6 @@ import { create } from "zustand";
 // import { ENV } from '../config/env'
 import "react-native-url-polyfill/auto";
 
-//Supabase Configuration
-const supabaseUrl = "https://udgtgwhwrgwxitiesiqg.supabase.co";
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkZ3Rnd2h3cmd3eGl0aWVzaXFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUwMzk1MzksImV4cCI6MjA1MDYxNTUzOX0.oU1EpmirPJC0kkK_FndSkApHTfstB_8bTSQZg-lxoYk";
-
 // Define our core interfaces
 interface User {
   id: string;
@@ -89,21 +84,34 @@ const customStorageAdapter = {
 };
 //todo: learn about why it's used promise here? as main featture of mmkv is its synchronous nature
 
-// Initialize Supabase client with our custom storage adapter
-const supabase = createClient(
-  // Use ENV.SUPABASE_URL,
-  supabaseUrl,
-  // Use ENV.SUPABASE_ANON_KEY,
-  supabaseAnonKey,
-  {
+//Supabase Configuration
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+
+// console.log("supabaseUrl: ", supabaseUrl);
+// console.log("supabaseAnonKey: ", supabaseAnonKey);
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Supabase URL or Anon Key is missing. Ensure EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set in the environment variables."
+  );
+}
+
+let supabase;
+
+try {
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       storage: customStorageAdapter,
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
     },
-  }
-);
+  });
+} catch (error) {
+  console.error("Failed to initialize Supabase client:", error);
+  throw error;
+}
 
 // Helper functions for managing MMKV storage
 const saveToStorage = (key: string, value: any) => {
