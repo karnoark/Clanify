@@ -1,3 +1,5 @@
+//todo Error handling when authentication fails. documentation: When authentication fails, the user will still be redirected to the redirect URL provided. However, the error details will be returned as query fragments in the URL. You can parse these query fragments and show a custom error message to the user.
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +22,7 @@ import {
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hasErrorsInPassword } from "@/components/InputValidation";
+import { useAuthStore } from "@/utils/auth";
 
 const { width } = Dimensions.get("window");
 
@@ -39,7 +42,11 @@ const Page = () => {
   const { top } = useSafeAreaInsets();
   const theme = useTheme();
   // Get the token from the URL params
-  const { token } = useLocalSearchParams();
+  // const { token } = useLocalSearchParams();
+  const updatePassword = useAuthStore((state) => state.updatePassword);
+  // const getExistingSession = useAuthStore((state) => state.getExistingSession);
+  const session = useAuthStore((state) => state.session);
+  const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery);
 
   // State management for the form
   const [newPassword, setNewPassword] = useState("");
@@ -54,30 +61,29 @@ const Page = () => {
   const keyboardBehavior = Platform.OS === "ios" ? "padding" : "height";
 
   // Validate the reset token when the component mounts
-  useEffect(() => {
-    validateResetToken();
-  }, [token]);
+  // useEffect(() => {
+  //   validateResetToken();
+  // }, [token]);
 
   // Function to validate the reset token
-  const validateResetToken = async () => {
-    try {
-      console.log("token: ", token);
-      // In production, you would verify the token with your backend
-      // For now, we'll simulate a delay and success
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  // const validateResetToken = async () => {
+  //   try {
+  //     // In production, you would verify the token with your backend
+  //     // For now, we'll simulate a delay and success
+  //     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      if (!token) {
-        throw new Error("Invalid or expired reset link");
-      }
+  //     if (!token) {
+  //       throw new Error("Invalid or expired reset link");
+  //     }
 
-      setResetStatus("ready");
-    } catch (error) {
-      setResetStatus("error");
-      setErrorMessage(
-        "This password reset link is invalid or has expired. Please request a new one."
-      );
-    }
-  };
+  //     setResetStatus("ready");
+  //   } catch (error) {
+  //     setResetStatus("error");
+  //     setErrorMessage(
+  //       "This password reset link is invalid or has expired. Please request a new one."
+  //     );
+  //   }
+  // };
 
   // Function to handle password reset
   const handleResetPassword = async () => {
@@ -97,7 +103,9 @@ const Page = () => {
       setResetStatus("resetting");
 
       // In production, you would call your API here
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      await updatePassword(confirmPassword);
 
       setResetStatus("success");
       setNewPassword("");
@@ -112,30 +120,44 @@ const Page = () => {
   };
 
   // If we're still validating the token or there's an error, show appropriate UI
-  if (resetStatus === "validating") {
-    return (
-      <View style={styles.centerContainer}>
-        <Text>Validating reset link...</Text>
-      </View>
-    );
-  }
+  // if (resetStatus === "validating") {
+  //   return (
+  //     <View style={styles.centerContainer}>
+  //       <Text>Validating reset link...</Text>
+  //     </View>
+  //   );
+  // }
 
-  if (resetStatus === "error" && !token) {
-    return (
-      <View style={styles.centerContainer}>
-        <Text style={[styles.errorText, { color: theme.colors.error }]}>
-          {errorMessage}
-        </Text>
-        <Button
-          mode="contained"
-          onPress={() => router.push("/forgotPassword")}
-          style={styles.button}
-        >
-          Request New Reset Link
-        </Button>
-      </View>
+  // if (resetStatus === "error" && !token) {
+  //   return (
+  //     <View style={styles.centerContainer}>
+  //       <Text style={[styles.errorText, { color: theme.colors.error }]}>
+  //         {errorMessage}
+  //       </Text>
+  //       <Button
+  //         mode="contained"
+  //         onPress={() => router.push("/forgotPassword")}
+  //         style={styles.button}
+  //       >
+  //         Request New Reset Link
+  //       </Button>
+  //     </View>
+  //   );
+  // }
+
+  useEffect(() => {
+    // (async () => {
+    //   getExistingSession();
+    // })();
+    console.log("in resetPassword page: session: ", session);
+  }, [session]);
+
+  useEffect(() => {
+    console.log(
+      "in resetPassword Page: isPasswordRecovery: ",
+      isPasswordRecovery
     );
-  }
+  }, [isPasswordRecovery]);
 
   return (
     <KeyboardAvoidingView
@@ -279,24 +301,24 @@ const Page = () => {
           visible={showSuccessDialog}
           onDismiss={() => {
             setShowSuccessDialog(false);
-            router.push("/signin");
+            router.push("/");
           }}
         >
           <Dialog.Title>Password Reset Successful</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">
-              Your password has been successfully reset. You can now sign in
-              with your new password.
+              Your password has been successfully reset. Enjoy the clanify!!
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
             <Button
               onPress={() => {
+                console.log("password reset successful!!!");
                 setShowSuccessDialog(false);
-                router.push("/signin");
+                router.push("/");
               }}
             >
-              Sign In
+              Ok
             </Button>
           </Dialog.Actions>
         </Dialog>

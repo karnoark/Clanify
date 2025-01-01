@@ -26,6 +26,7 @@ import {
   hasErrorsInPassword,
 } from "@/components/InputValidation";
 import { useAuthStore } from "@/utils/auth";
+import { EmailOtpParams } from "@/app/verify";
 
 const { width } = Dimensions.get("window");
 
@@ -405,12 +406,12 @@ const Page = () => {
                   emptyTheForm();
                 }}
               >
-                <Dialog.Title>Verification Email Sent</Dialog.Title>
+                <Dialog.Title>OTP Sent</Dialog.Title>
                 <Dialog.Content>
                   <Text variant="bodyMedium">
-                    We've sent a verification link to {formState.email}. Please
-                    check your inbox and follow the instructions to complete
-                    your registration.
+                    We've sent an OTP to {formState.email}. Please check your
+                    inbox and follow the instructions to complete your
+                    registration.
                   </Text>
                 </Dialog.Content>
                 <Dialog.Actions>
@@ -418,8 +419,14 @@ const Page = () => {
                     onPress={() => {
                       setShowEmailVerificationDialog(false);
                       emptyTheForm();
-                      // Optionally navigate to sign in page
-                      router.push("/signin");
+                      const params: EmailOtpParams = {
+                        email: formState.email,
+                        emailOtpType: "email", // or whatever value you want to pass
+                      };
+                      router.push({
+                        pathname: "/verify",
+                        params,
+                      });
                     }}
                   >
                     Ok

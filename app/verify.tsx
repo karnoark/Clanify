@@ -7,38 +7,56 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
+  Alert,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
-import { router } from "expo-router";
+import { RouteParams, router, useLocalSearchParams } from "expo-router";
+import { useAuthStore } from "@/utils/auth";
+import { EmailOtpType } from "@supabase/supabase-js";
 
 const { width } = Dimensions.get("window");
 
 // We create a resend timer duration constant that we can easily adjust
 const RESEND_TIMER_DURATION = 30;
 
+export type EmailOtpParams = RouteParams<{
+  email: string;
+  emailOtpType: EmailOtpType;
+}>;
+
 const Page = () => {
+  const { email, emailOtpType } = useLocalSearchParams<EmailOtpParams>();
+  console.log("verify screen -> email in params: ", email);
+  console.log("verify screen -> emailOtpType in params: ", emailOtpType);
+
+  const verifyOtp = useAuthStore((state) => state.verifyOtp);
+
   // We'll store each OTP digit separately for better control
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(RESEND_TIMER_DURATION);
   const [canResend, setCanResend] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const inputRefs = useRef<Array<TextInput | null>>([
     ...Array(4).map(() => null),
   ]);
 
+  //todo: find alternate approach for following useEffect, as it is responsible for rendering this component more than 20 times
   // Timer logic for resend cooldown
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    // let interval: number;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    } else {
-      setCanResend(true);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setTimer((prev) => {
+  //       if (prev <= 1) {
+  //         clearInterval(interval);
+  //         setCanResend(true);
+  //         return 0;
+  //       }
+  //       return prev - 1;
+  //     });
+  //   }, 1000);
+
+  //   return () => clearInterval(interval); // Cleanup on unmount
+  // }, []);
 
   // Handle input changes and auto-focus behavior
   const handleOtpChange = (text: string, index: number) => {
@@ -49,7 +67,7 @@ const Page = () => {
     setOtp(newOtp);
 
     // Auto-focus next input if current input is filled
-    if (text.length === 1 && index < 3) {
+    if (text.length === 1 && index < 5) {
       // inputRefs.current[index + 1].focus();
       const nextInput = inputRefs.current[index + 1];
       if (nextInput) {
@@ -74,10 +92,34 @@ const Page = () => {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Check if OTP is complete
-    if (otp.every((digit) => digit.length === 1)) {
-      router.push("/(authenticated)/(tabs)/");
+    // if (otp.every((digit) => digit.length === 1)) {
+    //   router.push("/(authenticated)/(tabs)/");
+    // }
+
+    try {
+      console.log("Initializing verifyOtp");
+      setIsSubmitting(true);
+      // if (typeof email === "string") {
+      await verifyOtp({ email, token: otp.join(""), type: emailOtpType });
+      // } else {
+      //   console.error("Email is not a string");
+      //   throw Error("Email is not a string");
+      // }
+      console.log(
+        "successfully verified the otp.... now redirecting to resetPassword page"
+      );
+      if (emailOtpType === "recovery") {
+        router.push("/resetPassword");
+      } else {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("not able to login: ", error.message);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,9 +137,9 @@ const Page = () => {
         <View style={styles.contentContainer}>
           {/* Header section with clear instructions */}
           <View style={styles.headerSection}>
-            <Text style={styles.mainHeader}>Verify Your Number</Text>
+            <Text style={styles.mainHeader}>Verify Your Account</Text>
             <Text style={styles.subHeader}>
-              Enter the 4-digit code sent to your phone
+              Enter the 6-digit code sent to your mail
             </Text>
           </View>
 
@@ -203,7 +245,7 @@ const styles = StyleSheet.create({
   },
   otpContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     marginBottom: 40,
     paddingHorizontal: 20,
   },

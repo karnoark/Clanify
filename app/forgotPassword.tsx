@@ -19,6 +19,8 @@ import {
 import { Text } from "@/components/Text";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { hasErrorsInEmail } from "@/components/InputValidation";
+import { useAuthStore } from "@/utils/auth";
+import { router } from "expo-router";
 
 const { width } = Dimensions.get("window");
 
@@ -28,6 +30,7 @@ type ResetStatus = "idle" | "sending" | "success" | "error";
 const Page = () => {
   const { top } = useSafeAreaInsets();
   const theme = useTheme();
+  const resetPassword = useAuthStore((state) => state.resetPassword);
 
   // State management for the form
   const [email, setEmail] = useState("");
@@ -57,7 +60,8 @@ const Page = () => {
   const handleResetPassword = async () => {
     try {
       setResetStatus("sending");
-      await sendResetEmail(email);
+      // await sendResetEmail(email);
+      await resetPassword(email);
       setResetStatus("success");
       setShowResetDialog(true);
     } catch (error) {
@@ -161,7 +165,18 @@ const Page = () => {
             </Text>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button onPress={() => setShowResetDialog(false)}>Got it</Button>
+            <Button
+              onPress={() => {
+                setShowResetDialog(false);
+                // router.push({ pathname: "/verify", params: { email: email } });
+                router.push({
+                  pathname: "/verify",
+                  params: { email: email, emaiOtpType: "recovery" },
+                });
+              }}
+            >
+              Got it
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

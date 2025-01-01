@@ -17,6 +17,8 @@ const { width, height } = Dimensions.get("window");
 
 const Page = () => {
   const user = useAuthStore((state) => state.user);
+  // const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery);
+  // console.log("index page:-> isPasswordRecovery: ", isPasswordRecovery);
 
   const colorScheme = useColorScheme() ?? "dark";
 

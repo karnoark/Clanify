@@ -105,3 +105,151 @@ borderColor: "rgba(253, 53, 109, 0.5)",
 disabled_backgroundColor: "rgba(161, 34, 69, 0.7)"
 enabled_backgroundColor: "rgba(207, 43, 89, 0.9)",
 */
+
+/* 
+Here’s the **dark theme palette** with RGB values for each color role, centered around your brand identity color **#FD356D**.
+
+---
+
+### 1. **Primary Colors**
+- **Primary**: `rgb(253, 53, 109)`  
+  (Your brand color, used for primary actions like buttons and highlights.)  
+
+- **On Primary**: `rgb(255, 255, 255)`  
+  (Text/icons on primary-colored surfaces.)  
+
+- **Primary Container**: `rgb(94, 0, 29)`  
+  (A darker variant of your brand color for containers and elevated surfaces.)  
+
+- **On Primary Container**: `rgb(255, 217, 223)`  
+  (Text/icons for containers.)  
+
+---
+
+### 2. **Secondary Colors**
+- **Secondary**: `rgb(255, 167, 107)`  
+  (A warm orange to complement your primary color, for secondary actions.)  
+
+- **On Secondary**: `rgb(52, 18, 0)`  
+  (Text/icons on secondary-colored surfaces.)  
+
+- **Secondary Container**: `rgb(91, 26, 0)`  
+  (A darker orange for containers.)  
+
+- **On Secondary Container**: `rgb(255, 220, 198)`  
+  (Text/icons for secondary containers.)  
+
+---
+
+### 3. **Tertiary Colors**
+- **Tertiary**: `rgb(107, 147, 255)`  
+  (A calming blue for accents or decorative purposes.)  
+
+- **On Tertiary**: `rgb(0, 25, 68)`  
+  (Text/icons on tertiary-colored surfaces.)  
+
+- **Tertiary Container**: `rgb(0, 49, 106)`  
+  (A darker blue for tertiary containers.)  
+
+- **On Tertiary Container**: `rgb(217, 226, 255)`  
+  (Text/icons for tertiary containers.)  
+
+---
+
+### 4. **Error Colors**
+- **Error**: `rgb(255, 107, 107)`  
+  (Bright red for errors or warnings like validation feedback.)  
+
+- **On Error**: `rgb(255, 255, 255)`  
+  (Text/icons on error surfaces.)  
+
+- **Error Container**: `rgb(92, 0, 0)`  
+  (Dark red for error containers.)  
+
+- **On Error Container**: `rgb(255, 218, 214)`  
+  (Text/icons for error containers.)  
+
+---
+
+### 5. **Neutral Colors**
+- **Background**: `rgb(18, 18, 18)`  
+  (Dark background for the app.)  
+
+- **On Background**: `rgb(229, 229, 229)`  
+  (Text/icons on the background.)  
+
+- **Surface**: `rgb(30, 30, 30)`  
+  (Dark gray for surfaces like cards or modals.)  
+
+- **On Surface**: `rgb(229, 229, 229)`  
+  (Text/icons on surfaces.)  
+
+- **Surface Variant**: `rgb(58, 58, 58)`  
+  (Slightly lighter gray for layered surfaces.)  
+
+- **On Surface Variant**: `rgb(218, 218, 218)`  
+  (Text/icons on surface variants.)  
+
+---
+
+### 6. **Other Roles**
+- **Outline**: `rgb(117, 117, 117)`  
+  (Borders or outlines.)  
+
+- **Outline Variant**: `rgb(92, 92, 92)`  
+  (Darker outlines for emphasis.)  
+
+- **Shadow**: `rgb(0, 0, 0)`  
+  (Shadows for elevation effects.)  
+
+- **Scrim**: `rgba(0, 0, 0, 0.4)`  
+  (For modals or overlays.)  
+
+- **Inverse Surface**: `rgb(229, 229, 229)`  
+  (Light surface for pop-ups in the dark theme.)  
+
+- **Inverse On Surface**: `rgb(30, 30, 30)`  
+  (Dark text/icons on inverse surfaces.)  
+
+- **Backdrop**: `rgba(18, 18, 18, 0.7)`  
+  (Dimmed effect for backdrops.)  
+
+---
+
+### 7. **Elevations**
+For Material Design elevation levels:  
+
+- **Level 0**: `rgb(18, 18, 18)` (transparent for the lowest elevation).  
+- **Level 1**: `rgb(30, 30, 30)` (e.g., cards).  
+- **Level 2**: `rgb(35, 35, 35)` (e.g., dropdowns).  
+- **Level 3**: `rgb(39, 39, 39)` (e.g., modals).  
+- **Level 4**: `rgb(44, 44, 44)` (e.g., floating buttons).  
+- **Level 5**: `rgb(48, 48, 48)` (highest elevation).  
+
+---
+
+### Harmonious & Calming Use Case
+1. **Buttons**:  
+   - Use **Primary** and **On Primary** for action buttons.  
+   - Use **Secondary** and **On Secondary** for less important actions.  
+
+2. **Backgrounds**:  
+   - Pair **Background** with **On Background** for text-heavy screens.  
+
+3. **Cards & Modals**:  
+   - Use **Surface** and **On Surface** for containers.  
+
+4. **Errors**:  
+   - Use **Error** sparingly for validation. Pair with **On Error** text.  
+
+5. **Typography**:  
+   - Ensure text colors align with the contrast of surfaces for readability.  
+
+---
+
+This **RGB palette** ensures your brand identity color (#FD356D) is central while offering harmonious support from secondary, tertiary, and neutral tones. Let me know if you’d like to refine or tweak anything!
+
+
+
+
+*/
