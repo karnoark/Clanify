@@ -13,6 +13,7 @@ export const Colors = {
     primaryContainer: "rgb(255, 219, 205)",
     onPrimaryContainer: "rgb(54, 15, 0)",
     secondary: "rgb(119, 87, 74)",
+    // secondary: "rgb(160, 120, 86)",rgb(94, 151, 147)rgb(140, 122, 112)rgb(120, 120, 80)rgb(215, 96, 85)rgb(204, 153, 50)
     onSecondary: "rgb(255, 255, 255)",
     secondaryContainer: "rgb(255, 219, 205)",
     onSecondaryContainer: "rgb(44, 22, 12)",

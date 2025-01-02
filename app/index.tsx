@@ -28,6 +28,10 @@ const Page = () => {
   }, []);
 
   if (user) {
+    console.log(
+      "index:-> user is logged in... so redirecting to authenticated tabs... user: ",
+      user
+    );
     return <Redirect href={"/(authenticated)/(tabs)/explore"} />;
   }
 

@@ -2,17 +2,19 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
-  TextInput,
   TouchableOpacity,
   View,
   Dimensions,
   Alert,
+  TextInput as RNTextInput,
 } from "react-native";
 import React, { useState, useRef, useEffect } from "react";
 import { RouteParams, router, useLocalSearchParams } from "expo-router";
 import { useAuthStore } from "@/utils/auth";
 import { EmailOtpType } from "@supabase/supabase-js";
+import { useTheme, TextInput, Button } from "react-native-paper";
+import { Text } from "@/components/Text";
+import { Pdstyles } from "@/constants/Styles";
 
 const { width } = Dimensions.get("window");
 
@@ -36,9 +38,10 @@ const Page = () => {
   const [timer, setTimer] = useState(RESEND_TIMER_DURATION);
   const [canResend, setCanResend] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const theme = useTheme();
 
-  const inputRefs = useRef<Array<TextInput | null>>([
-    ...Array(4).map(() => null),
+  const inputRefs = useRef<Array<RNTextInput | null>>([
+    ...Array(6).map(() => null),
   ]);
 
   //todo: find alternate approach for following useEffect, as it is responsible for rendering this component more than 20 times
@@ -117,7 +120,19 @@ const Page = () => {
       }
     } catch (error) {
       console.error(error);
-      Alert.alert("not able to login: ", error.message);
+      Alert.alert(
+        "Verification Failed",
+        error.message || "Invalid OTP. Please try again.",
+        [
+          {
+            text: "OK",
+            onPress: () => {
+              setOtp(["", "", "", "", "", ""]); // Clear the OTP input fields
+              inputRefs.current[0]?.focus(); // Refocus on the first input field
+            },
+          },
+        ]
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -126,8 +141,18 @@ const Page = () => {
   return (
     <View style={styles.container}>
       {/* Background decorative elements */}
-      <View style={styles.mainGlow} />
-      <View style={styles.accentCircle} />
+      <View
+        style={[
+          styles.mainGlow,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
+      <View
+        style={[
+          styles.accentCircle,
+          { backgroundColor: theme.colors.onBackground },
+        ]}
+      />
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -137,30 +162,48 @@ const Page = () => {
         <View style={styles.contentContainer}>
           {/* Header section with clear instructions */}
           <View style={styles.headerSection}>
-            <Text style={styles.mainHeader}>Verify Your Account</Text>
-            <Text style={styles.subHeader}>
+            <Text variant="displayMedium" style={{ textAlign: "center" }}>
+              Verify Your Account
+            </Text>
+            <Text
+              variant="bodyLarge"
+              style={{
+                textAlign: "center",
+                color: theme.colors.primary,
+                margin: 10,
+              }}
+            >
               Enter the 6-digit code sent to your mail
             </Text>
+            {/* <Text style={styles.subHeader}>
+              Enter the 6-digit code sent to your mail
+            </Text> */}
           </View>
 
           {/* OTP input section */}
           <View style={styles.otpContainer}>
             {otp.map((digit, index) => (
               <TextInput
+                theme={{ roundness: 20 }}
                 key={index}
                 ref={(ref) => (inputRefs.current[index] = ref)}
-                style={styles.otpInput}
+                style={[
+                  styles.otpInput,
+                  { backgroundColor: theme.colors.surfaceVariant },
+                  { borderColor: theme.colors.inversePrimary },
+                ]}
                 maxLength={1}
                 keyboardType="numeric"
                 value={digit}
                 onChangeText={(text) => handleOtpChange(text, index)}
                 onKeyPress={(e) => handleKeyPress(e, index)}
+                underlineColor="transparent"
               />
             ))}
           </View>
 
           {/* Submit button */}
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               styles.submitButton,
               otp.every((digit) => digit.length === 1)
@@ -170,7 +213,20 @@ const Page = () => {
             onPress={handleSubmit}
           >
             <Text style={styles.buttonText}>Submit</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+
+          <Button
+            labelStyle={Pdstyles.buttonLabelStyle}
+            // style=
+            theme={{ roundness: 10 }}
+            mode="contained"
+            onPress={handleSubmit}
+            disabled={!otp.every((digit) => digit.length === 1)}
+            // loading={formState.isSubmitting}
+          >
+            {/* {formState.isSubmitting ? "Signing in..." : "Continue"} */}
+            Submit
+          </Button>
 
           {/* Resend section */}
           <View style={styles.resendContainer}>
@@ -181,7 +237,7 @@ const Page = () => {
                   Resend
                 </Text>
               ) : (
-                <Text style={styles.timerText}>Wait {timer}s</Text>
+                <Text style={{ color: theme.colors.error }}>Wait {timer}s</Text>
               )}
             </Text>
           </View>
@@ -194,7 +250,7 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1A1A1A",
+    // backgroundColor: "#1A1A1A",
     overflow: "hidden",
   },
   mainGlow: {
@@ -202,7 +258,7 @@ const styles = StyleSheet.create({
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
-    backgroundColor: "#FD356D",
+    // backgroundColor: "#FD356D",
     top: -width * 0.5,
     left: -width * 0.25,
     opacity: 0.08,
@@ -212,7 +268,7 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
-    backgroundColor: "#FD356D",
+    // backgroundColor: "#FD356D",
     bottom: -width * 0.4,
     right: -width * 0.2,
     opacity: 0.06,
@@ -252,14 +308,14 @@ const styles = StyleSheet.create({
   otpInput: {
     width: 65,
     height: 65,
-    borderRadius: 16,
-    backgroundColor: "rgba(69, 14, 30, 0.75)",
+    borderRadius: 20,
+    // backgroundColor: "rgba(69, 14, 30, 0.75)",
     borderWidth: 1,
-    borderColor: "rgba(253, 53, 109, 0.2)",
-    color: "#ffffff",
+    // borderColor: "rgba(253, 53, 109, 0.2)",
+    // color: "#ffffff",
     fontSize: 24,
     textAlign: "center",
-    shadowColor: "#FD356D",
+    // shadowColor: "#FD356D",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -298,9 +354,6 @@ const styles = StyleSheet.create({
   resendLink: {
     color: "#FD356D",
     fontWeight: "600",
-  },
-  timerText: {
-    color: "rgba(253, 53, 109, 0.6)",
   },
 });
 

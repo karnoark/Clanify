@@ -4,7 +4,8 @@ import { Colors } from "@/constants/Colors";
 export const Pdstyles = StyleSheet.create({
   buttonLabelStyle: {
     fontSize: 20,
-    marginVertical: 15,
+    // marginVertical: 15,
+    padding: 10,
   },
   container: {
     flex: 1,

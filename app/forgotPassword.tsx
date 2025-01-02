@@ -168,10 +168,13 @@ const Page = () => {
             <Button
               onPress={() => {
                 setShowResetDialog(false);
-                // router.push({ pathname: "/verify", params: { email: email } });
+                console.log("Navigating to verify page with:", {
+                  email,
+                  emailOtpType: "recovery",
+                });
                 router.push({
                   pathname: "/verify",
-                  params: { email: email, emaiOtpType: "recovery" },
+                  params: { email: email, emailOtpType: "recovery" },
                 });
               }}
             >
