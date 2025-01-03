@@ -29,7 +29,7 @@ export default ({ config }) => ({
       output: "static",
       favicon: "./assets/images/favicon.png",
     },
-    plugins: ["expo-router"],
+    plugins: ["expo-router", "@react-native-google-signin/google-signin"],
     experiments: {
       typedRoutes: true,
     },
