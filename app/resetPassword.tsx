@@ -1,5 +1,7 @@
 //todo Error handling when authentication fails. documentation: When authentication fails, the user will still be redirected to the redirect URL provided. However, the error details will be returned as query fragments in the URL. You can parse these query fragments and show a custom error message to the user.
 
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,10 +9,7 @@ import {
   StyleSheet,
   View,
   Dimensions,
-} from "react-native";
-import React, { useState, useEffect } from "react";
-import { Pdstyles } from "@/constants/Styles";
-import { router, useLocalSearchParams } from "expo-router";
+} from 'react-native';
 import {
   useTheme,
   TextInput,
@@ -18,24 +17,26 @@ import {
   Button,
   Portal,
   Dialog,
-} from "react-native-paper";
-import { Text } from "@/components/Text";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { hasErrorsInPassword } from "@/components/InputValidation";
-import { useAuthStore } from "@/utils/auth";
+} from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get("window");
+import { hasErrorsInPassword } from '@/components/InputValidation';
+import { Text } from '@/components/Text';
+import { Pdstyles } from '@/constants/Styles';
+import { useAuthStore } from '@/utils/auth';
+
+const { width } = Dimensions.get('window');
 
 // We'll track different states of the reset process
-type ResetStatus = "validating" | "ready" | "resetting" | "success" | "error";
+type ResetStatus = 'validating' | 'ready' | 'resetting' | 'success' | 'error';
 
 // We'll use this to show password requirements to users
 const PASSWORD_REQUIREMENTS = [
-  { id: 1, text: "At least 8 characters long" },
-  { id: 2, text: "Contains uppercase letter" },
-  { id: 3, text: "Contains lowercase letter" },
-  { id: 4, text: "Contains a number" },
-  { id: 5, text: "Contains a special character" },
+  { id: 1, text: 'At least 8 characters long' },
+  { id: 2, text: 'Contains uppercase letter' },
+  { id: 3, text: 'Contains lowercase letter' },
+  { id: 4, text: 'Contains a number' },
+  { id: 5, text: 'Contains a special character' },
 ];
 
 const Page = () => {
@@ -43,22 +44,22 @@ const Page = () => {
   const theme = useTheme();
   // Get the token from the URL params
   // const { token } = useLocalSearchParams();
-  const updatePassword = useAuthStore((state) => state.updatePassword);
+  const updatePassword = useAuthStore(state => state.updatePassword);
   // const getExistingSession = useAuthStore((state) => state.getExistingSession);
-  const session = useAuthStore((state) => state.session);
-  const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery);
+  const session = useAuthStore(state => state.session);
+  const isPasswordRecovery = useAuthStore(state => state.isPasswordRecovery);
 
   // State management for the form
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [resetStatus, setResetStatus] = useState<ResetStatus>("validating");
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetStatus, setResetStatus] = useState<ResetStatus>('validating');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   // Platform-specific keyboard behavior
-  const keyboardVerticalOffset = Platform.OS === "ios" ? 40 : 0;
-  const keyboardBehavior = Platform.OS === "ios" ? "padding" : "height";
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
+  const keyboardBehavior = Platform.OS === 'ios' ? 'padding' : 'height';
 
   // Validate the reset token when the component mounts
   // useEffect(() => {
@@ -100,21 +101,21 @@ const Page = () => {
         return;
       }
 
-      setResetStatus("resetting");
+      setResetStatus('resetting');
 
       // In production, you would call your API here
       // await new Promise((resolve) => setTimeout(resolve, 1500));
 
       await updatePassword(confirmPassword);
 
-      setResetStatus("success");
-      setNewPassword("");
-      setConfirmPassword("");
+      setResetStatus('success');
+      setNewPassword('');
+      setConfirmPassword('');
       setShowSuccessDialog(true);
     } catch (error) {
-      setResetStatus("error");
+      setResetStatus('error');
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to reset password"
+        error instanceof Error ? error.message : 'Failed to reset password',
       );
     }
   };
@@ -149,13 +150,13 @@ const Page = () => {
     // (async () => {
     //   getExistingSession();
     // })();
-    console.log("in resetPassword page: session: ", session);
+    console.log('in resetPassword page: session: ', session);
   }, [session]);
 
   useEffect(() => {
     console.log(
-      "in resetPassword Page: isPasswordRecovery: ",
-      isPasswordRecovery
+      'in resetPassword Page: isPasswordRecovery: ',
+      isPasswordRecovery,
     );
   }, [isPasswordRecovery]);
 
@@ -209,7 +210,7 @@ const Page = () => {
                 secureTextEntry={!showPassword}
                 right={
                   <TextInput.Icon
-                    icon={showPassword ? "eye-off" : "eye"}
+                    icon={showPassword ? 'eye-off' : 'eye'}
                     onPress={() => setShowPassword(!showPassword)}
                   />
                 }
@@ -230,11 +231,11 @@ const Page = () => {
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showPassword}
                 error={
-                  confirmPassword !== "" && newPassword !== confirmPassword
+                  confirmPassword !== '' && newPassword !== confirmPassword
                 }
                 right={
                   <TextInput.Icon
-                    icon={showPassword ? "eye-off" : "eye"}
+                    icon={showPassword ? 'eye-off' : 'eye'}
                     onPress={() => setShowPassword(!showPassword)}
                   />
                 }
@@ -243,7 +244,7 @@ const Page = () => {
               <HelperText
                 type="error"
                 visible={
-                  confirmPassword !== "" && newPassword !== confirmPassword
+                  confirmPassword !== '' && newPassword !== confirmPassword
                 }
               >
                 Passwords don't match
@@ -255,7 +256,7 @@ const Page = () => {
               <Text variant="bodyMedium" style={styles.requirementsTitle}>
                 Password Requirements:
               </Text>
-              {PASSWORD_REQUIREMENTS.map((requirement) => (
+              {PASSWORD_REQUIREMENTS.map(requirement => (
                 <Text
                   key={requirement.id}
                   variant="bodySmall"
@@ -273,11 +274,11 @@ const Page = () => {
             <Button
               mode="contained"
               onPress={handleResetPassword}
-              loading={resetStatus === "resetting"}
+              loading={resetStatus === 'resetting'}
               disabled={
                 hasErrorsInPassword(newPassword) ||
                 newPassword !== confirmPassword ||
-                resetStatus === "resetting"
+                resetStatus === 'resetting'
               }
               style={styles.button}
               labelStyle={Pdstyles.buttonLabelStyle}
@@ -301,7 +302,7 @@ const Page = () => {
           visible={showSuccessDialog}
           onDismiss={() => {
             setShowSuccessDialog(false);
-            router.push("/");
+            router.push('/');
           }}
         >
           <Dialog.Title>Password Reset Successful</Dialog.Title>
@@ -313,9 +314,9 @@ const Page = () => {
           <Dialog.Actions>
             <Button
               onPress={() => {
-                console.log("password reset successful!!!");
+                console.log('password reset successful!!!');
                 setShowSuccessDialog(false);
-                router.push("/");
+                router.push('/');
               }}
             >
               Ok
@@ -330,16 +331,16 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   centerContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
   },
   mainGlow: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
@@ -348,7 +349,7 @@ const styles = StyleSheet.create({
     opacity: 0.08,
   },
   bottomAccent: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
@@ -358,24 +359,24 @@ const styles = StyleSheet.create({
   },
   scrollContentContainer: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingBottom: 40,
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   headerSection: {
     marginBottom: 32,
-    alignItems: "center",
+    alignItems: 'center',
   },
   title: {
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   subtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     marginHorizontal: 20,
   },
   formSection: {
@@ -388,11 +389,11 @@ const styles = StyleSheet.create({
     marginTop: 8,
     padding: 16,
     borderRadius: 8,
-    backgroundColor: "rgba(0, 0, 0, 0.03)",
+    backgroundColor: 'rgba(0, 0, 0, 0.03)',
   },
   requirementsTitle: {
     marginBottom: 8,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
   requirementText: {
     marginBottom: 4,
@@ -401,7 +402,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   errorText: {
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 8,
   },
 });

@@ -1,18 +1,19 @@
 //todo scenario: when user aprubptly closes the app when he is passwordRecovery flow before resetting the password(i.e. before calling updatePassword() function) he should be signed out
 
-import { MMKV } from "react-native-mmkv";
 import {
   AuthError,
   createClient,
   EmailOtpType,
   MobileOtpType,
   VerifyEmailOtpParams,
-} from "@supabase/supabase-js";
-import { create } from "zustand";
+} from '@supabase/supabase-js';
+import { MMKV } from 'react-native-mmkv';
+import { create } from 'zustand';
+
 // import { ENV } from '../config/env'
-import "react-native-url-polyfill/auto";
-import { AuthErrorHandler, HandleError } from "@/utils/auth_errors";
-import { AuthEventManager } from "@/utils/auth_events";
+import 'react-native-url-polyfill/auto';
+import { AuthErrorHandler, HandleError } from '@/utils/auth_errors';
+import { AuthEventManager } from '@/utils/auth_events';
 
 // Define our core interfaces
 interface User {
@@ -64,7 +65,7 @@ interface AuthState {
 
 // Initialize MMKV storage with encryption
 export const storage = new MMKV({
-  id: "auth-storage",
+  id: 'auth-storage',
   // encryptionKey: ENV.MMKV_ENCRYPTION_KEY
   encryptionKey: process.env.ENCRYPTION_KEY, // Consider moving this to env variables
 });
@@ -95,7 +96,7 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error(
-    "Supabase URL or Anon Key is missing. Ensure EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set in the environment variables."
+    'Supabase URL or Anon Key is missing. Ensure EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set in the environment variables.',
   );
 }
 
@@ -111,7 +112,7 @@ try {
     },
   });
 } catch (error) {
-  console.error("Failed to initialize Supabase client:", error);
+  console.error('Failed to initialize Supabase client:', error);
   throw error;
 }
 
@@ -137,21 +138,21 @@ const loadFromStorage = <T>(key: string, defaultValue: T): T => {
 // Create our authentication store using Zustand
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Initialize state from storage
-  user: loadFromStorage("user", null),
-  session: loadFromStorage("session", null),
+  user: loadFromStorage('user', null),
+  session: loadFromStorage('session', null),
   isLoading: true,
   isPasswordRecovery: false,
   error: null,
 
   initialize: async (): Promise<void> => {
     try {
-      console.log("auth/initialize:-> ");
+      console.log('auth/initialize:-> ');
 
       // Load isPasswordRecovery flag from storage
-      const isPasswordRecovery = loadFromStorage("isPasswordRecovery", false);
+      const isPasswordRecovery = loadFromStorage('isPasswordRecovery', false);
 
       // Check for existing session
-      console.log("auth/initialize:-> checking for existing session");
+      console.log('auth/initialize:-> checking for existing session');
       const {
         data: { session },
         error,
@@ -159,26 +160,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
       console.log(
-        "auth/initialize:-> No errors upon calling getSession(), here is session: ",
-        session
+        'auth/initialize:-> No errors upon calling getSession(), here is session: ',
+        session,
       );
 
       if (session) {
         const user: User = {
           id: session.user.id,
-          email: session.user.email ?? "",
-          firstName: session.user.user_metadata?.first_name ?? "",
-          lastName: session.user.user_metadata?.last_name ?? "",
+          email: session.user.email ?? '',
+          firstName: session.user.user_metadata?.first_name ?? '',
+          lastName: session.user.user_metadata?.last_name ?? '',
         };
 
         set({ session, user, isPasswordRecovery });
-        console.log("auth/initialize:-> saved session & user info in zustand ");
-        saveToStorage("session", session);
-        saveToStorage("user", user);
-        console.log("auth/initialize:-> session: ", session);
-        console.log("auth/initialize:-> user: ", user);
+        console.log('auth/initialize:-> saved session & user info in zustand ');
+        saveToStorage('session', session);
+        saveToStorage('user', user);
+        console.log('auth/initialize:-> session: ', session);
+        console.log('auth/initialize:-> user: ', user);
         console.log(
-          "auth/initialize:-> saved session & user info in mmkv storage "
+          'auth/initialize:-> saved session & user info in mmkv storage ',
         );
       }
 
@@ -199,13 +200,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
         if (get().isPasswordRecovery) {
           switch (event) {
-            case "PASSWORD_RECOVERY":
+            case 'PASSWORD_RECOVERY':
               // Handle password recovery specifically
               return;
-            case "USER_UPDATED":
+            case 'USER_UPDATED':
               // Handle successful password update
               set({ isPasswordRecovery: false }); // Clear the flag after success
-              saveToStorage("isPasswordRecovery", false);
+              saveToStorage('isPasswordRecovery', false);
               return;
             default:
               // Ignore other events during recovery
@@ -214,21 +215,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
 
         if (session) {
-          console.log("auth/initialize:-> AuthStateChange Event happened");
+          console.log('auth/initialize:-> AuthStateChange Event happened');
           const user: User = {
             id: session.user.id,
-            email: session.user.email ?? "",
-            firstName: session.user.user_metadata?.first_name ?? "",
-            lastName: session.user.user_metadata?.last_name ?? "",
+            email: session.user.email ?? '',
+            firstName: session.user.user_metadata?.first_name ?? '',
+            lastName: session.user.user_metadata?.last_name ?? '',
           };
 
           set({ session, user });
-          saveToStorage("session", session);
-          saveToStorage("user", user);
+          saveToStorage('session', session);
+          saveToStorage('user', user);
         } else {
           set({ session: null, user: null });
-          storage.delete("session");
-          storage.delete("user");
+          storage.delete('session');
+          storage.delete('user');
         }
       });
 
@@ -240,18 +241,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // set({ isLoading: false });
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/initialize:-> Error: ", error);
+        console.error('auth/initialize:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
       } else {
-        console.error("auth/initialize:-> Unknown error:", error);
+        console.error('auth/initialize:-> Unknown error:', error);
         set({ isLoading: false });
       }
     }
   },
 
   signIn: async (credentials: SignInCredentials) => {
-    console.log("auth/signIn:-> ");
+    console.log('auth/signIn:-> ');
     try {
       const {
         data: { session },
@@ -260,35 +261,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
       console.log(
-        "auth/signIn:-> got no error after calling auth.signInWithPassword()"
+        'auth/signIn:-> got no error after calling auth.signInWithPassword()',
       );
 
       if (session) {
         const user: User = {
           id: session.user.id,
-          email: session.user.email ?? "",
-          firstName: session.user.user_metadata?.first_name ?? "",
-          lastName: session.user.user_metadata?.last_name ?? "",
+          email: session.user.email ?? '',
+          firstName: session.user.user_metadata?.first_name ?? '',
+          lastName: session.user.user_metadata?.last_name ?? '',
         };
 
-        console.log("auth/signIn:-> session: ", session);
-        console.log("auth/signIn:-> user: ", user);
+        console.log('auth/signIn:-> session: ', session);
+        console.log('auth/signIn:-> user: ', user);
 
         set({ session, user });
-        saveToStorage("session", session);
-        saveToStorage("user", user);
+        saveToStorage('session', session);
+        saveToStorage('user', user);
         console.log(
-          "auth/signIn:-> stored session & user to zustand & mmkv storage"
+          'auth/signIn:-> stored session & user to zustand & mmkv storage',
         );
       }
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/signIn:-> Error: ", error);
+        console.error('auth/signIn:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/signIn:-> Unknown error:", error);
+        console.error('auth/signIn:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }
@@ -296,7 +297,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async (credentials: SignUpCredentials) => {
-    console.log("auth/signUp:-> ");
+    console.log('auth/signUp:-> ');
     try {
       const {
         data: { session, user },
@@ -314,33 +315,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
 
-      console.log("auth/signUp:-> got no error after calling auth.signUp()");
-      console.log("auth/signUp:-> session: ", session);
-      console.log("auth/signUp:-> user: ", user);
+      console.log('auth/signUp:-> got no error after calling auth.signUp()');
+      console.log('auth/signUp:-> session: ', session);
+      console.log('auth/signUp:-> user: ', user);
 
       if (user) {
         const transformedUser: User = {
           id: user.id,
-          email: user.email ?? "",
+          email: user.email ?? '',
           firstName: credentials.firstName,
           lastName: credentials.lastName,
         };
 
         set({ session, user: transformedUser });
-        saveToStorage("session", session);
-        saveToStorage("user", transformedUser);
+        saveToStorage('session', session);
+        saveToStorage('user', transformedUser);
         console.log(
-          "auth/signUp:-> stored session & user to zustand & mmkv storage"
+          'auth/signUp:-> stored session & user to zustand & mmkv storage',
         );
       }
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/signUp:-> Error: ", error);
+        console.error('auth/signUp:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/signUp:-> Unknown error:", error);
+        console.error('auth/signUp:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }
@@ -348,27 +349,27 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   resetPassword: async (email: string) => {
-    console.log("auth/resetPassword:-> ");
+    console.log('auth/resetPassword:-> ');
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         // This redirectTo should be your app's deep link that opens ResetPasswordScreen
         // You'll need to set this up in your Supabase dashboard
-        redirectTo: "clanify://resetPassword",
+        redirectTo: 'clanify://resetPassword',
       });
 
       if (error) throw error;
 
       console.log(
-        "auth/resetPassword:-> got no error after calling resetPasswordForEmail"
+        'auth/resetPassword:-> got no error after calling resetPasswordForEmail',
       );
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/resetPassword:-> Error: ", error);
+        console.error('auth/resetPassword:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/resetPassword:-> Unknown error:", error);
+        console.error('auth/resetPassword:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }
@@ -376,14 +377,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   updatePassword: async (new_password: string) => {
-    console.log("auth/updatePassword:-> ");
+    console.log('auth/updatePassword:-> ');
     const isPasswordRecovery = get().isPasswordRecovery;
     console.log(
-      "auth/updatePassword:-> isPasswordRecovery: ",
-      isPasswordRecovery
+      'auth/updatePassword:-> isPasswordRecovery: ',
+      isPasswordRecovery,
     );
     if (!isPasswordRecovery) {
-      throw Error("auth/updatePassword:-> isPasswordRecovery flag is false");
+      throw Error('auth/updatePassword:-> isPasswordRecovery flag is false');
     }
     try {
       const {
@@ -395,21 +396,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
       console.log(
-        "auth/updatePassword:->  got no error after calling updatePassword"
+        'auth/updatePassword:->  got no error after calling updatePassword',
       );
 
       console.log(
-        "auth/updatePassword:->  user info retrieved from supabase: ",
-        user
+        'auth/updatePassword:->  user info retrieved from supabase: ',
+        user,
       );
 
       const currentUser = get().user;
       console.log(
-        "auth/updatePassword:->  User info stored in zustand: ",
-        currentUser
+        'auth/updatePassword:->  User info stored in zustand: ',
+        currentUser,
       );
       set({ isPasswordRecovery: false });
-      saveToStorage("isPasswordRecovery", false);
+      saveToStorage('isPasswordRecovery', false);
       // if (currentUser) {
       //   const updatedUser: User = {
       //     ...currentUser,
@@ -421,28 +422,28 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // }
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/updatePassword:-> Error: ", error);
+        console.error('auth/updatePassword:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/updatePassword:-> Unknown error:", error);
+        console.error('auth/updatePassword:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }
     } finally {
       console.log(
-        "auth/updatePassword:-> isPasswordRecovery: ",
-        isPasswordRecovery
+        'auth/updatePassword:-> isPasswordRecovery: ',
+        isPasswordRecovery,
       );
     }
   },
 
   verifyOtp: async (credentials: verifyOtpCredentials) => {
-    console.log("auth/verifyOtp:-> ");
-    console.log("auth/verifyOtp:-> credentials: ", credentials);
+    console.log('auth/verifyOtp:-> ');
+    console.log('auth/verifyOtp:-> credentials: ', credentials);
     try {
-      if (credentials.type === "email" || credentials.type === "recovery") {
+      if (credentials.type === 'email' || credentials.type === 'recovery') {
         const params: VerifyEmailOtpParams = {
           email: credentials.email,
           token: credentials.token,
@@ -454,46 +455,46 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           error,
         } = await supabase.auth.verifyOtp(params);
 
-        console.log("auth/verifyOtp:-> session: ", session);
+        console.log('auth/verifyOtp:-> session: ', session);
 
         if (error) throw error;
         console.log(
-          "auth/verifyOtp:-> got no error after calling auth.verifyOtp()"
+          'auth/verifyOtp:-> got no error after calling auth.verifyOtp()',
         );
 
         if (session) {
           const user: User = {
             id: session.user.id,
-            email: session.user.email ?? "",
-            firstName: session.user.user_metadata?.first_name ?? "",
-            lastName: session.user.user_metadata?.last_name ?? "",
+            email: session.user.email ?? '',
+            firstName: session.user.user_metadata?.first_name ?? '',
+            lastName: session.user.user_metadata?.last_name ?? '',
           };
 
-          console.log("auth/verifyOtp:-> session: ", session);
-          console.log("auth/verifyOtp:-> user: ", user);
+          console.log('auth/verifyOtp:-> session: ', session);
+          console.log('auth/verifyOtp:-> user: ', user);
 
           set({ session, user });
-          saveToStorage("session", session);
-          saveToStorage("user", user);
+          saveToStorage('session', session);
+          saveToStorage('user', user);
           console.log(
-            "auth/verifyOtp:-> stored session & user to zustand & mmkv storage"
+            'auth/verifyOtp:-> stored session & user to zustand & mmkv storage',
           );
 
-          if (credentials.type === "recovery") {
+          if (credentials.type === 'recovery') {
             // Set a flag to indicate we're in password recovery flow
             set({ isPasswordRecovery: true });
-            saveToStorage("isPasswordRecovery", true);
+            saveToStorage('isPasswordRecovery', true);
           }
         }
       }
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/verifyOtp:-> Error: ", error);
+        console.error('auth/verifyOtp:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/verifyOtp:-> Unknown error:", error);
+        console.error('auth/verifyOtp:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }
@@ -504,16 +505,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await supabase.auth.signOut();
       set({ user: null, session: null });
-      storage.delete("session");
-      storage.delete("user");
+      storage.delete('session');
+      storage.delete('user');
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/signOut:-> Error: ", error);
+        console.error('auth/signOut:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/signOut:-> Unknown error:", error);
+        console.error('auth/signOut:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }
@@ -522,9 +523,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   getExistingSession: async () => {
     try {
-      console.log("auth/getExistingSession:-> ");
+      console.log('auth/getExistingSession:-> ');
       // Check for existing session
-      console.log("auth/getExistingSession:-> checking for existing session");
+      console.log('auth/getExistingSession:-> checking for existing session');
       const {
         data: { session },
         error,
@@ -532,11 +533,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
       console.log(
-        "auth/getExistingSession:-> No errors upon calling getSession(), here is session: ",
-        session
+        'auth/getExistingSession:-> No errors upon calling getSession(), here is session: ',
+        session,
       );
     } catch (error) {
-      console.error("Error checking existing session:", error);
+      console.error('Error checking existing session:', error);
     }
   },
 
@@ -562,16 +563,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           lastName: updates.lastName ?? currentUser.lastName,
         };
         set({ user: updatedUser });
-        saveToStorage("user", updatedUser);
+        saveToStorage('user', updatedUser);
       }
     } catch (error) {
       if (error instanceof Error) {
-        console.error("auth/updateProfile:-> Error: ", error);
+        console.error('auth/updateProfile:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
       } else {
-        console.error("auth/updateProfile:-> Unknown error:", error);
+        console.error('auth/updateProfile:-> Unknown error:', error);
         set({ isLoading: false });
         throw error;
       }

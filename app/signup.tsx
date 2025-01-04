@@ -1,3 +1,5 @@
+import { Link, router } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -5,10 +7,7 @@ import {
   View,
   Dimensions,
   ScrollView,
-} from "react-native";
-import React, { useEffect, useRef, useState } from "react";
-import { Pdstyles } from "@/constants/Styles";
-import { Link, router } from "expo-router";
+} from 'react-native';
 import {
   useTheme,
   TextInput,
@@ -17,21 +16,23 @@ import {
   Button,
   Portal,
   Dialog,
-} from "react-native-paper";
-import { Text } from "@/components/Text";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+} from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { EmailOtpParams } from '@/app/verify';
 import {
   hasErrorsInEmail,
   hasErrorsInName,
   hasErrorsInPassword,
-} from "@/components/InputValidation";
-import { useAuthStore } from "@/utils/auth";
-import { EmailOtpParams } from "@/app/verify";
+} from '@/components/InputValidation';
+import { Text } from '@/components/Text';
+import { Pdstyles } from '@/constants/Styles';
+import { useAuthStore } from '@/utils/auth';
 
-const { width } = Dimensions.get("window");
+const { width } = Dimensions.get('window');
 
 // We'll use this type to manage different states of the verification process
-type VerificationStatus = "idle" | "sending" | "success" | "error";
+type VerificationStatus = 'idle' | 'sending' | 'success' | 'error';
 
 interface ValidationErrors {
   email?: string;
@@ -64,20 +65,20 @@ interface FormErrors {
 
 const Page = () => {
   const { top } = useSafeAreaInsets();
-  const signUp = useAuthStore((state) => state.signUp);
+  const signUp = useAuthStore(state => state.signUp);
 
   const [showEmailVerificationDialog, setShowEmailVerificationDialog] =
     useState(false);
   const theme = useTheme();
 
   // Determine platform-specific keyboard behavior
-  const keyboardVerticalOffset = Platform.OS === "ios" ? 40 : 0;
-  const keyboardBehavior = Platform.OS === "ios" ? "padding" : "height";
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
+  const keyboardBehavior = Platform.OS === 'ios' ? 'padding' : 'height';
 
   // Verification process state
   const [verificationStatus, setVerificationStatus] =
-    useState<VerificationStatus>("idle");
-  const [errorMessage, setErrorMessage] = useState("");
+    useState<VerificationStatus>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Validate a single field
 
@@ -85,10 +86,10 @@ const Page = () => {
   const scrollViewRef = useRef(null);
 
   const initialFormState = {
-    email: "",
-    password: "",
-    firstName: "",
-    lastName: "",
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
     termsAccepted: false,
     touched: {
       email: false,
@@ -111,11 +112,11 @@ const Page = () => {
     (
       field: keyof Omit<
         SignupFormState,
-        "touched" | "isSubmitting" | "termsAccepted"
-      >
+        'touched' | 'isSubmitting' | 'termsAccepted'
+      >,
     ) =>
     (value: string) => {
-      setFormState((prev) => ({
+      setFormState(prev => ({
         ...prev,
         [field]: value,
         touched: {
@@ -125,7 +126,7 @@ const Page = () => {
       }));
 
       // Clear error when user starts typing
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         [field]: undefined,
       }));
@@ -147,14 +148,14 @@ const Page = () => {
     });
     */
 
-    console.log("signUp attempting");
+    console.log('signUp attempting');
     await signUp({
       email: formState.email,
       password: formState.password,
       firstName: formState.firstName,
       lastName: formState.lastName,
     });
-    console.log("signup completed");
+    console.log('signup completed');
   };
 
   const emptyTheForm = () => {
@@ -167,16 +168,16 @@ const Page = () => {
       const formErrors: FormErrors = {};
 
       if (hasErrorsInEmail(formState.email)) {
-        formErrors.email = "Please enter a valid email address";
+        formErrors.email = 'Please enter a valid email address';
       }
       if (hasErrorsInPassword(formState.password)) {
         formErrors.password = "Password doesn't meet requirements";
       }
       if (hasErrorsInName(formState.firstName)) {
-        formErrors.firstName = "First name should be 2-15 characters";
+        formErrors.firstName = 'First name should be 2-15 characters';
       }
       if (hasErrorsInName(formState.lastName)) {
-        formErrors.lastName = "Last name should be 2-15 characters";
+        formErrors.lastName = 'Last name should be 2-15 characters';
       }
 
       if (Object.keys(formErrors).length > 0) {
@@ -184,49 +185,49 @@ const Page = () => {
         return;
       }
 
-      setFormState((prev) => ({ ...prev, isSubmitting: true }));
+      setFormState(prev => ({ ...prev, isSubmitting: true }));
       await sendVerificationEmail(formState.email);
       setShowEmailVerificationDialog(true);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : "Verification failed"
+        error instanceof Error ? error.message : 'Verification failed',
       );
     } finally {
-      setFormState((prev) => ({ ...prev, isSubmitting: false }));
+      setFormState(prev => ({ ...prev, isSubmitting: false }));
     }
   };
 
   // Add real-time validation
   useEffect(() => {
     if (formState.touched.email) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         email: hasErrorsInEmail(formState.email)
-          ? "Please enter a valid email address"
+          ? 'Please enter a valid email address'
           : undefined,
       }));
     }
     if (formState.touched.password) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         password: hasErrorsInPassword(formState.password)
-          ? "Password must meet requirements"
+          ? 'Password must meet requirements'
           : undefined,
       }));
     }
     if (formState.touched.firstName) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         firstName: hasErrorsInName(formState.firstName)
-          ? "FirstfirstName must meet requirements"
+          ? 'FirstfirstName must meet requirements'
           : undefined,
       }));
     }
     if (formState.touched.lastName) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         lastName: hasErrorsInName(formState.lastName)
-          ? "LastlastName must meet requirements"
+          ? 'LastlastName must meet requirements'
           : undefined,
       }));
     }
@@ -280,7 +281,7 @@ const Page = () => {
             <Text
               variant="bodyLarge"
               style={{
-                textAlign: "center",
+                textAlign: 'center',
                 color: theme.colors.primary,
                 margin: 2,
               }}
@@ -291,11 +292,11 @@ const Page = () => {
 
           {/* Form section with enhanced visual hierarchy */}
           <View style={styles.formSection}>
-            <View style={{ width: "100%", margin: 3 }}>
+            <View style={{ width: '100%', margin: 3 }}>
               <TextInput
                 label="Email"
                 value={formState.email}
-                onChangeText={handleInputChange("email")}
+                onChangeText={handleInputChange('email')}
                 error={!!errors.email}
                 disabled={formState.isSubmitting}
                 left={<TextInput.Icon icon="email" />}
@@ -305,19 +306,19 @@ const Page = () => {
               </HelperText>
             </View>
 
-            <View style={{ width: "100%", margin: 3 }}>
+            <View style={{ width: '100%', margin: 3 }}>
               <TextInput
-                label={"password"}
+                label={'password'}
                 value={formState.password}
-                onChangeText={handleInputChange("password")}
+                onChangeText={handleInputChange('password')}
                 secureTextEntry={!passwordVisible}
                 error={!!errors.password}
                 disabled={formState.isSubmitting}
                 right={
                   <TextInput.Icon
-                    icon={passwordVisible ? "eye-off" : "eye"}
+                    icon={passwordVisible ? 'eye-off' : 'eye'}
                     onPress={() => {
-                      setPasswordVisible((prev) => !prev);
+                      setPasswordVisible(prev => !prev);
                     }}
                   />
                 }
@@ -331,9 +332,9 @@ const Page = () => {
             <View style={styles.nameInputContainer}>
               <View style={{ flex: 1 }}>
                 <TextInput
-                  label={"First Name"}
+                  label={'First Name'}
                   value={formState.firstName}
-                  onChangeText={handleInputChange("firstName")}
+                  onChangeText={handleInputChange('firstName')}
                   error={!!errors.firstName}
                   disabled={formState.isSubmitting}
                 />
@@ -346,9 +347,9 @@ const Page = () => {
               </View>
               <View style={{ flex: 1 }}>
                 <TextInput
-                  label={"Last Name"}
+                  label={'Last Name'}
                   value={formState.lastName}
-                  onChangeText={handleInputChange("lastName")}
+                  onChangeText={handleInputChange('lastName')}
                   error={!!errors.lastName}
                   disabled={formState.isSubmitting}
                 />
@@ -361,9 +362,9 @@ const Page = () => {
               </View>
             </View>
 
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Checkbox
-                status={termsAccepted ? "checked" : "unchecked"}
+                status={termsAccepted ? 'checked' : 'unchecked'}
                 onPress={() => {
                   setTermsAccepted(!termsAccepted);
                 }}
@@ -376,7 +377,7 @@ const Page = () => {
             {/* Verify button */}
             <View
               style={{
-                width: "100%",
+                width: '100%',
                 margin: 2,
               }}
             >
@@ -394,7 +395,7 @@ const Page = () => {
                   !termsAccepted
                 }
               >
-                {formState.isSubmitting ? "Verifying..." : "Verify"}
+                {formState.isSubmitting ? 'Verifying...' : 'Verify'}
               </Button>
             </View>
 
@@ -421,10 +422,10 @@ const Page = () => {
                       emptyTheForm();
                       const params: EmailOtpParams = {
                         email: formState.email,
-                        emailOtpType: "email", // or whatever value you want to pass
+                        emailOtpType: 'email', // or whatever value you want to pass
                       };
                       router.push({
-                        pathname: "/verify",
+                        pathname: '/verify',
                         params,
                       });
                     }}
@@ -441,11 +442,11 @@ const Page = () => {
                 style={{
                   color: theme.colors.onSurfaceVariant, // Slightly muted white for the main text
                   fontSize: 16,
-                  textAlign: "center",
+                  textAlign: 'center',
                 }}
               >
-                Already have an account?{"  "}
-                <Link href={"/signin"}>
+                Already have an account?{'  '}
+                <Link href={'/signin'}>
                   <Text
                     style={{
                       color: theme.colors.onBackground, // Your accent color
@@ -453,7 +454,7 @@ const Page = () => {
                   >
                     Sign In
                   </Text>
-                </Link>{" "}
+                </Link>{' '}
               </Text>
             </View>
 
@@ -481,12 +482,12 @@ const Page = () => {
             <View
               style={{
                 // marginTop: 20,
-                width: "100%",
+                width: '100%',
               }}
             >
               <Button
                 labelStyle={Pdstyles.buttonLabelStyle}
-                icon={"google"}
+                icon={'google'}
                 mode="contained"
                 onPress={() => {}}
               >
@@ -503,10 +504,10 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   mainGlow: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
@@ -515,16 +516,16 @@ const styles = StyleSheet.create({
     opacity: 0.08,
   },
   topAccent: {
-    position: "absolute",
-    width: width,
+    position: 'absolute',
+    width,
     height: width,
-    transform: [{ rotate: "-45deg" }],
+    transform: [{ rotate: '-45deg' }],
     top: -width * 0.7,
     right: -width * 0.5,
     opacity: 0.05,
   },
   bottomAccent: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
@@ -546,24 +547,24 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingTop: 10,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   headerSection: {
     marginBottom: 15,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   formSection: {
     gap: 24,
   },
   nameInputContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
 
   dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
   },
   divider: {

@@ -1,3 +1,6 @@
+import { EmailOtpType } from '@supabase/supabase-js';
+import { RouteParams, router, useLocalSearchParams } from 'expo-router';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,16 +10,14 @@ import {
   Dimensions,
   Alert,
   TextInput as RNTextInput,
-} from "react-native";
-import React, { useState, useRef, useEffect } from "react";
-import { RouteParams, router, useLocalSearchParams } from "expo-router";
-import { useAuthStore } from "@/utils/auth";
-import { EmailOtpType } from "@supabase/supabase-js";
-import { useTheme, TextInput, Button } from "react-native-paper";
-import { Text } from "@/components/Text";
-import { Pdstyles } from "@/constants/Styles";
+} from 'react-native';
+import { useTheme, TextInput, Button } from 'react-native-paper';
 
-const { width } = Dimensions.get("window");
+import { Text } from '@/components/Text';
+import { Pdstyles } from '@/constants/Styles';
+import { useAuthStore } from '@/utils/auth';
+
+const { width } = Dimensions.get('window');
 
 // We create a resend timer duration constant that we can easily adjust
 const RESEND_TIMER_DURATION = 30;
@@ -28,19 +29,19 @@ export type EmailOtpParams = RouteParams<{
 
 const Page = () => {
   const { email, emailOtpType } = useLocalSearchParams<EmailOtpParams>();
-  console.log("verify screen -> email in params: ", email);
-  console.log("verify screen -> emailOtpType in params: ", emailOtpType);
+  console.log('verify screen -> email in params: ', email);
+  console.log('verify screen -> emailOtpType in params: ', emailOtpType);
 
-  const verifyOtp = useAuthStore((state) => state.verifyOtp);
+  const verifyOtp = useAuthStore(state => state.verifyOtp);
 
   // We'll store each OTP digit separately for better control
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(RESEND_TIMER_DURATION);
   const [canResend, setCanResend] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const theme = useTheme();
 
-  const inputRefs = useRef<Array<RNTextInput | null>>([
+  const inputRefs = useRef<(RNTextInput | null)[]>([
     ...Array(6).map(() => null),
   ]);
 
@@ -81,7 +82,7 @@ const Page = () => {
 
   // Handle backspace for better UX
   const handleKeyPress = (e: any, index: number) => {
-    if (e.nativeEvent.key === "Backspace" && !otp[index] && index > 0) {
+    if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
@@ -102,36 +103,36 @@ const Page = () => {
     // }
 
     try {
-      console.log("Initializing verifyOtp");
+      console.log('Initializing verifyOtp');
       setIsSubmitting(true);
       // if (typeof email === "string") {
-      await verifyOtp({ email, token: otp.join(""), type: emailOtpType });
+      await verifyOtp({ email, token: otp.join(''), type: emailOtpType });
       // } else {
       //   console.error("Email is not a string");
       //   throw Error("Email is not a string");
       // }
       console.log(
-        "successfully verified the otp.... now redirecting to resetPassword page"
+        'successfully verified the otp.... now redirecting to resetPassword page',
       );
-      if (emailOtpType === "recovery") {
-        router.push("/resetPassword");
+      if (emailOtpType === 'recovery') {
+        router.push('/resetPassword');
       } else {
-        router.push("/");
+        router.push('/');
       }
     } catch (error) {
       console.error(error);
       Alert.alert(
-        "Verification Failed",
-        error.message || "Invalid OTP. Please try again.",
+        'Verification Failed',
+        error.message || 'Invalid OTP. Please try again.',
         [
           {
-            text: "OK",
+            text: 'OK',
             onPress: () => {
-              setOtp(["", "", "", "", "", ""]); // Clear the OTP input fields
+              setOtp(['', '', '', '', '', '']); // Clear the OTP input fields
               inputRefs.current[0]?.focus(); // Refocus on the first input field
             },
           },
-        ]
+        ],
       );
     } finally {
       setIsSubmitting(false);
@@ -156,19 +157,19 @@ const Page = () => {
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
         <View style={styles.contentContainer}>
           {/* Header section with clear instructions */}
           <View style={styles.headerSection}>
-            <Text variant="displayMedium" style={{ textAlign: "center" }}>
+            <Text variant="displayMedium" style={{ textAlign: 'center' }}>
               Verify Your Account
             </Text>
             <Text
               variant="bodyLarge"
               style={{
-                textAlign: "center",
+                textAlign: 'center',
                 color: theme.colors.primary,
                 margin: 10,
               }}
@@ -186,7 +187,7 @@ const Page = () => {
               <TextInput
                 theme={{ roundness: 20 }}
                 key={index}
-                ref={(ref) => (inputRefs.current[index] = ref)}
+                ref={ref => (inputRefs.current[index] = ref)}
                 style={[
                   styles.otpInput,
                   { backgroundColor: theme.colors.surfaceVariant },
@@ -195,8 +196,8 @@ const Page = () => {
                 maxLength={1}
                 keyboardType="numeric"
                 value={digit}
-                onChangeText={(text) => handleOtpChange(text, index)}
-                onKeyPress={(e) => handleKeyPress(e, index)}
+                onChangeText={text => handleOtpChange(text, index)}
+                onKeyPress={e => handleKeyPress(e, index)}
                 underlineColor="transparent"
               />
             ))}
@@ -221,7 +222,7 @@ const Page = () => {
             theme={{ roundness: 10 }}
             mode="contained"
             onPress={handleSubmit}
-            disabled={!otp.every((digit) => digit.length === 1)}
+            disabled={!otp.every(digit => digit.length === 1)}
             // loading={formState.isSubmitting}
           >
             {/* {formState.isSubmitting ? "Signing in..." : "Continue"} */}
@@ -231,7 +232,7 @@ const Page = () => {
           {/* Resend section */}
           <View style={styles.resendContainer}>
             <Text style={styles.resendText}>
-              Didn't receive the code?{" "}
+              Didn't receive the code?{' '}
               {canResend ? (
                 <Text style={styles.resendLink} onPress={handleResend}>
                   Resend
@@ -251,10 +252,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // backgroundColor: "#1A1A1A",
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   mainGlow: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
@@ -264,7 +265,7 @@ const styles = StyleSheet.create({
     opacity: 0.08,
   },
   accentCircle: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
@@ -279,29 +280,29 @@ const styles = StyleSheet.create({
   contentContainer: {
     flex: 1,
     padding: 24,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   headerSection: {
     marginBottom: 40,
-    alignItems: "center",
+    alignItems: 'center',
   },
   mainHeader: {
     fontSize: 32,
-    color: "#FD356D",
-    fontWeight: "bold",
+    color: '#FD356D',
+    fontWeight: 'bold',
     marginBottom: 12,
-    textShadowColor: "rgba(253, 53, 109, 0.3)",
+    textShadowColor: 'rgba(253, 53, 109, 0.3)',
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 8,
   },
   subHeader: {
     fontSize: 18,
-    color: "rgba(255, 255, 255, 0.7)",
-    textAlign: "center",
+    color: 'rgba(255, 255, 255, 0.7)',
+    textAlign: 'center',
   },
   otpContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     marginBottom: 40,
     paddingHorizontal: 20,
   },
@@ -314,7 +315,7 @@ const styles = StyleSheet.create({
     // borderColor: "rgba(253, 53, 109, 0.2)",
     // color: "#ffffff",
     fontSize: 24,
-    textAlign: "center",
+    textAlign: 'center',
     // shadowColor: "#FD356D",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -323,37 +324,37 @@ const styles = StyleSheet.create({
   submitButton: {
     padding: 18,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 20,
   },
   enabled: {
-    backgroundColor: "#FD356D",
-    shadowColor: "#FD356D",
+    backgroundColor: '#FD356D',
+    shadowColor: '#FD356D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
   disabled: {
-    backgroundColor: "rgba(161, 34, 69, 0.7)",
+    backgroundColor: 'rgba(161, 34, 69, 0.7)',
   },
   buttonText: {
-    color: "white",
+    color: 'white',
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
   resendContainer: {
-    alignItems: "center",
+    alignItems: 'center',
   },
   resendText: {
-    color: "rgba(255, 255, 255, 0.7)",
+    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 16,
     lineHeight: 24,
   },
   resendLink: {
-    color: "#FD356D",
-    fontWeight: "600",
+    color: '#FD356D',
+    fontWeight: '600',
   },
 });
 

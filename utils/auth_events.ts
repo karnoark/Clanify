@@ -1,14 +1,14 @@
-import { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { AuthChangeEvent, Session } from '@supabase/supabase-js';
 
 type AuthEventHandler = (
   event: AuthChangeEvent,
-  session: Session | null
+  session: Session | null,
 ) => void;
 
 export class AuthEventManager {
   private static eventMap: Record<AuthChangeEvent, AuthEventHandler> = {
     INITIAL_SESSION: (event, session) => {
-      console.log("Initial session check complete");
+      console.log('Initial session check complete');
     },
     SIGNED_IN: (event, session) => {
       if (!session?.user) return;

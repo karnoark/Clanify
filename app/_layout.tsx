@@ -1,29 +1,29 @@
-import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import "react-native-reanimated";
-import { Text } from "react-native";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
-
-import { Colors } from "@/constants/Colors";
-
-import {
-  NavigationContainer,
-  DarkTheme as NavigationDarkTheme,
-  DefaultTheme as NavigationDefaultTheme,
-  ThemeProvider,
-} from "@react-navigation/native";
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import 'react-native-reanimated';
+import { Text } from 'react-native';
 import {
   MD3DarkTheme,
   adaptNavigationTheme,
   MD3LightTheme,
   PaperProvider,
   useTheme,
-} from "react-native-paper";
-import merge from "deepmerge";
-import { initializeAuth, useAuthStore } from "@/utils/auth";
+} from 'react-native-paper';
+
+import { Colors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
+
+import {
+  NavigationContainer,
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
+  ThemeProvider,
+} from '@react-navigation/native';
+import merge from 'deepmerge';
+
+import { initializeAuth, useAuthStore } from '@/utils/auth';
 
 const customLightTheme = { ...MD3DarkTheme, colors: Colors.light };
 const customDarkTheme = { ...MD3LightTheme, colors: Colors.dark };
@@ -43,7 +43,7 @@ export default function RootLayout() {
   // const theme = useTheme();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    PlayRegular: require("@/assets/fonts/PlayfairDisplay-Regular.ttf"),
+    PlayRegular: require('@/assets/fonts/PlayfairDisplay-Regular.ttf'),
   });
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export default function RootLayout() {
     return null;
   }
   const paperTheme =
-    colorScheme === "dark" ? CombinedDarkTheme : CombinedDefaultTheme;
+    colorScheme === 'dark' ? CombinedDarkTheme : CombinedDefaultTheme;
 
   return (
     <PaperProvider theme={paperTheme}>

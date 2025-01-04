@@ -1,4 +1,4 @@
-import { AuthApiError, AuthError } from "@supabase/supabase-js";
+import { AuthApiError, AuthError } from '@supabase/supabase-js';
 // import * as Sentry from '@sentry/react-native';
 
 export interface HandleError {
@@ -12,64 +12,64 @@ export interface HandleError {
 export class AuthErrorHandler {
   // Define error categories for better organization and handling
   static readonly ERROR_CATEGORIES = {
-    VALIDATION: "validation",
-    AUTHENTICATION: "authentication",
-    AUTHORIZATION: "authorization",
-    RATE_LIMIT: "rate_limit",
-    MFA: "mfa",
-    NETWORK: "network",
-    UNEXPECTED: "unexpected",
+    VALIDATION: 'validation',
+    AUTHENTICATION: 'authentication',
+    AUTHORIZATION: 'authorization',
+    RATE_LIMIT: 'rate_limit',
+    MFA: 'mfa',
+    NETWORK: 'network',
+    UNEXPECTED: 'unexpected',
   } as const;
 
   // Comprehensive mapping of Supabase error codes to user-friendly messages
   static readonly ERROR_MESSAGES: Record<string, string> = {
     // Validation Errors
-    validation_failed: "Please check your input and try again.",
-    email_exists: "This email address is already registered.",
-    phone_exists: "This phone number is already registered.",
-    weak_password: "Password is too weak. Please use a stronger password.",
-    bad_json: "Invalid request format.",
-    email_address_invalid: "Please enter a valid email address.",
+    validation_failed: 'Please check your input and try again.',
+    email_exists: 'This email address is already registered.',
+    phone_exists: 'This phone number is already registered.',
+    weak_password: 'Password is too weak. Please use a stronger password.',
+    bad_json: 'Invalid request format.',
+    email_address_invalid: 'Please enter a valid email address.',
 
     // Authentication Errors
-    invalid_credentials: "Invalid email or password.",
-    user_not_found: "No account found with this email address.",
-    session_expired: "Your session has expired. Please sign in again.",
-    session_not_found: "Please sign in to continue.",
-    user_banned: "This account has been suspended.",
-    email_not_confirmed: "Please verify your email address before continuing.",
-    phone_not_confirmed: "Please verify your phone number before continuing.",
-    provider_disabled: "This sign-in method is currently unavailable.",
-    signup_disabled: "New registrations are currently disabled.",
-    same_password: "New password must be different from your current password.",
+    invalid_credentials: 'Invalid email or password.',
+    user_not_found: 'No account found with this email address.',
+    session_expired: 'Your session has expired. Please sign in again.',
+    session_not_found: 'Please sign in to continue.',
+    user_banned: 'This account has been suspended.',
+    email_not_confirmed: 'Please verify your email address before continuing.',
+    phone_not_confirmed: 'Please verify your phone number before continuing.',
+    provider_disabled: 'This sign-in method is currently unavailable.',
+    signup_disabled: 'New registrations are currently disabled.',
+    same_password: 'New password must be different from your current password.',
 
     // Authorization Errors
     no_authorization: "You don't have permission to perform this action.",
-    insufficient_aal: "Additional authentication required.",
-    reauthentication_needed: "Please sign in again to continue.",
+    insufficient_aal: 'Additional authentication required.',
+    reauthentication_needed: 'Please sign in again to continue.',
 
     // Rate Limit Errors
-    over_request_rate_limit: "Too many attempts. Please try again later.",
+    over_request_rate_limit: 'Too many attempts. Please try again later.',
     over_email_send_rate_limit:
-      "Too many email requests. Please try again later.",
-    over_sms_send_rate_limit: "Too many SMS requests. Please try again later.",
+      'Too many email requests. Please try again later.',
+    over_sms_send_rate_limit: 'Too many SMS requests. Please try again later.',
 
     // MFA Errors
-    mfa_verification_failed: "Invalid verification code.",
+    mfa_verification_failed: 'Invalid verification code.',
     mfa_challenge_expired:
-      "Verification code expired. Please request a new one.",
-    mfa_factor_not_found: "Multi-factor authentication not set up.",
+      'Verification code expired. Please request a new one.',
+    mfa_factor_not_found: 'Multi-factor authentication not set up.',
 
     // Network Errors
-    request_timeout: "Request timed out. Please check your connection.",
-    hook_timeout: "Service temporarily unavailable. Please try again.",
+    request_timeout: 'Request timed out. Please check your connection.',
+    hook_timeout: 'Service temporarily unavailable. Please try again.',
 
     // Default Error
-    default: "Something went wrong. Please try again.",
+    default: 'Something went wrong. Please try again.',
   } as const;
 
   static handleError(error: AuthError | Error): HandleError {
-    console.error("Auth Error: ", {
+    console.error('Auth Error: ', {
       type: error instanceof Error ? error.constructor.name : typeof error,
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
@@ -87,30 +87,30 @@ export class AuthErrorHandler {
 
     // Handle Supabase API errors
     if (error instanceof AuthApiError) {
-      console.log("error is instance of AuthApiError");
-      const code = error.message.includes("rate limit")
-        ? "over_request_rate_limit"
+      console.log('error is instance of AuthApiError');
+      const code = error.message.includes('rate limit')
+        ? 'over_request_rate_limit'
         : error.message;
       return this.createErrorResponse(error.status, code, error);
     }
 
     // Handle network errors
     if (error instanceof Error && this.isNetworkError(error)) {
-      console.log("error is instance of NetworkError");
+      console.log('error is instance of NetworkError');
       return {
         category: this.ERROR_CATEGORIES.NETWORK,
-        code: "network_error",
+        code: 'network_error',
         message:
-          "Network connection failed. Please check your internet connection.",
+          'Network connection failed. Please check your internet connection.',
         original: error,
         shouldRetry: true,
       };
     }
 
     if (error instanceof AuthError) {
-      console.log("error is instance of AuthError");
-      const code = (error as AuthError).code ?? "unknown";
-      console.log("AuthErrorHandler:-> code: ", code);
+      console.log('error is instance of AuthError');
+      const code = (error as AuthError).code ?? 'unknown';
+      console.log('AuthErrorHandler:-> code: ', code);
       const message =
         this.ERROR_MESSAGES[code] ??
         error.message ??
@@ -126,11 +126,11 @@ export class AuthErrorHandler {
     }
     // Handle unexpected errors
     console.log(
-      "error is instance of neither NetworkError or AuthApiError or AuthError"
+      'error is instance of neither NetworkError or AuthApiError or AuthError',
     );
     return {
       category: this.ERROR_CATEGORIES.UNEXPECTED,
-      code: "unexpected_failure",
+      code: 'unexpected_failure',
       message: error.message ?? this.ERROR_MESSAGES.default,
       original: error instanceof Error ? error : new Error(String(error)),
       shouldRetry: false,
@@ -140,7 +140,7 @@ export class AuthErrorHandler {
   private static createErrorResponse(
     status: number,
     code: string,
-    originalError: Error
+    originalError: Error,
   ) {
     let category;
     let shouldRetry = false;
@@ -181,32 +181,32 @@ export class AuthErrorHandler {
 
   private static isNetworkError(error: Error): boolean {
     const networkErrorPatterns = [
-      "network",
-      "connection",
-      "offline",
-      "failed to fetch",
-      "timeout",
-      "abort",
-      "unreachable",
+      'network',
+      'connection',
+      'offline',
+      'failed to fetch',
+      'timeout',
+      'abort',
+      'unreachable',
     ];
 
-    return networkErrorPatterns.some((pattern) =>
-      error.message.toLowerCase().includes(pattern)
+    return networkErrorPatterns.some(pattern =>
+      error.message.toLowerCase().includes(pattern),
     );
   }
 
   // Helper method to determine if an error is retryable
   static isRetryableError(error: Error): boolean {
     const retryablePatterns = [
-      "timeout",
-      "rate limit",
-      "connection",
-      "5xx",
-      "network",
+      'timeout',
+      'rate limit',
+      'connection',
+      '5xx',
+      'network',
     ];
 
-    return retryablePatterns.some((pattern) =>
-      error.message.toLowerCase().includes(pattern)
+    return retryablePatterns.some(pattern =>
+      error.message.toLowerCase().includes(pattern),
     );
   }
 }

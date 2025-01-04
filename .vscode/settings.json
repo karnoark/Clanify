@@ -2,10 +2,10 @@
   // "codeium.enable": false,
   // "codeium.enableCodeLens": false,
   // "codeium.disableSupercomplete": true,
-  // "editor.codeActionsOnSave": {
-  //   "source.fixAll.eslint": "always"
-  // },
-  // "eslint.options": { "overrideConfigFile": "./.eslintrc.js" },
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "eslint.options": { "overrideConfigFile": "./.eslintrc.js" },
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "eslint.validate": [

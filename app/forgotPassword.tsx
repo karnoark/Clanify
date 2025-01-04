@@ -1,3 +1,5 @@
+import { router } from 'expo-router';
+import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -5,9 +7,7 @@ import {
   StyleSheet,
   View,
   Dimensions,
-} from "react-native";
-import React, { useState } from "react";
-import { Pdstyles } from "@/constants/Styles";
+} from 'react-native';
 import {
   useTheme,
   TextInput,
@@ -15,42 +15,43 @@ import {
   Button,
   Portal,
   Dialog,
-} from "react-native-paper";
-import { Text } from "@/components/Text";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { hasErrorsInEmail } from "@/components/InputValidation";
-import { useAuthStore } from "@/utils/auth";
-import { router } from "expo-router";
+} from 'react-native-paper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const { width } = Dimensions.get("window");
+import { hasErrorsInEmail } from '@/components/InputValidation';
+import { Text } from '@/components/Text';
+import { Pdstyles } from '@/constants/Styles';
+import { useAuthStore } from '@/utils/auth';
+
+const { width } = Dimensions.get('window');
 
 // Define our possible states for the reset process
-type ResetStatus = "idle" | "sending" | "success" | "error";
+type ResetStatus = 'idle' | 'sending' | 'success' | 'error';
 
 const Page = () => {
   const { top } = useSafeAreaInsets();
   const theme = useTheme();
-  const resetPassword = useAuthStore((state) => state.resetPassword);
+  const resetPassword = useAuthStore(state => state.resetPassword);
 
   // State management for the form
-  const [email, setEmail] = useState("");
-  const [resetStatus, setResetStatus] = useState<ResetStatus>("idle");
+  const [email, setEmail] = useState('');
+  const [resetStatus, setResetStatus] = useState<ResetStatus>('idle');
   const [showResetDialog, setShowResetDialog] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState('');
 
   // Platform-specific keyboard behavior
-  const keyboardVerticalOffset = Platform.OS === "ios" ? 40 : 0;
-  const keyboardBehavior = Platform.OS === "ios" ? "padding" : "height";
+  const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 0;
+  const keyboardBehavior = Platform.OS === 'ios' ? 'padding' : 'height';
 
   // Function to simulate sending reset email
   // In production, this would connect to your backend API
   const sendResetEmail = async (email: string) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (email.includes("@")) {
+        if (email.includes('@')) {
           resolve(true);
         } else {
-          reject(new Error("Invalid email format"));
+          reject(new Error('Invalid email format'));
         }
       }, 1500);
     });
@@ -59,15 +60,15 @@ const Page = () => {
   // Handle reset password request
   const handleResetPassword = async () => {
     try {
-      setResetStatus("sending");
+      setResetStatus('sending');
       // await sendResetEmail(email);
       await resetPassword(email);
-      setResetStatus("success");
+      setResetStatus('success');
       setShowResetDialog(true);
     } catch (error) {
-      setResetStatus("error");
+      setResetStatus('error');
       setErrorMessage(
-        error instanceof Error ? error.message : "Failed to send reset email"
+        error instanceof Error ? error.message : 'Failed to send reset email',
       );
     }
   };
@@ -122,7 +123,7 @@ const Page = () => {
                 autoCapitalize="none"
                 left={<TextInput.Icon icon="email" />}
                 error={hasErrorsInEmail(email)}
-                disabled={resetStatus === "sending"}
+                disabled={resetStatus === 'sending'}
               />
               <HelperText type="error" visible={hasErrorsInEmail(email)}>
                 Please enter a valid email address
@@ -133,8 +134,8 @@ const Page = () => {
             <Button
               mode="contained"
               onPress={handleResetPassword}
-              loading={resetStatus === "sending"}
-              disabled={hasErrorsInEmail(email) || resetStatus === "sending"}
+              loading={resetStatus === 'sending'}
+              disabled={hasErrorsInEmail(email) || resetStatus === 'sending'}
               style={styles.button}
               labelStyle={Pdstyles.buttonLabelStyle}
             >
@@ -142,7 +143,7 @@ const Page = () => {
             </Button>
 
             {/* Error message */}
-            {resetStatus === "error" && (
+            {resetStatus === 'error' && (
               <Text style={[styles.errorText, { color: theme.colors.error }]}>
                 {errorMessage}
               </Text>
@@ -168,13 +169,13 @@ const Page = () => {
             <Button
               onPress={() => {
                 setShowResetDialog(false);
-                console.log("Navigating to verify page with:", {
+                console.log('Navigating to verify page with:', {
                   email,
-                  emailOtpType: "recovery",
+                  emailOtpType: 'recovery',
                 });
                 router.push({
-                  pathname: "/verify",
-                  params: { email: email, emailOtpType: "recovery" },
+                  pathname: '/verify',
+                  params: { email, emailOtpType: 'recovery' },
                 });
               }}
             >
@@ -190,10 +191,10 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   mainGlow: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
@@ -202,7 +203,7 @@ const styles = StyleSheet.create({
     opacity: 0.08,
   },
   bottomAccent: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
@@ -212,24 +213,24 @@ const styles = StyleSheet.create({
   },
   scrollContentContainer: {
     flexGrow: 1,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingBottom: 40,
   },
   contentContainer: {
     flex: 1,
     paddingHorizontal: 24,
-    justifyContent: "center",
+    justifyContent: 'center',
   },
   headerSection: {
     marginBottom: 32,
-    alignItems: "center",
+    alignItems: 'center',
   },
   title: {
     marginBottom: 8,
-    textAlign: "center",
+    textAlign: 'center',
   },
   subtitle: {
-    textAlign: "center",
+    textAlign: 'center',
     marginHorizontal: 20,
   },
   formSection: {
@@ -242,7 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   errorText: {
-    textAlign: "center",
+    textAlign: 'center',
     marginTop: 8,
   },
 });

@@ -1,0 +1,11 @@
+node_modules/
+android/
+assets/
+dist/
+coverage/
+.expo/
+*.config.js
+metro.config.js
+babel.config.js
+jest.config.js
+expo-env.d.ts

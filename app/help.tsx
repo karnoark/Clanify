@@ -1,21 +1,22 @@
-import { StyleSheet, View } from "react-native";
-import React from "react";
-import { Button } from "react-native-paper";
-import { Colors } from "@/constants/Colors";
-import { Text } from "@/components/Text";
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
+import { Button } from 'react-native-paper';
+
+import { Text } from '@/components/Text';
+import { Colors } from '@/constants/Colors';
 
 const Page = () => {
   return (
     <View
       style={{
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+        justifyContent: 'center',
+        alignItems: 'center',
         // backgroundColor: Colors.light.backdrop,
       }}
     >
       <Button
-        icon={"camera"}
+        icon={'camera'}
         mode="contained"
         onPress={() => console.log("help? what's that?")}
       >

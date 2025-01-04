@@ -1,38 +1,39 @@
+import { Link, Redirect, router } from 'expo-router';
+import React, { useEffect } from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
   View,
   Dimensions,
   useColorScheme,
-} from "react-native";
-import React, { useEffect } from "react";
-import { Pdstyles } from "@/constants/Styles";
-import { Link, Redirect, router } from "expo-router";
-import { Button } from "react-native-paper";
-import { Text } from "@/components/Text";
-import { Colors } from "@/constants/Colors";
-import { initializeAuth, useAuthStore } from "@/utils/auth";
+} from 'react-native';
+import { Button } from 'react-native-paper';
 
-const { width, height } = Dimensions.get("window");
+import { Text } from '@/components/Text';
+import { Colors } from '@/constants/Colors';
+import { Pdstyles } from '@/constants/Styles';
+import { initializeAuth, useAuthStore } from '@/utils/auth';
+
+const { width, height } = Dimensions.get('window');
 
 const Page = () => {
-  const user = useAuthStore((state) => state.user);
+  const user = useAuthStore(state => state.user);
   // const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery);
   // console.log("index page:-> isPasswordRecovery: ", isPasswordRecovery);
 
-  const colorScheme = useColorScheme() ?? "dark";
+  const colorScheme = useColorScheme() ?? 'dark';
 
   useEffect(() => {
-    console.log("Initializing Auth");
+    console.log('Initializing Auth');
     initializeAuth();
   }, []);
 
   if (user) {
     console.log(
-      "index:-> user is logged in... so redirecting to authenticated tabs... user: ",
-      user
+      'index:-> user is logged in... so redirecting to authenticated tabs... user: ',
+      user,
     );
-    return <Redirect href={"/(authenticated)/(tabs)/explore"} />;
+    return <Redirect href={'/(authenticated)/(tabs)/explore'} />;
   }
 
   return (
@@ -71,7 +72,7 @@ const Page = () => {
               styles.header,
               {
                 textShadowColor:
-                  colorScheme === "dark" ? "rgba(253, 53, 109, 0.3)" : "",
+                  colorScheme === 'dark' ? 'rgba(253, 53, 109, 0.3)' : '',
               },
             ]}
           >
@@ -88,8 +89,8 @@ const Page = () => {
           // style={styles.signInButton}
           labelStyle={Pdstyles.buttonLabelStyle}
           onPress={() => {
-            console.log("Paper button pressed");
-            router.push("/signin");
+            console.log('Paper button pressed');
+            router.push('/signin');
           }}
         >
           <Text style={styles.buttonText}>Sign In</Text>
@@ -100,8 +101,8 @@ const Page = () => {
           // style={styles.signInButton}
           labelStyle={Pdstyles.buttonLabelStyle}
           onPress={() => {
-            console.log("Paper button pressed");
-            router.push("/signup");
+            console.log('Paper button pressed');
+            router.push('/signup');
           }}
         >
           <Text style={styles.buttonText}>Sign Up</Text>
@@ -112,8 +113,8 @@ const Page = () => {
           // style={styles.signInButton}
           labelStyle={Pdstyles.buttonLabelStyle}
           onPress={() => {
-            console.log("Paper button pressed");
-            router.push("/help");
+            console.log('Paper button pressed');
+            router.push('/help');
           }}
         >
           <Text style={styles.buttonText}>help</Text>
@@ -127,11 +128,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     // backgroundColor: "#202024",
-    overflow: "hidden", // Important for containing background elements
+    overflow: 'hidden', // Important for containing background elements
   },
   // Background decorative elements
   mainGlow: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
@@ -141,17 +142,17 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.2 }],
   },
   topDecoration: {
-    position: "absolute",
-    width: width,
+    position: 'absolute',
+    width,
     height: height * 0.3,
     // backgroundColor: "#FD356D",
     top: 0,
     right: -width * 0.5,
     opacity: 0.05,
-    transform: [{ rotate: "-45deg" }, { scale: 1.5 }],
+    transform: [{ rotate: '-45deg' }, { scale: 1.5 }],
   },
   bottomDecoration: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
@@ -161,29 +162,29 @@ const styles = StyleSheet.create({
     opacity: 0.06,
   },
   accentLine: {
-    position: "absolute",
+    position: 'absolute',
     width: width * 2,
     height: 2,
     // backgroundColor: "#FD356D",
     top: height * 0.3,
     left: -width * 0.5,
     opacity: 0.1,
-    transform: [{ rotate: "-15deg" }],
+    transform: [{ rotate: '-15deg' }],
   },
   // Content styling
   contentContainer: {
     flex: 4,
-    justifyContent: "center",
+    justifyContent: 'center',
     paddingHorizontal: 24,
     marginTop: 40,
   },
   headerContainer: {
-    width: "100%",
+    width: '100%',
   },
   header: {
     fontSize: 42,
     // color: "#FD356D",
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     lineHeight: 48,
     // textShadowColor: "rgba(253, 53, 109, 0.3)",
     textShadowOffset: { width: 0, height: 2 },
@@ -192,14 +193,14 @@ const styles = StyleSheet.create({
   headerSecondary: {
     fontSize: 36,
     // color: "#FD356D",
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     opacity: 0.9,
     marginTop: 8,
   },
   // Button container and buttons
   buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     gap: 16,
     paddingHorizontal: 24,
     paddingBottom: 40,
@@ -209,9 +210,9 @@ const styles = StyleSheet.create({
     // backgroundColor: "#FD356D",
     paddingVertical: 10,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#FD356D",
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FD356D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
@@ -223,18 +224,18 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     // fontSize: 20,
     borderRadius: 30,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#FD356D",
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#FD356D',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
   },
   buttonText: {
-    color: "white",
+    color: 'white',
     fontSize: 18,
-    fontWeight: "300",
+    fontWeight: '300',
   },
 });
 

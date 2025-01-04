@@ -1,7 +1,7 @@
-import React from "react";
-import { StyleSheet } from "react-native";
-import { Text as RNText, useTheme } from "react-native-paper";
-import type { Props } from "react-native-paper/lib/typescript/components/Typography/Text";
+import React from 'react';
+import { StyleSheet } from 'react-native';
+import { Text as RNText, useTheme } from 'react-native-paper';
+import type { Props } from 'react-native-paper/lib/typescript/components/Typography/Text';
 
 export const Text: React.FC<Props<Text>> = ({ children, style, ...props }) => {
   const theme = useTheme();
@@ -10,7 +10,7 @@ export const Text: React.FC<Props<Text>> = ({ children, style, ...props }) => {
     <RNText
       style={[
         styles.defaultText,
-        { fontFamily: "PlayRegular", color: theme.colors.onBackground },
+        { fontFamily: 'PlayRegular', color: theme.colors.onBackground },
         style,
       ]}
       {...props}
