@@ -9,10 +9,10 @@ import {
 } from 'react-native';
 import { Button } from 'react-native-paper';
 
-import { Text } from '@/components/Text';
-import { Colors } from '@/constants/Colors';
-import { Pdstyles } from '@/constants/Styles';
-import { initializeAuth, useAuthStore } from '@/utils/auth';
+import { Text } from '@/src/components/common/Text';
+import { Colors } from '@/src/constants/Colors';
+import { Pdstyles } from '@/src/constants/Styles';
+import { initializeAuth, useAuthStore } from '@/src/utils/auth';
 
 const { width, height } = Dimensions.get('window');
 

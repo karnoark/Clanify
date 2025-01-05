@@ -5,6 +5,8 @@ import {
   createClient,
   EmailOtpType,
   MobileOtpType,
+  Session,
+  SupabaseClient,
   VerifyEmailOtpParams,
 } from '@supabase/supabase-js';
 import { MMKV } from 'react-native-mmkv';
@@ -12,8 +14,8 @@ import { create } from 'zustand';
 
 // import { ENV } from '../config/env'
 import 'react-native-url-polyfill/auto';
-import { AuthErrorHandler, HandleError } from '@/utils/auth_errors';
-import { AuthEventManager } from '@/utils/auth_events';
+import { AuthErrorHandler, HandleError } from '@/src/utils/auth_errors';
+import { AuthEventManager } from '@/src/utils/auth_events';
 
 // Define our core interfaces
 interface User {
@@ -48,7 +50,7 @@ interface UserProfileUpdate {
 
 interface AuthState {
   user: User | null;
-  session: any | null; // You might want to type this properly based on Supabase session
+  session: Session | null; // You might want to type this properly based on Supabase session
   isLoading: boolean;
   isPasswordRecovery: boolean;
   error: HandleError | null;
@@ -117,7 +119,7 @@ try {
 }
 
 // Helper functions for managing MMKV storage
-const saveToStorage = (key: string, value: any) => {
+const saveToStorage = <T>(key: string, value: T) => {
   try {
     storage.set(key, JSON.stringify(value));
   } catch (error) {
@@ -188,7 +190,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Set up auth state change listener
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((event, session) => {
+      } = supabase.auth.onAuthStateChange((event, newSession) => {
         // Don't clear session if we're in password recovery flow, because during password update stage temprarily, the session might appear to be null . isPasswordRecovery flag acts like a "Do Not Disturb" sign. When it's set to true, we're telling the listener: "Yes, we know the auth state is changing, but don't clear anything - we're in the middle of a special process."
 
         // if (get().isPasswordRecovery) {
@@ -196,7 +198,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         // }
 
         // Delegate event handling to AuthEventManager
-        AuthEventManager.handleAuthStateChange(event, session);
+        AuthEventManager.handleAuthStateChange(event, newSession);
 
         if (get().isPasswordRecovery) {
           switch (event) {
@@ -214,17 +216,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           }
         }
 
-        if (session) {
+        if (newSession) {
           console.log('auth/initialize:-> AuthStateChange Event happened');
           const user: User = {
-            id: session.user.id,
-            email: session.user.email ?? '',
-            firstName: session.user.user_metadata?.first_name ?? '',
-            lastName: session.user.user_metadata?.last_name ?? '',
+            id: newSession.user.id,
+            email: newSession.user.email ?? '',
+            firstName: newSession.user.user_metadata?.first_name ?? '',
+            lastName: newSession.user.user_metadata?.last_name ?? '',
           };
 
-          set({ session, user });
-          saveToStorage('session', session);
+          set({ session: newSession, user });
+          saveToStorage('session', newSession);
           saveToStorage('user', user);
         } else {
           set({ session: null, user: null });

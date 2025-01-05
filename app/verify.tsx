@@ -10,12 +10,15 @@ import {
   Dimensions,
   Alert,
   TextInput as RNTextInput,
+  NativeSyntheticEvent,
+  TextInputKeyPressEventData,
 } from 'react-native';
 import { useTheme, TextInput, Button } from 'react-native-paper';
 
-import { Text } from '@/components/Text';
-import { Pdstyles } from '@/constants/Styles';
-import { useAuthStore } from '@/utils/auth';
+import { Text } from '@/src/components/common/Text';
+import { Pdstyles } from '@/src/constants/Styles';
+import { useAuthStore } from '@/src/utils/auth';
+import { getErrorMessage } from '@/src/utils/errorUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -81,7 +84,10 @@ const Page = () => {
   };
 
   // Handle backspace for better UX
-  const handleKeyPress = (e: any, index: number) => {
+  const handleKeyPress = (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+    index: number,
+  ) => {
     if (e.nativeEvent.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -123,7 +129,7 @@ const Page = () => {
       console.error(error);
       Alert.alert(
         'Verification Failed',
-        error.message || 'Invalid OTP. Please try again.',
+        getErrorMessage(error) || 'Invalid OTP. Please try again.',
         [
           {
             text: 'OK',
@@ -187,7 +193,7 @@ const Page = () => {
               <TextInput
                 theme={{ roundness: 20 }}
                 key={index}
-                ref={ref => (inputRefs.current[index] = ref)}
+                ref={(ref: RNTextInput) => (inputRefs.current[index] = ref)}
                 style={[
                   styles.otpInput,
                   { backgroundColor: theme.colors.surfaceVariant },

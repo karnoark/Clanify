@@ -20,10 +20,10 @@ import {
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { hasErrorsInPassword } from '@/components/InputValidation';
-import { Text } from '@/components/Text';
-import { Pdstyles } from '@/constants/Styles';
-import { useAuthStore } from '@/utils/auth';
+import { Text } from '@/src/components/common/Text';
+import { Pdstyles } from '@/src/constants/Styles';
+import { hasErrorsInPassword } from '@/src/utils/InputValidation';
+import { useAuthStore } from '@/src/utils/auth';
 
 const { width } = Dimensions.get('window');
 

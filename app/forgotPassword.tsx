@@ -18,10 +18,10 @@ import {
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { hasErrorsInEmail } from '@/components/InputValidation';
-import { Text } from '@/components/Text';
-import { Pdstyles } from '@/constants/Styles';
-import { useAuthStore } from '@/utils/auth';
+import { Text } from '@/src/components/common/Text';
+import { Pdstyles } from '@/src/constants/Styles';
+import { hasErrorsInEmail } from '@/src/utils/InputValidation';
+import { useAuthStore } from '@/src/utils/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -45,10 +45,10 @@ const Page = () => {
 
   // Function to simulate sending reset email
   // In production, this would connect to your backend API
-  const sendResetEmail = async (email: string) => {
+  const sendResetEmail = async (emailInput: string) => {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        if (email.includes('@')) {
+        if (emailInput.includes('@')) {
           resolve(true);
         } else {
           reject(new Error('Invalid email format'));

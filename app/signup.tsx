@@ -20,14 +20,14 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmailOtpParams } from '@/app/verify';
+import { Text } from '@/src/components/common/Text';
+import { Pdstyles } from '@/src/constants/Styles';
 import {
   hasErrorsInEmail,
   hasErrorsInName,
   hasErrorsInPassword,
-} from '@/components/InputValidation';
-import { Text } from '@/components/Text';
-import { Pdstyles } from '@/constants/Styles';
-import { useAuthStore } from '@/utils/auth';
+} from '@/src/utils/InputValidation';
+import { useAuthStore } from '@/src/utils/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -236,6 +236,7 @@ const Page = () => {
     formState.password,
     formState.firstName,
     formState.lastName,
+    formState.touched,
   ]);
 
   return (

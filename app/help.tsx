@@ -2,8 +2,8 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button } from 'react-native-paper';
 
-import { Text } from '@/components/Text';
-import { Colors } from '@/constants/Colors';
+import { Text } from '@/src/components/common/Text';
+import { Colors } from '@/src/constants/Colors';
 
 const Page = () => {
   return (

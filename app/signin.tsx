@@ -13,13 +13,14 @@ import {
 import { Button, HelperText, TextInput, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Text } from '@/src/components/common/Text';
+import { Pdstyles } from '@/src/constants/Styles';
 import {
   hasErrorsInEmail,
   hasErrorsInPassword,
-} from '@/components/InputValidation';
-import { Text } from '@/components/Text';
-import { Pdstyles } from '@/constants/Styles';
-import { useAuthStore } from '@/utils/auth';
+} from '@/src/utils/InputValidation';
+import { useAuthStore } from '@/src/utils/auth';
+import { getErrorMessage } from '@/src/utils/errorUtils';
 
 interface FormState {
   email: string;
@@ -90,7 +91,7 @@ const Page = () => {
           : undefined,
       }));
     }
-  }, [formState.email, formState.password]);
+  }, [formState.email, formState.password, formState.touched]);
 
   const handleSubmit = async () => {
     const formErrors: FormErrors = {};
@@ -119,7 +120,7 @@ const Page = () => {
       router.push('/(authenticated)/(tabs)/explore');
     } catch (error) {
       console.error(error);
-      Alert.alert('not able to login: ', error.message);
+      Alert.alert('not able to login: ', getErrorMessage(error));
     } finally {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
     }

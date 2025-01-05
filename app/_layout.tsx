@@ -12,8 +12,8 @@ import {
   useTheme,
 } from 'react-native-paper';
 
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { Colors } from '@/src/constants/Colors';
+import { useColorScheme } from '@/src/hooks/useColorScheme';
 
 import {
   NavigationContainer,
@@ -23,7 +23,7 @@ import {
 } from '@react-navigation/native';
 import merge from 'deepmerge';
 
-import { initializeAuth, useAuthStore } from '@/utils/auth';
+import { initializeAuth, useAuthStore } from '@/src/utils/auth';
 
 const customLightTheme = { ...MD3DarkTheme, colors: Colors.light };
 const customDarkTheme = { ...MD3LightTheme, colors: Colors.dark };
@@ -43,7 +43,7 @@ export default function RootLayout() {
   // const theme = useTheme();
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    PlayRegular: require('@/assets/fonts/PlayfairDisplay-Regular.ttf'),
+    PlayRegular: require('@/src/assets/fonts/PlayfairDisplay-Regular.ttf'),
   });
 
   useEffect(() => {
