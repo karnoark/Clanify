@@ -460,7 +460,7 @@ const Page = () => {
             </View>
 
             {/* Divider */}
-            <View style={styles.dividerContainer}>
+            {/* <View style={styles.dividerContainer}>
               <View
                 style={[
                   styles.divider,
@@ -478,9 +478,11 @@ const Page = () => {
                   { backgroundColor: theme.colors.primary },
                 ]}
               />
-            </View>
+            </View> */}
 
-            <View
+            {/* Google OAuth Flow */}
+
+            {/* <View
               style={{
                 // marginTop: 20,
                 width: '100%',
@@ -494,7 +496,7 @@ const Page = () => {
               >
                 Continue with Google
               </Button>
-            </View>
+            </View> */}
           </View>
         </View>
       </ScrollView>
