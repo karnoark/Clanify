@@ -15,7 +15,10 @@ import {
 } from 'react-native-paper';
 
 import { Text } from '../../../../src/components/common/Text';
-import { useOnboardingStore } from '../../../../src/store/onboardingStore';
+import {
+  MessDetails,
+  useOnboardingStore,
+} from '../../../../src/store/onboardingStore';
 
 // Let's create a validation helper that explains the rules for each field
 const VALIDATION_RULES = {
@@ -72,7 +75,10 @@ export function MessDetailsStep() {
   const [newSpecialty, setNewSpecialty] = useState('');
 
   // Function to validate a single field
-  const validateField = (field: string, value: any): string | null => {
+  const validateField = (
+    field: string,
+    value: string | number,
+  ): string | null => {
     const rules = VALIDATION_RULES[field as keyof typeof VALIDATION_RULES];
     if (!rules) return null;
 
@@ -113,12 +119,20 @@ export function MessDetailsStep() {
   };
 
   // Function to handle field changes with validation
-  const handleFieldChange = (field: string, value: any) => {
+  const handleFieldChange = <K extends keyof MessDetails>(
+    field: K,
+    value: MessDetails[K],
+  ) => {
     // Update the store
     updateMessDetails({ [field]: value });
 
     // Validate and update errors
-    const error = validateField(field, value);
+    let error;
+    if (typeof value === 'string' || typeof value === 'number') {
+      error = validateField(field, value);
+    } else {
+      error = 'validation not defined';
+    }
     if (error) {
       setError(field, error);
     } else {
@@ -162,7 +176,7 @@ export function MessDetailsStep() {
 
       {/* Mess Name */}
       <TextInput
-        mode="outlined"
+        mode="flat"
         label="Mess Name"
         value={messDetails.name || ''}
         onChangeText={text => handleFieldChange('name', text)}
@@ -177,7 +191,7 @@ export function MessDetailsStep() {
 
       {/* Mess Description */}
       <TextInput
-        mode="outlined"
+        mode="flat"
         label="Description"
         value={messDetails.description || ''}
         onChangeText={text => handleFieldChange('description', text)}
@@ -238,7 +252,7 @@ export function MessDetailsStep() {
       </View>
       <View style={styles.specialtyInput}>
         <TextInput
-          mode="outlined"
+          mode="flat"
           label="Add Specialty"
           value={newSpecialty}
           onChangeText={setNewSpecialty}
@@ -263,11 +277,11 @@ export function MessDetailsStep() {
       <View style={styles.row}>
         <View style={styles.flex1}>
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="Capacity"
             value={messDetails.capacity?.toString() || ''}
             onChangeText={text =>
-              handleFieldChange('capacity', parseInt(text) || '')
+              handleFieldChange('capacity', parseInt(text, 10) ?? 0)
             }
             keyboardType="numeric"
             error={!!errors.capacity}
@@ -282,11 +296,11 @@ export function MessDetailsStep() {
 
         <View style={[styles.flex1, styles.marginLeft]}>
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="Monthly Rate (₹)"
             value={messDetails.monthlyRate?.toString() || ''}
             onChangeText={text =>
-              handleFieldChange('monthlyRate', parseInt(text) || '')
+              handleFieldChange('monthlyRate', parseInt(text, 10) ?? 0)
             }
             keyboardType="numeric"
             error={!!errors.monthlyRate}
@@ -300,9 +314,23 @@ export function MessDetailsStep() {
         </View>
       </View>
 
+      <TextInput
+        mode="flat"
+        label="Security Deposit"
+        value={messDetails.securityDeposit?.toString() || ''}
+        onChangeText={text =>
+          handleFieldChange('securityDeposit', parseInt(text, 10) ?? 0)
+        }
+        keyboardType="numeric"
+        style={styles.input}
+      />
+      <HelperText type="info" visible={true}>
+        This helps build trust with potential customers
+      </HelperText>
+
       {/* Year of Establishment */}
       <TextInput
-        mode="outlined"
+        mode="flat"
         label="Year of Establishment"
         value={messDetails.establishmentYear || ''}
         onChangeText={text => handleFieldChange('establishmentYear', text)}

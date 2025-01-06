@@ -168,7 +168,7 @@ export function ContactStep() {
           </View>
 
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="Primary Phone Number"
             value={contact.phone || ''}
             onChangeText={text => handleFieldChange('phone', text)}
@@ -184,7 +184,7 @@ export function ContactStep() {
           )}
 
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="Alternate Phone Number (Optional)"
             value={contact.alternatePhone || ''}
             onChangeText={text => handleFieldChange('alternatePhone', text)}
@@ -217,7 +217,7 @@ export function ContactStep() {
           </View>
 
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="Business Email"
             value={contact.email || ''}
             onChangeText={text => handleFieldChange('email', text)}
@@ -250,7 +250,7 @@ export function ContactStep() {
           </View>
 
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="Website"
             value={contact.website || ''}
             onChangeText={text => handleFieldChange('website', text)}

@@ -4,7 +4,7 @@
 // as correct location information is crucial for customers to find the mess.
 
 import * as Location from 'expo-location';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   TextInput,
@@ -84,15 +84,23 @@ export function LocationStep() {
       return rules.message.required;
     }
 
-    if (rules.minLength && value.length < rules.minLength) {
+    if (
+      'minLength' in rules &&
+      rules.minLength &&
+      value.length < rules.minLength
+    ) {
       return rules.message.minLength;
     }
 
-    if (rules.maxLength && value.length > rules.maxLength) {
+    if (
+      'maxLength' in rules &&
+      rules.maxLength &&
+      value.length > rules.maxLength
+    ) {
       return rules.message.maxLength;
     }
 
-    if (rules.pattern && !rules.pattern.test(value)) {
+    if ('pattern' in rules && rules.pattern && !rules.pattern.test(value)) {
       return rules.message.pattern;
     }
 
@@ -167,6 +175,10 @@ export function LocationStep() {
     }
   };
 
+  useEffect(() => {
+    console.log('location of the mess: ', location);
+  }, [location]);
+
   return (
     <ScrollView
       showsVerticalScrollIndicator={false}
@@ -212,7 +224,7 @@ export function LocationStep() {
       </Text>
 
       <TextInput
-        mode="outlined"
+        mode="flat"
         label="Street Address"
         value={location.address?.street || ''}
         onChangeText={text => handleFieldChange('street', text)}
@@ -228,7 +240,7 @@ export function LocationStep() {
       )}
 
       <TextInput
-        mode="outlined"
+        mode="flat"
         label="Area/Locality"
         value={location.address?.area || ''}
         onChangeText={text => handleFieldChange('area', text)}
@@ -245,7 +257,7 @@ export function LocationStep() {
       <View style={styles.row}>
         <View style={styles.flex1}>
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="City"
             value={location.address?.city || ''}
             onChangeText={text => handleFieldChange('city', text)}
@@ -261,7 +273,7 @@ export function LocationStep() {
 
         <View style={[styles.flex1, styles.marginLeft]}>
           <TextInput
-            mode="outlined"
+            mode="flat"
             label="PIN Code"
             value={location.address?.pincode || ''}
             onChangeText={text => handleFieldChange('pincode', text)}
@@ -279,7 +291,7 @@ export function LocationStep() {
       </View>
 
       <TextInput
-        mode="outlined"
+        mode="flat"
         label="State"
         value={location.address?.state || ''}
         onChangeText={text => handleFieldChange('state', text)}

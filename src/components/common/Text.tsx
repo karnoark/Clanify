@@ -10,7 +10,8 @@ export const Text: React.FC<Props<Text>> = ({ children, style, ...props }) => {
     <RNText
       style={[
         styles.defaultText,
-        { fontFamily: 'PlayRegular', color: theme.colors.onBackground },
+        // { fontFamily: 'PlayRegular', color: theme.colors.onBackground },
+        { fontFamily: 'PlayRegular' },
         style,
       ]}
       {...props}
