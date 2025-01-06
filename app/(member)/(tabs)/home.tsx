@@ -7,7 +7,7 @@ import { Surface, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text } from '@/src/components/common/Text';
-import { useAuthStore } from '@/src/utils/auth';
+import { useAuthStore } from '@/src/store/auth';
 
 // import { HomeScreen } from '../../../src/screens/claude/HomeScreen';
 

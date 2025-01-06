@@ -17,7 +17,7 @@ import { useTheme, TextInput, Button } from 'react-native-paper';
 
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
-import { useAuthStore } from '@/src/utils/auth';
+import { useAuthStore } from '@/src/store/auth';
 import { getErrorMessage } from '@/src/utils/errorUtils';
 
 const { width } = Dimensions.get('window');

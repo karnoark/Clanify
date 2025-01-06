@@ -21,7 +21,7 @@ import {
 
 import { Colors } from '@/src/constants/Colors';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
-import { initializeAuth, useAuthStore } from '@/src/utils/auth';
+import { initializeAuth, useAuthStore } from '@/src/store/auth';
 
 const customLightTheme = { ...MD3DarkTheme, colors: Colors.light };
 const customDarkTheme = { ...MD3LightTheme, colors: Colors.dark };

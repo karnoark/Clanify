@@ -3,6 +3,7 @@
 // The component prioritizes accuracy while maintaining a user-friendly interface,
 // as correct location information is crucial for customers to find the mess.
 
+import * as Location from 'expo-location';
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import {
@@ -17,8 +18,7 @@ import {
 } from 'react-native-paper';
 
 import { Text } from '../../../../src/components/common/Text';
-import { useOnboardingStore } from '../store/onboardingStore';
-// import * as Location from 'expo-location';
+import { useOnboardingStore } from '../../../../src/store/onboardingStore';
 
 // Define validation rules for address fields
 const ADDRESS_VALIDATION = {

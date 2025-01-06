@@ -12,7 +12,7 @@ import { Button } from 'react-native-paper';
 import { Text } from '@/src/components/common/Text';
 import { Colors } from '@/src/constants/Colors';
 import { Pdstyles } from '@/src/constants/Styles';
-import { initializeAuth, useAuthStore } from '@/src/utils/auth';
+import { initializeAuth, useAuthStore } from '@/src/store/auth';
 
 const { width, height } = Dimensions.get('window');
 

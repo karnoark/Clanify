@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unstable-nested-components */
 // This screen manages the mess administrator's profile and business settings.
 // It serves as a central hub for configuring mess operations and managing
 // administrator preferences. The design follows a hierarchical organization

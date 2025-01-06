@@ -15,11 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
+import { useAuthStore } from '@/src/store/auth';
 import {
   hasErrorsInEmail,
   hasErrorsInPassword,
 } from '@/src/utils/InputValidation';
-import { useAuthStore } from '@/src/utils/auth';
 import { getErrorMessage } from '@/src/utils/errorUtils';
 
 interface FormState {

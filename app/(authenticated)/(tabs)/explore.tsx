@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { StyleSheet, Image, Platform, View } from 'react-native';
 
 import { Text } from '@/src/components/common/Text';
-import { storage, useAuthStore } from '@/src/utils/auth';
+import { storage, useAuthStore } from '@/src/store/auth';
 
 export default function TabTwoScreen() {
   const zustandUser = useAuthStore(state => state.user);

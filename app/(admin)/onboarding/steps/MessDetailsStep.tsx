@@ -15,7 +15,7 @@ import {
 } from 'react-native-paper';
 
 import { Text } from '../../../../src/components/common/Text';
-import { useOnboardingStore } from '../store/onboardingStore';
+import { useOnboardingStore } from '../../../../src/store/onboardingStore';
 
 // Let's create a validation helper that explains the rules for each field
 const VALIDATION_RULES = {

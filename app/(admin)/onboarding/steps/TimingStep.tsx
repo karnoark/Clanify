@@ -21,7 +21,7 @@ import {
 // import { TimePicker } from 'react-native-paper-dates';
 
 import { Text } from '../../../../src/components/common/Text';
-import { useOnboardingStore } from '../store/onboardingStore';
+import { useOnboardingStore } from '../../../../src/store/onboardingStore';
 
 // Define the structure for our working hours
 interface DaySchedule {

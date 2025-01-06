@@ -138,6 +138,7 @@ const initialState = {
       'thursday' as const,
       'friday' as const,
       'saturday' as const,
+      'sunday' as const,
     ],
   },
   media: {

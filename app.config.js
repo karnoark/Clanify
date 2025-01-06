@@ -4,32 +4,47 @@ export default ({ config }) => ({
     slug: "Clanify",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./src/assets/images/icon.png",
     scheme: "clanify",
     userInterfaceStyle: "automatic",
     splash: {
-      image: "./assets/images/splash.png",
+      image: "./src/assets/images/splash.png",
       resizeMode: "contain",
       backgroundColor: "#CBB799",
     },
     ios: {
       supportsTablet: true,
       userInterfaceStyle: "automatic",
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription: "EtherealEats needs your location to find nearby meal vendors and ensure accurate delivery."
+      }
     },
     android: {
       userInterfaceStyle: "automatic",
       adaptiveIcon: {
-        foregroundImage: "./assets/images/foreground.png",
+        foregroundImage: "./src/assets/images/foreground.png",
         backgroundColor: "#CBB799",
       },
       package: "com.karnoark.clanify",
+      permissions: [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+      ]
     },
     web: {
       bundler: "metro",
       output: "static",
-      favicon: "./assets/images/favicon.png",
+      favicon: "./src/assets/images/favicon.png",
     },
-    plugins: ["expo-router"],
+    plugins: [
+      "expo-router", 
+    [
+      "expo-location",
+      {
+        "locationAlwaysAndWhenInUsePermission": "Allow Clanify to use your location."
+      }
+    ]
+  ],
     experiments: {
       typedRoutes: true,
     },

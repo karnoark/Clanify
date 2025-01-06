@@ -29,7 +29,7 @@ import {
   hasErrorsInName,
   hasErrorsInPassword,
 } from '@/src/utils/InputValidation';
-import { useAuthStore, UserRole } from '@/src/utils/auth';
+import { useAuthStore, UserRole } from '@/src/store/auth';
 
 const { width } = Dimensions.get('window');
 

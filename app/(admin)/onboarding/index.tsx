@@ -18,8 +18,15 @@ import { LocationStep } from './steps/LocationStep';
 import { MediaStep } from './steps/MediaStep';
 import { MessDetailsStep } from './steps/MessDetailsStep';
 import { TimingStep } from './steps/TimingStep';
-import { useOnboardingStore } from './store/onboardingStore';
 import { StepNavigation } from '../../../src/components/onboarding/StepNavigation';
+import {
+  MessContact,
+  MessDetails,
+  MessLocation,
+  MessMedia,
+  MessTiming,
+  useOnboardingStore,
+} from '../../../src/store/onboardingStore';
 
 // Get the screen width for animations
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,7 +38,7 @@ const ONBOARDING_STEPS = [
     title: 'Basic Information',
     description: 'Tell us about your mess business',
     component: MessDetailsStep,
-    validate: (data: any) => {
+    validate: (data: Partial<MessDetails>) => {
       const errors: string[] = [];
       if (!data.name) errors.push('Name is required');
       if (!data.description) errors.push('Description is required');
@@ -46,7 +53,7 @@ const ONBOARDING_STEPS = [
     title: 'Location',
     description: 'Help customers find you easily',
     component: LocationStep,
-    validate: (data: any) => {
+    validate: (data: Partial<MessLocation>) => {
       const errors: string[] = [];
       if (!data.coordinates?.latitude)
         errors.push('Location coordinates are required');
@@ -60,7 +67,7 @@ const ONBOARDING_STEPS = [
     title: 'Contact Details',
     description: 'How customers can reach you',
     component: ContactStep,
-    validate: (data: any) => {
+    validate: (data: Partial<MessContact>) => {
       const errors: string[] = [];
       if (!data.phone) errors.push('Phone number is required');
       if (!data.email) errors.push('Email is required');
@@ -72,7 +79,7 @@ const ONBOARDING_STEPS = [
     title: 'Operating Hours',
     description: 'Set your serving schedule',
     component: TimingStep,
-    validate: (data: any) => {
+    validate: (data: Partial<MessTiming>) => {
       const errors: string[] = [];
       if (!data.lunch?.start || !data.lunch?.end)
         errors.push('Lunch timings are required');
@@ -88,7 +95,7 @@ const ONBOARDING_STEPS = [
     title: 'Photos & Documents',
     description: 'Show your mess to potential customers',
     component: MediaStep,
-    validate: (data: any) => {
+    validate: (data: Partial<MessMedia>) => {
       const errors: string[] = [];
       // Media validation is optional
       return errors;
@@ -185,9 +192,6 @@ export default function OnboardingScreen() {
 
   // Calculate progress for the progress bar
   const progress = completedSteps.length / ONBOARDING_STEPS.length;
-
-  // const currentStep = useOnboardingStore(state => state.currentStep);
-  // const completedSteps = useOnboardingStore(state => state.completedSteps);
 
   // Create animated style for the progress bar
   const progressBarStyle = useAnimatedStyle(() => ({
