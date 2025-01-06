@@ -30,10 +30,10 @@ const Page = () => {
 
   if (user) {
     console.log(
-      'index:-> user is logged in... so redirecting to authenticated tabs... user: ',
+      'index:-> user is logged in... so redirecting to member tabs... user: ',
       user,
     );
-    return <Redirect href={'/(authenticated)/(tabs)/explore'} />;
+    return <Redirect href={'/(member)/(tabs)/home'} />;
   }
 
   return (

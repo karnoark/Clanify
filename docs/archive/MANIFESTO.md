@@ -1,6 +1,6 @@
 # A Revolution in Community Dining
 
-Every day, millions of people face the same question: "What's for lunch?" For too long, we've accepted mediocrity in our daily meals. We've settled for cold food, unreliable service, and a disconnect between what we pay and what we receive. This isn't just about food – it's about the quality of our daily lives.
+Every day, millions of people face the same question: \"What's for lunch?\" For too long, we've accepted mediocrity in our daily meals. We've settled for cold food, unreliable service, and a disconnect between what we pay and what we receive. This isn't just about food – it's about the quality of our daily lives.
 
 ## Our Vision
 
@@ -15,6 +15,7 @@ We believe that mess owners who go above and beyond should be recognized and rew
 ## The Future We're Building
 
 Imagine a future where:
+
 - Your local mess knows exactly what you need and delivers it consistently
 - You can discover great dining options in your neighborhood with confidence
 - Mess owners can focus on what they do best – creating delicious, nutritious meals
@@ -38,32 +39,5 @@ The future of community dining is here. And it starts with us.
 
 ---
 
-_"Good food is the foundation of genuine happiness." - Auguste Escoffier_
-
----
-
-## Developer Setup
-
-### Prerequisites
-- Node.js (v18 or higher)
-- Yarn package manager
-- Expo CLI
-- Android Studio (for Android development)
-- Xcode (for iOS development, macOS only)
-
-### Quick Start
-```bash
-# Install dependencies
-yarn install
-
-# Start development server
-yarn start
-
-# Run on Android (development)
-yarn android:dev
-
-# Run on iOS
-yarn ios
-```
-
-For detailed documentation, contributing guidelines, and technical details, please visit our [Documentation](docs/README.md).
+_\"Good food is the foundation of genuine happiness.\" - Auguste Escoffier_`
+}

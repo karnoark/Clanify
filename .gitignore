@@ -2,6 +2,7 @@
 
 android/
 ios/
+claude/
 
 # dependencies
 node_modules/
