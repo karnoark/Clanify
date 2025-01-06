@@ -18,11 +18,14 @@ import { AuthErrorHandler, HandleError } from '@/src/utils/auth_errors';
 import { AuthEventManager } from '@/src/utils/auth_events';
 
 // Define our core interfaces
-interface User {
+
+export type UserRole = 'admin' | 'member';
+export interface User {
   id: string;
   email: string;
   firstName: string;
   lastName: string;
+  role: UserRole;
 }
 
 interface SignInCredentials {
@@ -35,6 +38,7 @@ interface SignUpCredentials {
   password: string;
   firstName: string;
   lastName: string;
+  role: UserRole;
 }
 
 interface verifyOtpCredentials {
@@ -172,6 +176,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: session.user.email ?? '',
           firstName: session.user.user_metadata?.first_name ?? '',
           lastName: session.user.user_metadata?.last_name ?? '',
+          role: session.user.user_metadata?.role ?? 'member',
         };
 
         set({ session, user, isPasswordRecovery });
@@ -223,6 +228,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: newSession.user.email ?? '',
             firstName: newSession.user.user_metadata?.first_name ?? '',
             lastName: newSession.user.user_metadata?.last_name ?? '',
+            role: newSession.user.user_metadata?.role ?? 'member',
           };
 
           set({ session: newSession, user });
@@ -272,6 +278,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: session.user.email ?? '',
           firstName: session.user.user_metadata?.first_name ?? '',
           lastName: session.user.user_metadata?.last_name ?? '',
+          role: session.user.user_metadata?.role ?? 'member',
         };
 
         console.log('auth/signIn:-> session: ', session);
@@ -311,6 +318,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             first_name: credentials.firstName,
             last_name: credentials.lastName,
+            role: credentials.role,
           },
         },
       });
@@ -327,6 +335,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: user.email ?? '',
           firstName: credentials.firstName,
           lastName: credentials.lastName,
+          role: credentials.role,
         };
 
         set({ session, user: transformedUser });
@@ -470,6 +479,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: session.user.email ?? '',
             firstName: session.user.user_metadata?.first_name ?? '',
             lastName: session.user.user_metadata?.last_name ?? '',
+            role: session.user.user_metadata?.role ?? 'member',
           };
 
           console.log('auth/verifyOtp:-> session: ', session);

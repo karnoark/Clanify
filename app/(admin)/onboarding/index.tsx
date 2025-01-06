@@ -2,7 +2,8 @@
 // It implements a step-by-step interface with smooth animations and clear progress indicators.
 // The screen follows Material Design principles and provides immediate feedback on user actions.
 
-import React from 'react';
+import { router } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import { Surface, useTheme } from 'react-native-paper';
 import Animated, {
@@ -18,6 +19,7 @@ import { MediaStep } from './steps/MediaStep';
 import { MessDetailsStep } from './steps/MessDetailsStep';
 import { TimingStep } from './steps/TimingStep';
 import { useOnboardingStore } from './store/onboardingStore';
+import { StepNavigation } from '../../../src/components/onboarding/StepNavigation';
 
 // Get the screen width for animations
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -29,40 +31,163 @@ const ONBOARDING_STEPS = [
     title: 'Basic Information',
     description: 'Tell us about your mess business',
     component: MessDetailsStep,
+    validate: (data: any) => {
+      const errors: string[] = [];
+      if (!data.name) errors.push('Name is required');
+      if (!data.description) errors.push('Description is required');
+      if (!data.type) errors.push('Type selection is required');
+      if (!data.capacity) errors.push('Capacity is required');
+      if (!data.monthlyRate) errors.push('Monthly rate is required');
+      return errors;
+    },
   },
   {
     id: 'location',
     title: 'Location',
     description: 'Help customers find you easily',
     component: LocationStep,
+    validate: (data: any) => {
+      const errors: string[] = [];
+      if (!data.coordinates?.latitude)
+        errors.push('Location coordinates are required');
+      if (!data.address?.street) errors.push('Street address is required');
+      if (!data.address?.city) errors.push('City is required');
+      return errors;
+    },
   },
   {
     id: 'contact',
     title: 'Contact Details',
     description: 'How customers can reach you',
     component: ContactStep,
+    validate: (data: any) => {
+      const errors: string[] = [];
+      if (!data.phone) errors.push('Phone number is required');
+      if (!data.email) errors.push('Email is required');
+      return errors;
+    },
   },
   {
     id: 'timing',
     title: 'Operating Hours',
     description: 'Set your serving schedule',
     component: TimingStep,
+    validate: (data: any) => {
+      const errors: string[] = [];
+      if (!data.lunch?.start || !data.lunch?.end)
+        errors.push('Lunch timings are required');
+      if (!data.dinner?.start || !data.dinner?.end)
+        errors.push('Dinner timings are required');
+      if (!data.workingDays?.length)
+        errors.push('Working days selection is required');
+      return errors;
+    },
   },
   {
     id: 'media',
     title: 'Photos & Documents',
     description: 'Show your mess to potential customers',
     component: MediaStep,
+    validate: (data: any) => {
+      const errors: string[] = [];
+      // Media validation is optional
+      return errors;
+    },
   },
 ] as const;
 
 export default function OnboardingScreen() {
   const theme = useTheme();
-  const currentStep = useOnboardingStore(state => state.currentStep);
-  const completedSteps = useOnboardingStore(state => state.completedSteps);
+
+  const [loading, setLoading] = useState(false);
+  const {
+    currentStep,
+    completedSteps,
+    messDetails,
+    location,
+    contact,
+    timing,
+    media,
+    setCurrentStep,
+    markStepComplete,
+    setError,
+    clearError,
+  } = useOnboardingStore();
+
+  // Get current step data based on step index
+  const getCurrentStepData = useCallback(() => {
+    switch (currentStep) {
+      case 0:
+        return messDetails;
+      case 1:
+        return location;
+      case 2:
+        return contact;
+      case 3:
+        return timing;
+      case 4:
+        return media;
+      default:
+        return {};
+    }
+  }, [currentStep, messDetails, location, contact, timing, media]);
+
+  // Handle next step navigation
+  const handleNext = useCallback(async () => {
+    setLoading(true);
+    try {
+      const currentStepConfig = ONBOARDING_STEPS[currentStep];
+      const stepData = getCurrentStepData();
+
+      // Validate current step
+      const errors = currentStepConfig.validate(stepData);
+
+      if (errors.length > 0) {
+        errors.forEach(error => setError(currentStepConfig.id, error));
+        return;
+      }
+
+      // Clear any existing errors
+      clearError(currentStepConfig.id);
+
+      // Mark current step as complete
+      markStepComplete(currentStep);
+
+      // If this is the last step, finish onboarding
+      if (currentStep === ONBOARDING_STEPS.length - 1) {
+        // Navigate to dashboard or success screen
+        router.push('/(admin)/(tabs)');
+        return;
+      }
+
+      // Move to next step
+      setCurrentStep(currentStep + 1);
+    } catch (error) {
+      console.error('Error processing step:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    currentStep,
+    getCurrentStepData,
+    setError,
+    clearError,
+    markStepComplete,
+    setCurrentStep,
+  ]);
+
+  // Handle back navigation
+  const handleBack = useCallback(() => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  }, [currentStep, setCurrentStep]);
 
   // Calculate progress for the progress bar
   const progress = completedSteps.length / ONBOARDING_STEPS.length;
+
+  // const currentStep = useOnboardingStore(state => state.currentStep);
+  // const completedSteps = useOnboardingStore(state => state.completedSteps);
 
   // Create animated style for the progress bar
   const progressBarStyle = useAnimatedStyle(() => ({
@@ -130,17 +255,27 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        {/* Step content */}
-        <Animated.View style={[styles.stepsContainer, containerStyle]}>
-          {ONBOARDING_STEPS.map((step, index) => (
-            <Animated.View
-              key={step.id}
-              style={[styles.stepContent, createStepStyle(index)]}
-            >
-              <step.component />
-            </Animated.View>
-          ))}
-        </Animated.View>
+        {/* Steps content */}
+        <View style={styles.content}>
+          <Animated.View style={[styles.stepsContainer, containerStyle]}>
+            {ONBOARDING_STEPS.map((step, index) => (
+              <Animated.View
+                key={step.id}
+                style={[styles.stepContent, createStepStyle(index)]}
+              >
+                <step.component />
+              </Animated.View>
+            ))}
+          </Animated.View>
+        </View>
+
+        {/* Navigation */}
+        <StepNavigation
+          onNext={handleNext}
+          onBack={currentStep > 0 ? handleBack : undefined}
+          isLastStep={currentStep === ONBOARDING_STEPS.length - 1}
+          loading={loading}
+        />
       </SafeAreaView>
     </Surface>
   );
@@ -165,6 +300,9 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 2,
+  },
+  content: {
+    flex: 1,
   },
   stepsContainer: {
     flex: 1,

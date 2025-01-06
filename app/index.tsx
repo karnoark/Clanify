@@ -28,6 +28,10 @@ const Page = () => {
     initializeAuth();
   }, []);
 
+  if (true) {
+    return <Redirect href={'/(admin)/onboarding/'} />;
+  }
+
   if (user) {
     console.log(
       'index:-> user is logged in... so redirecting to member tabs... user: ',

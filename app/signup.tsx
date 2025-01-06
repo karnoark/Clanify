@@ -16,6 +16,8 @@ import {
   Button,
   Portal,
   Dialog,
+  SegmentedButtons,
+  RadioButton,
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -27,7 +29,7 @@ import {
   hasErrorsInName,
   hasErrorsInPassword,
 } from '@/src/utils/InputValidation';
-import { useAuthStore } from '@/src/utils/auth';
+import { useAuthStore, UserRole } from '@/src/utils/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -47,6 +49,7 @@ interface SignupFormState {
   firstName: string;
   lastName: string;
   termsAccepted: boolean;
+  role: UserRole;
   touched: {
     email: boolean;
     password: boolean;
@@ -91,6 +94,7 @@ const Page = () => {
     firstName: '',
     lastName: '',
     termsAccepted: false,
+    role: 'member' as const,
     touched: {
       email: false,
       password: false,
@@ -154,6 +158,7 @@ const Page = () => {
       password: formState.password,
       firstName: formState.firstName,
       lastName: formState.lastName,
+      role: formState.role,
     });
     console.log('signup completed');
   };
@@ -361,6 +366,18 @@ const Page = () => {
                   Name should be between 2 to 15 characters
                 </HelperText>
               </View>
+            </View>
+
+            <View>
+              <RadioButton.Group
+                onValueChange={(value: string) =>
+                  setFormState(prev => ({ ...prev, role: value as UserRole }))
+                }
+                value={formState.role}
+              >
+                <RadioButton.Item label="Are you a Member?" value={'member'} />
+                <RadioButton.Item label="Are you the Owner? " value={'admin'} />
+              </RadioButton.Group>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
