@@ -123,7 +123,6 @@ export function MessDetailsStep() {
     field: K,
     value: MessDetails[K],
   ) => {
-    console.log('user tried to edit input of MessDetails');
     // Update the store
     updateMessDetails({ [field]: value });
 

@@ -23,16 +23,16 @@ const zustandStorage = {
 
 // Define comprehensive types for our onboarding data
 export interface MessLocation {
-  coordinates: {
+  coordinates?: {
     latitude: number;
     longitude: number;
   };
   address: {
-    street: string;
-    area: string;
-    city: string;
-    state: string;
-    pincode: string;
+    street?: string;
+    area?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
   };
 }
 
@@ -43,26 +43,83 @@ export interface MessContact {
   website?: string;
 }
 
+// Define the structure for our working hours
+// interface DaySchedule {
+//   isOpen: boolean;
+//   lunch?: {
+//     start: string;
+//     end: string;
+//   };
+//   dinner?: {
+//     start: string;
+//     end: string;
+//   };
+// }
+
+// Type for our weekly schedule
+// type WeeklySchedule = {
+//   [key in DayOfWeek]: DaySchedule;
+// };
+
+// Define days of the week
+type DayOfWeek =
+  | 'monday'
+  | 'tuesday'
+  | 'wednesday'
+  | 'thursday'
+  | 'friday'
+  | 'saturday'
+  | 'sunday';
+
+// export interface MessTiming {
+//   lunch: {
+//     start: string;
+//     end: string;
+//     closed: boolean;
+//   };
+//   dinner: {
+//     start: string;
+//     end: string;
+//     closed: boolean;
+//   };
+//   workingDays: (
+//     | 'monday'
+//     | 'tuesday'
+//     | 'wednesday'
+//     | 'thursday'
+//     | 'friday'
+//     | 'saturday'
+//     | 'sunday'
+//   )[];
+//   weeklySchedule: WeeklySchedule;
+// }
+
+// Types for specific time slots
+export interface TimeSlot {
+  start: string;
+  end: string;
+  isClosed: boolean;
+}
+
+// Schedule for a single day
+interface DaySchedule {
+  lunch: TimeSlot;
+  dinner: TimeSlot;
+}
+
+// Type for our weekly schedule
+export type WeeklySchedule = {
+  [key in DayOfWeek]: DaySchedule;
+};
+
+// Main timing interface (simplified to remove redundancy)
 export interface MessTiming {
-  lunch: {
-    start: string;
-    end: string;
-    closed: boolean;
+  weeklySchedule: WeeklySchedule;
+  // Optional: Default timings that can be used when creating new schedules
+  defaultTimings?: {
+    lunch: Omit<TimeSlot, 'isClosed'>;
+    dinner: Omit<TimeSlot, 'isClosed'>;
   };
-  dinner: {
-    start: string;
-    end: string;
-    closed: boolean;
-  };
-  workingDays: (
-    | 'monday'
-    | 'tuesday'
-    | 'wednesday'
-    | 'thursday'
-    | 'friday'
-    | 'saturday'
-    | 'sunday'
-  )[];
 }
 
 export interface MessDetails {

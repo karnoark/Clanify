@@ -1,3 +1,13 @@
+/* 
+TODO Implement following in the backend
+Best Practices for Using Geospatial Features in Supabase
+Use GEOMETRY(Point, 4326) for geospatial queries instead of storing raw latitude/longitude.
+Add a spatial index (GIST) to speed up queries.
+Use ST_DWithin for radius-based filtering (e.g., messes within 5 km).
+Optimize your queries with LIMIT to avoid fetching unnecessary results.
+Cache frequent queries for better performance. 
+*/
+
 // This component handles location and address collection during the onboarding process.
 // It provides both manual address input and automatic location detection using GPS.
 // The component prioritizes accuracy while maintaining a user-friendly interface,
@@ -110,12 +120,11 @@ export function LocationStep() {
   // Handle address field changes with validation
   const handleFieldChange = (field: string, value: string) => {
     // Update the nested address object in location state
-    updateLocation({
-      address: {
-        ...location.address,
-        [field]: value,
-      },
-    });
+    const newLocation = {
+      ...location,
+      address: { ...location.address, [field]: value },
+    };
+    updateLocation(newLocation);
 
     // Validate and update errors
     const error = validateField(field, value);

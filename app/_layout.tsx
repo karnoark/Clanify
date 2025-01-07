@@ -18,6 +18,7 @@ import {
   PaperProvider,
   useTheme,
 } from 'react-native-paper';
+import { en, registerTranslation } from 'react-native-paper-dates';
 
 import { Colors } from '@/src/constants/Colors';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
@@ -36,6 +37,9 @@ const CombinedDarkTheme = merge(DarkTheme, customDarkTheme);
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+// Register the English translation for react-native-paper-dates
+registerTranslation('en', en);
 
 export default function RootLayout() {
   // const theme = useTheme();

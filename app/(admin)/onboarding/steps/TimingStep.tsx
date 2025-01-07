@@ -1,9 +1,5 @@
-// This component manages the operating hours setup during the onboarding process.
-// It allows mess administrators to set precise service windows for each day,
-// handling both regular schedules and special timing rules. The implementation
-// focuses on flexibility while maintaining schedule clarity for customers.
-
-import React, { useState } from 'react';
+// TimingStep.tsx
+import React, { useState, useCallback } from 'react';
 import { StyleSheet, View, ScrollView } from 'react-native';
 import {
   Card,
@@ -13,35 +9,19 @@ import {
   Portal,
   Modal,
   useTheme,
-  IconButton,
-  SegmentedButtons,
   TextInput,
   HelperText,
 } from 'react-native-paper';
-// import { TimePicker } from 'react-native-paper-dates';
+import { TimePickerModal } from 'react-native-paper-dates';
 
 import { Text } from '../../../../src/components/common/Text';
-import { useOnboardingStore } from '../../../../src/store/onboardingStore';
+import {
+  TimeSlot,
+  useOnboardingStore,
+  WeeklySchedule,
+} from '../../../../src/store/onboardingStore';
 
-// Define the structure for our working hours
-interface DaySchedule {
-  isOpen: boolean;
-  lunch?: {
-    start: string;
-    end: string;
-  };
-  dinner?: {
-    start: string;
-    end: string;
-  };
-}
-
-// Type for our weekly schedule
-type WeeklySchedule = {
-  [key in DayOfWeek]: DaySchedule;
-};
-
-// Define days of the week
+// Define types
 type DayOfWeek =
   | 'monday'
   | 'tuesday'
@@ -61,197 +41,411 @@ const DAYS_OF_WEEK: DayOfWeek[] = [
   'sunday',
 ];
 
-// Validation rules for time input
-const validateTime = (time: string): boolean => {
-  const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
-  return timeRegex.test(time);
+// Time formatting and validation utilities
+const formatTime = (hours: number, minutes: number): string => {
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
+
+const parseTime = (
+  timeString: string,
+): { hours: number; minutes: number } | null => {
+  if (!timeString) return null;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return { hours, minutes };
+};
+
+const getTimeInMinutes = (time: string): number => {
+  const parsed = parseTime(time);
+  if (!parsed) return 0;
+  return parsed.hours * 60 + parsed.minutes;
+};
+
+const validateTimeRange = (
+  startTime: string,
+  endTime: string,
+): { isValid: boolean; error?: string } => {
+  const startMinutes = getTimeInMinutes(startTime);
+  const endMinutes = getTimeInMinutes(endTime);
+
+  if (startMinutes >= endMinutes) {
+    return { isValid: false, error: 'End time must be after start time' };
+  }
+
+  if (startMinutes < 240 || endMinutes > 1440) {
+    return {
+      isValid: false,
+      error: 'Please set times between 4:00 AM and midnight',
+    };
+  }
+
+  if (endMinutes - startMinutes < 30) {
+    return {
+      isValid: false,
+      error: 'Service window must be at least 30 minutes',
+    };
+  }
+
+  return { isValid: true };
+};
+
+// Component to render a single meal section (lunch or dinner)
+const MealSection = ({
+  day,
+  mealType,
+  timeSlot,
+  onTimeChange,
+  onToggleClosed,
+  errors,
+  onOpenTimePicker,
+}: {
+  day: DayOfWeek;
+  mealType: 'lunch' | 'dinner';
+  timeSlot: TimeSlot;
+  onTimeChange: (type: 'start' | 'end', time: string) => void;
+  onToggleClosed: () => void;
+  errors: { [key: string]: string };
+  onOpenTimePicker: (type: 'start' | 'end') => void;
+}) => {
+  const theme = useTheme();
+
+  return (
+    <View style={styles.mealSection}>
+      <View style={styles.mealHeader}>
+        <Text variant="bodyMedium" style={styles.mealTitle}>
+          {mealType === 'lunch' ? 'Lunch Service' : 'Dinner Service'}
+        </Text>
+        <View style={styles.mealControls}>
+          <Text
+            variant="bodySmall"
+            style={[
+              styles.closedText,
+              timeSlot.isClosed && styles.closedTextActive,
+            ]}
+          >
+            {timeSlot.isClosed ? 'Closed' : 'Open'}
+          </Text>
+          <Switch value={!timeSlot.isClosed} onValueChange={onToggleClosed} />
+        </View>
+      </View>
+
+      {!timeSlot.isClosed && (
+        <View style={styles.timeInputsRow}>
+          <TimeInput
+            label="Start Time"
+            value={timeSlot.start}
+            onPress={() => onOpenTimePicker('start')}
+            error={errors[`${day}.${mealType}.start`]}
+          />
+          <Text variant="bodyMedium" style={styles.timeSeperator}>
+            to
+          </Text>
+          <TimeInput
+            label="End Time"
+            value={timeSlot.end}
+            onPress={() => onOpenTimePicker('end')}
+            error={errors[`${day}.${mealType}.end`]}
+          />
+        </View>
+      )}
+    </View>
+  );
+};
+
+// Time input component
+const TimeInput = ({
+  label,
+  value,
+  onPress,
+  error,
+}: {
+  label: string;
+  value: string;
+  onPress: () => void;
+  error?: string;
+}) => (
+  <View style={styles.timeInputContainer}>
+    <Button
+      mode="outlined"
+      icon="clock"
+      onPress={onPress}
+      style={[styles.timeButton, !!error && styles.timeButtonError]}
+    >
+      {value || 'Select time'}
+    </Button>
+    {error ? (
+      <HelperText type="error" visible={true}>
+        {error}
+      </HelperText>
+    ) : null}
+  </View>
+);
 
 export function TimingStep() {
   const theme = useTheme();
   const { timing, updateTiming, errors, setError, clearError } =
     useOnboardingStore();
-  const [selectedDay, setSelectedDay] = useState<DayOfWeek | null>(null);
-  const [timePickerVisible, setTimePickerVisible] = useState(false);
-  const [currentEditMode, setCurrentEditMode] = useState<{
+
+  // State for time picker
+  const [selectedTime, setSelectedTime] = useState<{
+    day: DayOfWeek;
     meal: 'lunch' | 'dinner';
     type: 'start' | 'end';
   } | null>(null);
+  const [timePickerVisible, setTimePickerVisible] = useState(false);
 
-  // Initialize weekly schedule if not present
-  // React.useEffect(() => {
-  //   if (!timing.weeklySchedule) {
-  //     const defaultSchedule = DAYS_OF_WEEK.reduce((acc, day) => {
-  //       acc[day] = {
-  //         isOpen: day !== 'sunday',
-  //         lunch: { start: '12:00', end: '15:00' },
-  //         dinner: { start: '19:00', end: '22:00' },
-  //       };
-  //       return acc;
-  //     }, {} as WeeklySchedule);
+  // State for copy functionality
+  const [copyModalVisible, setCopyModalVisible] = useState(false);
+  const [copyFromDay, setCopyFromDay] = useState<DayOfWeek | null>(null);
+  const [copiedDays, setCopiedDays] = useState<Set<DayOfWeek>>(new Set());
 
-  //     updateTiming({ weeklySchedule: defaultSchedule });
-  //   }
-  // }, []);
+  // Initialize schedule if not present
+  React.useEffect(() => {
+    if (!timing.weeklySchedule) {
+      const defaultSchedule = DAYS_OF_WEEK.reduce((acc, day) => {
+        acc[day] = {
+          lunch: {
+            start: '11:00',
+            end: '14:00',
+            isClosed: day === 'sunday',
+          },
+          dinner: {
+            start: '19:00',
+            end: '22:00',
+            isClosed: day === 'sunday',
+          },
+        };
+        return acc;
+      }, {} as WeeklySchedule);
 
-  // Function to handle day schedule changes
-  // const handleDayScheduleChange = (
-  //   day: DayOfWeek,
-  //   changes: Partial<DaySchedule>,
-  // ) => {
-  //   if (!timing.weeklySchedule) return;
+      updateTiming({ weeklySchedule: defaultSchedule });
+    }
+  }, [timing.weeklySchedule, updateTiming]);
 
-  //   const updatedSchedule = {
-  //     ...timing.weeklySchedule,
-  //     [day]: {
-  //       ...timing.weeklySchedule[day],
-  //       ...changes,
-  //     },
-  //   };
+  // Handle time changes
+  const handleTimeChange = useCallback(
+    (
+      day: DayOfWeek,
+      meal: 'lunch' | 'dinner',
+      type: 'start' | 'end',
+      time: string,
+    ) => {
+      if (!timing.weeklySchedule) return;
 
-  //   updateTiming({ weeklySchedule: updatedSchedule });
-  // };
+      const currentMeal = timing.weeklySchedule[day][meal];
+      const updatedTimes = {
+        ...currentMeal,
+        [type]: time,
+      };
 
-  // Function to handle time changes
-  // const handleTimeChange = (time: string) => {
-  //   if (!selectedDay || !currentEditMode || !timing.weeklySchedule) return;
+      // Validate time range
+      if (updatedTimes.start && updatedTimes.end) {
+        const validation = validateTimeRange(
+          updatedTimes.start,
+          updatedTimes.end,
+        );
+        if (!validation.isValid) {
+          setError(`${day}.${meal}.${type}`, validation.error || '');
+          return;
+        }
+      }
 
-  //   const { meal, type } = currentEditMode;
-  //   const currentSchedule = timing.weeklySchedule[selectedDay];
+      clearError(`${day}.${meal}.${type}`);
 
-  //   const updatedSchedule = {
-  //     ...currentSchedule,
-  //     [meal]: {
-  //       ...currentSchedule[meal],
-  //       [type]: time,
-  //     },
-  //   };
+      const updatedSchedule = {
+        ...timing.weeklySchedule,
+        [day]: {
+          ...timing.weeklySchedule[day],
+          [meal]: updatedTimes,
+        },
+      };
 
-  //   handleDayScheduleChange(selectedDay, updatedSchedule);
-  //   setTimePickerVisible(false);
-  //   setCurrentEditMode(null);
-  // };
+      updateTiming({ weeklySchedule: updatedSchedule });
+    },
+    [timing.weeklySchedule, updateTiming, setError, clearError],
+  );
 
-  // Function to open time picker
-  const openTimePicker = (
-    day: DayOfWeek,
-    meal: 'lunch' | 'dinner',
-    type: 'start' | 'end',
-  ) => {
-    setSelectedDay(day);
-    setCurrentEditMode({ meal, type });
-    setTimePickerVisible(true);
+  // Handle toggling meal service
+  const handleToggleMeal = useCallback(
+    (day: DayOfWeek, meal: 'lunch' | 'dinner') => {
+      if (!timing.weeklySchedule) return;
+
+      const updatedSchedule = {
+        ...timing.weeklySchedule,
+        [day]: {
+          ...timing.weeklySchedule[day],
+          [meal]: {
+            ...timing.weeklySchedule[day][meal],
+            isClosed: !timing.weeklySchedule[day][meal].isClosed,
+          },
+        },
+      };
+
+      updateTiming({ weeklySchedule: updatedSchedule });
+    },
+    [timing.weeklySchedule, updateTiming],
+  );
+
+  // Time picker handlers
+  const openTimePicker = useCallback(
+    (day: DayOfWeek, meal: 'lunch' | 'dinner', type: 'start' | 'end') => {
+      setSelectedTime({ day, meal, type });
+      setTimePickerVisible(true);
+    },
+    [],
+  );
+
+  const handleTimeConfirm = useCallback(
+    ({ hours, minutes }: { hours: number; minutes: number }) => {
+      if (!selectedTime || !timing.weeklySchedule) return;
+
+      const { day, meal, type } = selectedTime;
+      handleTimeChange(day, meal, type, formatTime(hours, minutes));
+      setTimePickerVisible(false);
+      setSelectedTime(null);
+    },
+    [selectedTime, timing.weeklySchedule, handleTimeChange],
+  );
+
+  // Copy schedule functionality
+  const handleCopySchedule = useCallback(
+    (fromDay: DayOfWeek, toDay: DayOfWeek) => {
+      if (!timing.weeklySchedule) return;
+
+      const updatedSchedule = {
+        ...timing.weeklySchedule,
+        [toDay]: { ...timing.weeklySchedule[fromDay] },
+      };
+
+      updateTiming({ weeklySchedule: updatedSchedule });
+      setCopiedDays(prev => new Set([...prev, toDay]));
+    },
+    [timing.weeklySchedule, updateTiming],
+  );
+
+  // Render functions
+  const renderDaySchedule = (day: DayOfWeek) => {
+    if (!timing.weeklySchedule) return null;
+
+    const schedule = timing.weeklySchedule[day];
+    const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+
+    return (
+      <Card key={day} style={styles.dayCard}>
+        <Card.Content>
+          <Text variant="titleMedium" style={styles.dayTitle}>
+            {dayName}
+          </Text>
+
+          <MealSection
+            day={day}
+            mealType="lunch"
+            timeSlot={schedule.lunch}
+            onTimeChange={(type, time) =>
+              handleTimeChange(day, 'lunch', type, time)
+            }
+            onToggleClosed={() => handleToggleMeal(day, 'lunch')}
+            errors={errors}
+            onOpenTimePicker={type => openTimePicker(day, 'lunch', type)}
+          />
+
+          <MealSection
+            day={day}
+            mealType="dinner"
+            timeSlot={schedule.dinner}
+            onTimeChange={(type, time) =>
+              handleTimeChange(day, 'dinner', type, time)
+            }
+            onToggleClosed={() => handleToggleMeal(day, 'dinner')}
+            errors={errors}
+            onOpenTimePicker={type => openTimePicker(day, 'dinner', type)}
+          />
+
+          <Button
+            mode="contained"
+            onPress={() => {
+              setCopyFromDay(day);
+              setCopyModalVisible(true);
+            }}
+            style={styles.copyButton}
+          >
+            Copy to Other Days
+          </Button>
+        </Card.Content>
+      </Card>
+    );
   };
 
-  // Function to copy schedule to other days
-  // const copyScheduleToDay = (fromDay: DayOfWeek, toDay: DayOfWeek) => {
-  //   if (!timing.weeklySchedule) return;
+  const renderCopyScheduleModal = () => (
+    <Portal>
+      <Modal
+        visible={copyModalVisible}
+        onDismiss={() => {
+          setCopyModalVisible(false);
+          setCopiedDays(new Set());
+        }}
+        contentContainerStyle={[
+          styles.modalContainer,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <Text variant="titleLarge" style={styles.modalTitle}>
+          Copy Schedule
+        </Text>
+        <Text variant="bodyMedium" style={styles.modalSubtitle}>
+          Select the days to copy this schedule to
+        </Text>
 
-  //   handleDayScheduleChange(toDay, timing.weeklySchedule[fromDay]);
-  // };
+        <List.Section>
+          {DAYS_OF_WEEK.map(day => {
+            if (day === copyFromDay) return null;
 
-  // Function to render a single day's schedule
-  // const renderDaySchedule = (day: DayOfWeek) => {
-  //   if (!timing.weeklySchedule) return null;
+            const isCopied = copiedDays.has(day);
+            const dayName = day.charAt(0).toUpperCase() + day.slice(1);
 
-  //   const schedule = timing.weeklySchedule[day];
-  //   const dayName = day.charAt(0).toUpperCase() + day.slice(1);
+            return (
+              <List.Item
+                key={day}
+                title={dayName}
+                onPress={() => {
+                  if (copyFromDay && !isCopied) {
+                    handleCopySchedule(copyFromDay, day);
+                  }
+                }}
+                right={props => (
+                  <List.Icon
+                    {...props}
+                    icon={isCopied ? 'check-circle' : 'content-copy'}
+                    color={isCopied ? theme.colors.primary : props.color}
+                  />
+                )}
+                style={[
+                  styles.copyListItem,
+                  isCopied && { backgroundColor: `${theme.colors.primary}10` },
+                ]}
+                titleStyle={[
+                  { color: theme.colors.onSurface },
+                  isCopied && { color: theme.colors.primary },
+                ]}
+                disabled={isCopied}
+                rippleColor={isCopied ? 'transparent' : undefined}
+              />
+            );
+          })}
+        </List.Section>
 
-  //   return (
-  //     <Card key={day} style={styles.dayCard}>
-  //       <Card.Content>
-  //         <View style={styles.dayHeader}>
-  //           <Text variant="titleMedium">{dayName}</Text>
-  //           <Switch
-  //             value={schedule.isOpen}
-  //             onValueChange={value =>
-  //               handleDayScheduleChange(day, { isOpen: value })
-  //             }
-  //           />
-  //         </View>
-
-  //         {schedule.isOpen && (
-  //           <>
-  //             {/* Lunch Timing */}
-  //             <View style={styles.mealSection}>
-  //               <Text variant="bodyMedium" style={styles.mealTitle}>
-  //                 Lunch
-  //               </Text>
-  //               <View style={styles.timeInputsRow}>
-  //                 <View style={styles.timeInput}>
-  //                   <TextInput
-  //                     mode="outlined"
-  //                     label="Start"
-  //                     value={schedule.lunch?.start || ''}
-  //                     onPressIn={() => openTimePicker(day, 'lunch', 'start')}
-  //                     editable={false}
-  //                     right={<TextInput.Icon icon="clock-outline" />}
-  //                   />
-  //                 </View>
-  //                 <Text variant="bodyMedium" style={styles.timeSeperator}>
-  //                   to
-  //                 </Text>
-  //                 <View style={styles.timeInput}>
-  //                   <TextInput
-  //                     mode="outlined"
-  //                     label="End"
-  //                     value={schedule.lunch?.end || ''}
-  //                     onPressIn={() => openTimePicker(day, 'lunch', 'end')}
-  //                     editable={false}
-  //                     right={<TextInput.Icon icon="clock-outline" />}
-  //                   />
-  //                 </View>
-  //               </View>
-  //             </View>
-
-  //             {/* Dinner Timing */}
-  //             <View style={styles.mealSection}>
-  //               <Text variant="bodyMedium" style={styles.mealTitle}>
-  //                 Dinner
-  //               </Text>
-  //               <View style={styles.timeInputsRow}>
-  //                 <View style={styles.timeInput}>
-  //                   <TextInput
-  //                     mode="outlined"
-  //                     label="Start"
-  //                     value={schedule.dinner?.start || ''}
-  //                     onPressIn={() => openTimePicker(day, 'dinner', 'start')}
-  //                     editable={false}
-  //                     right={<TextInput.Icon icon="clock-outline" />}
-  //                   />
-  //                 </View>
-  //                 <Text variant="bodyMedium" style={styles.timeSeperator}>
-  //                   to
-  //                 </Text>
-  //                 <View style={styles.timeInput}>
-  //                   <TextInput
-  //                     mode="outlined"
-  //                     label="End"
-  //                     value={schedule.dinner?.end || ''}
-  //                     onPressIn={() => openTimePicker(day, 'dinner', 'end')}
-  //                     editable={false}
-  //                     right={<TextInput.Icon icon="clock-outline" />}
-  //                   />
-  //                 </View>
-  //               </View>
-  //             </View>
-
-  //             {/* Copy Schedule Button */}
-  //             <Button
-  //               mode="outlined"
-  //               onPress={() => {
-  //                 // Implement copy schedule modal
-  //               }}
-  //               style={styles.copyButton}
-  //             >
-  //               Copy to Other Days
-  //             </Button>
-  //           </>
-  //         )}
-  //       </Card.Content>
-  //     </Card>
-  //   );
-  // };
+        <Button
+          mode="contained"
+          onPress={() => {
+            setCopyModalVisible(false);
+            setCopiedDays(new Set());
+          }}
+          style={styles.modalButton}
+        >
+          Done
+        </Button>
+      </Modal>
+    </Portal>
+  );
 
   return (
     <ScrollView
@@ -266,57 +460,49 @@ export function TimingStep() {
       </Text>
 
       {/* Schedule Display */}
-      {/* <View style={styles.scheduleContainer}>
+      <View style={styles.scheduleContainer}>
         {DAYS_OF_WEEK.map(day => renderDaySchedule(day))}
-      </View> */}
+      </View>
 
       {/* Time Picker Modal */}
-      <Portal>
-        <Modal
-          visible={timePickerVisible}
-          onDismiss={() => setTimePickerVisible(false)}
-          contentContainerStyle={[
-            styles.modalContainer,
-            { backgroundColor: theme.colors.surface },
-          ]}
-        >
-          {/* {currentEditMode && selectedDay && timing.weeklySchedule && (
-            <>
-              <Text variant="titleLarge" style={styles.modalTitle}>
-                Set {currentEditMode.type === 'start' ? 'Start' : 'End'} Time
-              </Text>
-              <Text variant="bodyMedium" style={styles.modalSubtitle}>
-                {selectedDay.charAt(0).toUpperCase() + selectedDay.slice(1)} -{' '}
-                {currentEditMode.meal.charAt(0).toUpperCase() +
-                  currentEditMode.meal.slice(1)}
-              </Text>
-              <TimePicker
-                hours={12}
-                minutes={0}
-                onChange={({ hours, minutes }) => {
-                  const time = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                  handleTimeChange(time);
-                }}
-              />
-              <Button
-                mode="contained"
-                onPress={() => setTimePickerVisible(false)}
-                style={styles.modalButton}
-              >
-                Cancel
-              </Button>
-            </>
-          )} */}
-          <Text>Uncomment the code once you install proper packages</Text>
-        </Modal>
-      </Portal>
+      <TimePickerModal
+        visible={timePickerVisible}
+        onDismiss={() => {
+          setTimePickerVisible(false);
+          setSelectedTime(null);
+        }}
+        onConfirm={handleTimeConfirm}
+        hours={
+          selectedTime && timing.weeklySchedule
+            ? parseInt(
+                timing.weeklySchedule[selectedTime.day][selectedTime.meal][
+                  selectedTime.type
+                ].split(':')[0],
+              )
+            : 12
+        }
+        minutes={
+          selectedTime && timing.weeklySchedule
+            ? parseInt(
+                timing.weeklySchedule[selectedTime.day][selectedTime.meal][
+                  selectedTime.type
+                ].split(':')[1],
+              )
+            : 0
+        }
+        use24HourClock
+        locale="en"
+      />
+
+      {/* Copy Schedule Modal */}
+      {renderCopyScheduleModal()}
 
       {/* Help Text */}
       <Card style={styles.helpCard}>
         <Card.Content>
           <Text variant="bodySmall" style={styles.helpText}>
             Set clear operating hours to help customers plan their visits. You
-            can always update these timings later from your profile settings.
+            can control lunch and dinner services independently for each day.
           </Text>
         </Card.Content>
       </Card>
@@ -327,6 +513,7 @@ export function TimingStep() {
 const styles = StyleSheet.create({
   container: {
     paddingVertical: 24,
+    paddingHorizontal: 16,
   },
   title: {
     marginBottom: 8,
@@ -339,33 +526,54 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   dayCard: {
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  dayHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  dayTitle: {
     marginBottom: 16,
   },
   mealSection: {
     marginBottom: 16,
   },
-  mealTitle: {
+  mealHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  mealControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  mealTitle: {
+    marginBottom: 0,
+  },
+  closedText: {
+    opacity: 0.7,
+  },
+  closedTextActive: {
+    color: 'red',
+    opacity: 1,
   },
   timeInputsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  timeInput: {
+  timeInputContainer: {
     flex: 1,
+  },
+  timeButton: {
+    width: '100%',
+  },
+  timeButtonError: {
+    borderColor: 'red',
   },
   timeSeperator: {
     marginHorizontal: 8,
   },
   copyButton: {
-    marginTop: 8,
+    marginTop: 16,
   },
   modalContainer: {
     margin: 20,
@@ -389,5 +597,10 @@ const styles = StyleSheet.create({
   helpText: {
     textAlign: 'center',
     opacity: 0.7,
+  },
+  copyListItem: {
+    borderRadius: 8,
+    marginHorizontal: 4,
+    marginVertical: 2,
   },
 });
