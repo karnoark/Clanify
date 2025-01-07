@@ -60,7 +60,7 @@ const getTimeInMinutes = (time: string): number => {
   return parsed.hours * 60 + parsed.minutes;
 };
 
-const validateTimeRange = (
+export const validateTimeRange = (
   startTime: string,
   endTime: string,
 ): { isValid: boolean; error?: string } => {
@@ -69,20 +69,6 @@ const validateTimeRange = (
 
   if (startMinutes >= endMinutes) {
     return { isValid: false, error: 'End time must be after start time' };
-  }
-
-  if (startMinutes < 240 || endMinutes > 1440) {
-    return {
-      isValid: false,
-      error: 'Please set times between 4:00 AM and midnight',
-    };
-  }
-
-  if (endMinutes - startMinutes < 30) {
-    return {
-      isValid: false,
-      error: 'Service window must be at least 30 minutes',
-    };
   }
 
   return { isValid: true };

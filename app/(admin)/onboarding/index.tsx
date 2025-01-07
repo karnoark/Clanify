@@ -19,7 +19,7 @@ import { ContactStep } from './steps/ContactStep';
 import { LocationStep } from './steps/LocationStep';
 import { MediaStep } from './steps/MediaStep';
 import { MessDetailsStep } from './steps/MessDetailsStep';
-import { TimingStep } from './steps/TimingStep';
+import { TimingStep, validateTimeRange } from './steps/TimingStep';
 import { StepNavigation } from '../../../src/components/onboarding/StepNavigation';
 import {
   MessContact,
@@ -83,13 +83,55 @@ const ONBOARDING_STEPS = [
     component: TimingStep,
     validate: (data: Partial<MessTiming>) => {
       const errors: string[] = [];
-      if (!data.lunch?.start || !data.lunch?.end)
-        errors.push('Lunch timings are required');
-      if (!data.dinner?.start || !data.dinner?.end)
-        errors.push('Dinner timings are required');
-      if (!data.workingDays?.length)
-        errors.push('Working days selection is required');
-      return errors;
+
+      // If weeklySchedule is missing entirely, that's an error
+      if (!data.weeklySchedule) {
+        errors.push('Operating hours schedule is required');
+        return errors;
+      }
+
+      // Validate each day's timings
+      Object.entries(data.weeklySchedule).forEach(([day, schedule]) => {
+        // Validate lunch if it's open
+        if (!schedule.lunch.isClosed) {
+          if (!schedule.lunch.start || !schedule.lunch.end) {
+            errors.push(
+              `${day.charAt(0).toUpperCase() + day.slice(1)}: Lunch timings are required when service is open`,
+            );
+          } else {
+            // Validate time range
+            const validation = validateTimeRange(
+              schedule.lunch.start,
+              schedule.lunch.end,
+            );
+            if (!validation.isValid) {
+              errors.push(
+                `${day.charAt(0).toUpperCase() + day.slice(1)} lunch: ${validation.error}`,
+              );
+            }
+          }
+        }
+
+        // Validate dinner if it's open
+        if (!schedule.dinner.isClosed) {
+          if (!schedule.dinner.start || !schedule.dinner.end) {
+            errors.push(
+              `${day.charAt(0).toUpperCase() + day.slice(1)}: Dinner timings are required when service is open`,
+            );
+          } else {
+            // Validate time range
+            const validation = validateTimeRange(
+              schedule.dinner.start,
+              schedule.dinner.end,
+            );
+            if (!validation.isValid) {
+              errors.push(
+                `${day.charAt(0).toUpperCase() + day.slice(1)} dinner: ${validation.error}`,
+              );
+            }
+          }
+        }
+      });
     },
   },
   {
@@ -152,7 +194,7 @@ export default function OnboardingScreen() {
       // Validate current step
       const errors = currentStepConfig.validate(stepData);
 
-      if (errors.length > 0) {
+      if (errors && errors.length > 0) {
         errors.forEach(error => setError(currentStepConfig.id, error));
         return;
       }
