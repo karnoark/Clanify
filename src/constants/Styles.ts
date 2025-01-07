@@ -1,8 +1,19 @@
 import { StyleSheet } from 'react-native';
 
-import { Colors } from '@/constants/Colors';
+import { Colors } from '@/src/constants/Colors';
 
 export const Pdstyles = StyleSheet.create({
+  activityIndicatorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+
   buttonLabelStyle: {
     fontSize: 20,
     // marginVertical: 15,

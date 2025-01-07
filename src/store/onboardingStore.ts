@@ -90,6 +90,8 @@ export interface MessMedia {
   };
 }
 
+// type ErrorState = Partial<Record<keyof OnboardingState, string>>;
+
 // Interface for the complete onboarding state
 interface OnboardingState {
   // Step tracking
@@ -109,6 +111,9 @@ interface OnboardingState {
     [key: string]: string;
   };
 
+  // Initialization state
+  isInitialized: boolean;
+
   // Actions for updating state
   setCurrentStep: (step: number) => void;
   markStepComplete: (step: number) => void;
@@ -120,6 +125,9 @@ interface OnboardingState {
   setError: (field: string, message: string) => void;
   clearError: (field: string) => void;
   resetOnboarding: () => void;
+
+  // Initialization action
+  initialize: () => Promise<void>;
 }
 
 // Initial state values
@@ -146,6 +154,7 @@ const initialState = {
     certificates: {},
   },
   errors: {},
+  isInitialized: false,
 };
 
 // Create the store with persistence
@@ -154,11 +163,20 @@ export const useOnboardingStore = create<OnboardingState>()(
     (set, get) => ({
       ...initialState,
 
+      // Initialization logic
+      initialize: async () => {
+        const data = await zustandStorage.getItem('onboarding-storage');
+        set({ isInitialized: true });
+      },
+
       // Navigation actions
       setCurrentStep: step => {
-        if (step >= 0 && step < get().totalSteps) {
-          set({ currentStep: step });
+        const totalSteps = get().totalSteps;
+        if (step < 0 || step >= totalSteps) {
+          console.warn(`Invalid step: ${step}. Total steps: ${totalSteps}`);
+          return;
         }
+        set({ currentStep: step });
       },
 
       markStepComplete: step => {
@@ -170,6 +188,10 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       // Data update actions
       updateMessDetails: details => {
+        if (details.name && details.name.trim() === '') {
+          get().setError('messDetails.name', 'Name cannot be empty');
+          return;
+        }
         set(state => ({
           messDetails: {
             ...state.messDetails,
@@ -233,7 +255,21 @@ export const useOnboardingStore = create<OnboardingState>()(
 
       // Reset function
       resetOnboarding: () => {
-        set(initialState);
+        set(state => ({
+          ...state,
+          currentStep: 0,
+          completedSteps: [],
+          messDetails: {},
+          location: {},
+          contact: {},
+          timing: {
+            ...state.timing, // Keep defaults intact
+          },
+          media: {
+            ...state.media, // Keep defaults intact
+          },
+          errors: {},
+        }));
       },
     }),
     {
@@ -242,3 +278,6 @@ export const useOnboardingStore = create<OnboardingState>()(
     },
   ),
 );
+
+// Automatically initialize the store on app load
+useOnboardingStore.getState().initialize();

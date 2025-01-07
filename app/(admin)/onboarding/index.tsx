@@ -5,13 +5,15 @@
 import { router } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
-import { Surface, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Surface, useTheme } from 'react-native-paper';
 import Animated, {
   useAnimatedStyle,
   withSpring,
   interpolate,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+import { Pdstyles } from '@/src/constants/Styles';
 
 import { ContactStep } from './steps/ContactStep';
 import { LocationStep } from './steps/LocationStep';
@@ -34,7 +36,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // Define step information for our onboarding flow
 const ONBOARDING_STEPS = [
   {
-    id: 'details',
+    id: 'messDetails',
     title: 'Basic Information',
     description: 'Tell us about your mess business',
     component: MessDetailsStep,
@@ -108,6 +110,7 @@ export default function OnboardingScreen() {
 
   const [loading, setLoading] = useState(false);
   const {
+    isInitialized,
     currentStep,
     completedSteps,
     messDetails,
@@ -237,6 +240,14 @@ export default function OnboardingScreen() {
       };
     });
   };
+
+  if (!isInitialized) {
+    return (
+      <View style={Pdstyles.activityIndicatorContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <Surface style={styles.container}>
