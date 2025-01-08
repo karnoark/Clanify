@@ -134,16 +134,9 @@ export interface MessDetails {
 }
 
 export interface MessMedia {
-  logo?: string;
   photos: {
-    entrance?: string[];
     dining?: string[];
-    kitchen?: string[];
-  };
-  certificates: {
-    fssai?: string;
-    gst?: string;
-    other?: string[];
+    meals?: string[];
   };
 }
 

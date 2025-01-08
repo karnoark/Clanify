@@ -16,7 +16,9 @@ export default ({ config }) => ({
       supportsTablet: true,
       userInterfaceStyle: "automatic",
       infoPlist: {
-        NSLocationWhenInUseUsageDescription: "EtherealEats needs your location to find nearby meal vendors and ensure accurate delivery."
+        NSLocationWhenInUseUsageDescription: "EtherealEats needs your location to find nearby meal vendors and ensure accurate delivery.",
+        NSPhotoLibraryUsageDescription: "We need access to your photos to let you upload images of meals and dining.",
+        NSCameraUsageDescription: "We need access to your camera to let you take pictures of meals and dining."
       }
     },
     android: {
@@ -29,6 +31,8 @@ export default ({ config }) => ({
       permissions: [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
       ]
     },
     web: {
@@ -42,6 +46,13 @@ export default ({ config }) => ({
       "expo-location",
       {
         "locationAlwaysAndWhenInUsePermission": "Allow Clanify to use your location."
+      }
+    ],
+    [
+      "expo-image-picker",
+      {
+        "photosPermission": "Enable photo access to upload pictures of your meals and dining setup for customers to browse.",
+        "cameraPermission": "Enable camera access to take pictures of your meals and dining setup.",
       }
     ]
   ],

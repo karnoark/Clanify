@@ -56,7 +56,7 @@ const VALIDATION_RULES = {
   },
   monthlyRate: {
     required: true,
-    min: 500,
+    min: 0,
     max: 50000,
     message: {
       required: 'Monthly rate is required',

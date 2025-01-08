@@ -3,8 +3,8 @@
 // The screen follows Material Design principles and provides immediate feedback on user actions.
 
 import { router } from 'expo-router';
-import React, { useCallback, useState } from 'react';
-import { StyleSheet, View, Dimensions } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { StyleSheet, View, Dimensions, Alert } from 'react-native';
 import { ActivityIndicator, Surface, useTheme } from 'react-native-paper';
 import Animated, {
   useAnimatedStyle,
@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ValidationErrors } from '@/src/components/onboarding/ValidationErrors';
 import { Pdstyles } from '@/src/constants/Styles';
 
 import { ContactStep } from './steps/ContactStep';
@@ -160,11 +161,14 @@ export default function OnboardingScreen() {
     contact,
     timing,
     media,
+    errors,
     setCurrentStep,
     markStepComplete,
     setError,
     clearError,
   } = useOnboardingStore();
+
+  const [validationDialogVisible, setValidationDialogVisible] = useState(false);
 
   // Get current step data based on step index
   const getCurrentStepData = useCallback(() => {
@@ -185,17 +189,25 @@ export default function OnboardingScreen() {
   }, [currentStep, messDetails, location, contact, timing, media]);
 
   // Handle next step navigation
+  const validationErrorsRef = useRef<string[] | null>(null);
   const handleNext = useCallback(async () => {
     setLoading(true);
     try {
       const currentStepConfig = ONBOARDING_STEPS[currentStep];
       const stepData = getCurrentStepData();
 
-      // Validate current step
-      const errors = currentStepConfig.validate(stepData);
+      // Validate current step & Store the validation errors in the reference
+      validationErrorsRef.current = currentStepConfig.validate(stepData) ?? [];
 
-      if (errors && errors.length > 0) {
-        errors.forEach(error => setError(currentStepConfig.id, error));
+      if (
+        validationErrorsRef.current &&
+        validationErrorsRef.current.length > 0
+      ) {
+        validationErrorsRef.current.forEach(error =>
+          setError(currentStepConfig.id, error),
+        );
+        // Alert.alert('You have left something incomplete or inaccurate');
+        setValidationDialogVisible(true);
         return;
       }
 
@@ -332,6 +344,14 @@ export default function OnboardingScreen() {
           onBack={currentStep > 0 ? handleBack : undefined}
           isLastStep={currentStep === ONBOARDING_STEPS.length - 1}
           loading={loading}
+        />
+
+        {/* Add ValidationErrors component */}
+        <ValidationErrors
+          errors={errors}
+          visible={validationDialogVisible}
+          onDismiss={() => setValidationDialogVisible(false)}
+          title="Please Complete These Items"
         />
       </SafeAreaView>
     </Surface>

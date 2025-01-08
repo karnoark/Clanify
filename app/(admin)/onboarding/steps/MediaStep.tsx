@@ -3,6 +3,7 @@
 // for business verification. The implementation prioritizes image quality
 // and efficient upload management while maintaining a user-friendly interface.
 
+import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { StyleSheet, View, ScrollView, Image } from 'react-native';
 import {
@@ -20,12 +21,10 @@ import {
 
 import { Text } from '../../../../src/components/common/Text';
 import { useOnboardingStore } from '../../../../src/store/onboardingStore';
-// import * as ImagePicker from 'expo-image-picker';
-// import * as DocumentPicker from 'expo-document-picker';
 
 // Define types for our media categories
 interface PhotoCategory {
-  id: 'entrance' | 'dining' | 'kitchen';
+  id: 'dining' | 'meals';
   title: string;
   description: string;
   required: boolean;
@@ -33,24 +32,8 @@ interface PhotoCategory {
   aspectRatio?: number;
 }
 
-interface DocumentCategory {
-  id: 'fssai' | 'gst' | 'other';
-  title: string;
-  description: string;
-  required: boolean;
-  acceptedTypes: string[];
-}
-
 // Define our photo categories with their requirements
 const PHOTO_CATEGORIES: PhotoCategory[] = [
-  {
-    id: 'entrance',
-    title: 'Entrance & Exterior',
-    description: 'Show your mess entrance and building exterior',
-    required: true,
-    maxPhotos: 3,
-    aspectRatio: 4 / 3,
-  },
   {
     id: 'dining',
     title: 'Dining Area',
@@ -60,37 +43,12 @@ const PHOTO_CATEGORIES: PhotoCategory[] = [
     aspectRatio: 16 / 9,
   },
   {
-    id: 'kitchen',
-    title: 'Kitchen',
-    description: 'Display your clean and well-maintained kitchen',
+    id: 'meals',
+    title: 'Meals',
+    description: 'Display Delicious Meals',
     required: true,
-    maxPhotos: 4,
+    maxPhotos: 5,
     aspectRatio: 4 / 3,
-  },
-];
-
-// Define document categories with their requirements
-const DOCUMENT_CATEGORIES: DocumentCategory[] = [
-  {
-    id: 'fssai',
-    title: 'FSSAI License',
-    description: 'Food Safety and Standards Authority of India license',
-    required: true,
-    acceptedTypes: ['image/*', 'application/pdf'],
-  },
-  {
-    id: 'gst',
-    title: 'GST Registration',
-    description: 'Goods and Services Tax registration certificate',
-    required: false,
-    acceptedTypes: ['image/*', 'application/pdf'],
-  },
-  {
-    id: 'other',
-    title: 'Other Documents',
-    description: 'Any additional licenses or certificates',
-    required: false,
-    acceptedTypes: ['image/*', 'application/pdf'],
   },
 ];
 
@@ -104,109 +62,74 @@ export function MediaStep() {
   const [isUploading, setIsUploading] = useState(false);
 
   // Request necessary permissions for media access
-  // React.useEffect(() => {
-  //   (async () => {
-  //     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  //     if (status !== 'granted') {
-  //       setError('permissions', 'Media library access is required for uploads');
-  //     }
-  //   })();
-  // }, []);
+  React.useEffect(() => {
+    (async () => {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        setError('permissions', 'Media library access is required for uploads');
+      }
+    })();
+  }, [setError]);
 
   // Handle photo selection and upload
-  // const handleSelectPhotos = async (category: PhotoCategory) => {
-  //   try {
-  //     const result = await ImagePicker.launchImageLibraryAsync({
-  //       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-  //       allowsMultipleSelection: true,
-  //       quality: 0.8,
-  //       aspect: [category.aspectRatio ? category.aspectRatio * 10 : 4, 10],
-  //       allowsEditing: true,
-  //     });
+  const handleSelectPhotos = async (category: PhotoCategory) => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+        aspect: [category.aspectRatio ? category.aspectRatio * 10 : 4, 10],
+        // allowsEditing: true,
+      });
 
-  //     if (!result.canceled) {
-  //       // Simulate upload progress
-  //       setIsUploading(true);
-  //       setUploadProgress(0);
+      if (!result.canceled) {
+        // Simulate upload progress
+        setIsUploading(true);
+        setUploadProgress(0);
 
-  //       // In a real app, you would upload to your server here
-  //       // For now, we'll simulate the upload
-  //       for (let i = 0; i <= 100; i += 10) {
-  //         await new Promise(resolve => setTimeout(resolve, 100));
-  //         setUploadProgress(i / 100);
-  //       }
+        // In a real app, you would upload to your server here
+        // For now, we'll simulate the upload
+        for (let i = 0; i <= 100; i += 10) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          setUploadProgress(i / 100);
+        }
 
-  //       // Update the store with the new photos
-  //       const categoryPhotos = media.photos?.[category.id] || [];
-  //       const newPhotos = [
-  //         ...categoryPhotos,
-  //         ...result.assets.map(asset => asset.uri),
-  //       ].slice(0, category.maxPhotos);
+        // Update the store with the new photos
+        const categoryPhotos = media.photos?.[category.id] || [];
+        const newPhotos = [
+          ...categoryPhotos,
+          ...result.assets.map(asset => asset.uri),
+        ].slice(0, category.maxPhotos);
 
-  //       updateMedia({
-  //         photos: {
-  //           ...media.photos,
-  //           [category.id]: newPhotos,
-  //         },
-  //       });
+        updateMedia({
+          photos: {
+            ...media.photos,
+            [category.id]: newPhotos,
+          },
+        });
 
-  //       setIsUploading(false);
-  //       clearError(category.id);
-  //     }
-  //   } catch (error) {
-  //     setError(category.id, 'Failed to upload photos. Please try again.');
-  //     setIsUploading(false);
-  //   }
-  // };
+        setIsUploading(false);
+        clearError(category.id);
+      }
+    } catch (error) {
+      setError(category.id, 'Failed to upload photos. Please try again.');
+      setIsUploading(false);
+    }
+  };
 
-  // // Handle document selection and upload
-  // const handleSelectDocument = async (category: DocumentCategory) => {
-  //   try {
-  //     const result = await DocumentPicker.getDocumentAsync({
-  //       type: category.acceptedTypes,
-  //     });
+  // Handle photo removal
+  const handleRemovePhoto = (category: 'dining' | 'meals', index: number) => {
+    const categoryPhotos = media.photos?.[category] || [];
+    const updatedPhotos = categoryPhotos.filter((_, i) => i !== index);
 
-  //     if (result.assets && result.assets.length > 0) {
-  //       // Simulate upload progress
-  //       setIsUploading(true);
-  //       setUploadProgress(0);
-
-  //       // In a real app, you would upload to your server here
-  //       // For now, we'll simulate the upload
-  //       for (let i = 0; i <= 100; i += 10) {
-  //         await new Promise(resolve => setTimeout(resolve, 100));
-  //         setUploadProgress(i / 100);
-  //       }
-
-  //       // Update the store with the new document
-  //       updateMedia({
-  //         certificates: {
-  //           ...media.certificates,
-  //           [category.id]: result.assets[0].uri,
-  //         },
-  //       });
-
-  //       setIsUploading(false);
-  //       clearError(category.id);
-  //     }
-  //   } catch (error) {
-  //     setError(category.id, 'Failed to upload document. Please try again.');
-  //     setIsUploading(false);
-  //   }
-  // };
-
-  // // Handle photo removal
-  // const handleRemovePhoto = (category: string, index: number) => {
-  //   const categoryPhotos = media.photos?.[category] || [];
-  //   const updatedPhotos = categoryPhotos.filter((_, i) => i !== index);
-
-  //   updateMedia({
-  //     photos: {
-  //       ...media.photos,
-  //       [category]: updatedPhotos,
-  //     },
-  //   });
-  // };
+    updateMedia({
+      photos: {
+        ...media.photos,
+        [category]: updatedPhotos,
+      },
+    });
+  };
 
   // Render photo category card
   const renderPhotoCategory = (category: PhotoCategory) => (
@@ -225,7 +148,7 @@ export function MediaStep() {
                 icon="close"
                 size={20}
                 style={styles.removeButton}
-                // onPress={() => handleRemovePhoto(category.id, index)}
+                onPress={() => handleRemovePhoto(category.id, index)}
               />
             </View>
           ))}
@@ -234,7 +157,7 @@ export function MediaStep() {
             <Button
               mode="outlined"
               icon="camera"
-              // onPress={() => handleSelectPhotos(category)}
+              onPress={() => handleSelectPhotos(category)}
               style={styles.addButton}
             >
               Add Photo
@@ -251,53 +174,6 @@ export function MediaStep() {
         <HelperText type="info" visible={true}>
           {`${media.photos?.[category.id]?.length || 0}/${category.maxPhotos} photos uploaded`}
         </HelperText>
-      </Card.Content>
-    </Card>
-  );
-
-  // Render document category card
-  const renderDocumentCategory = (category: DocumentCategory) => (
-    <Card key={category.id} style={styles.categoryCard}>
-      <Card.Content>
-        <Text variant="titleMedium">{category.title}</Text>
-        <Text variant="bodySmall" style={styles.categoryDescription}>
-          {category.description}
-        </Text>
-
-        {media.certificates?.[category.id] ? (
-          <View style={styles.documentPreview}>
-            <Text variant="bodyMedium" numberOfLines={1}>
-              Document uploaded
-            </Text>
-            <IconButton
-              icon="close"
-              size={20}
-              onPress={() => {
-                updateMedia({
-                  certificates: {
-                    ...media.certificates,
-                    [category.id]: undefined,
-                  },
-                });
-              }}
-            />
-          </View>
-        ) : (
-          <Button
-            mode="outlined"
-            icon="file-upload"
-            // onPress={() => handleSelectDocument(category)}
-            style={styles.documentButton}
-          >
-            Upload Document
-          </Button>
-        )}
-
-        {errors[category.id] && (
-          <HelperText type="error" visible={true}>
-            {errors[category.id]}
-          </HelperText>
-        )}
       </Card.Content>
     </Card>
   );
@@ -320,15 +196,6 @@ export function MediaStep() {
         Mess Photos
       </Text>
       {PHOTO_CATEGORIES.map(renderPhotoCategory)}
-
-      {/* Documents Section */}
-      <Text
-        variant="titleMedium"
-        style={[styles.sectionTitle, styles.topSpacing]}
-      >
-        Business Documents
-      </Text>
-      {DOCUMENT_CATEGORIES.map(renderDocumentCategory)}
 
       {/* Upload Progress Modal */}
       <Portal>
