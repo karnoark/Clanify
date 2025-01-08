@@ -20,7 +20,6 @@ export default function MemberHomeScreen() {
   //   (async () => {
   //     await new Promise(resolve => {
   //       setTimeout(() => {
-  //         // console.log("is settimeout working?");
   //         console.log('signing out ......');
   //         signOut();
   //       }, 1000);

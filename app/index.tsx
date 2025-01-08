@@ -18,6 +18,9 @@ const { width, height } = Dimensions.get('window');
 
 const Page = () => {
   const user = useAuthStore(state => state.user);
+  const getAdminRegistrationStatus = useAuthStore(
+    state => state.getAdminRegistrationStatus,
+  );
   // const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery);
   // console.log("index page:-> isPasswordRecovery: ", isPasswordRecovery);
 
@@ -28,17 +31,50 @@ const Page = () => {
     initializeAuth();
   }, []);
 
-  if (true) {
-    return <Redirect href={'/(admin)/onboarding/'} />;
-  }
+  // if (true) {
+  //   return <Redirect href={'/(admin)/onboarding/'} />;
+  // }
 
-  if (user) {
-    console.log(
-      'index:-> user is logged in... so redirecting to member tabs... user: ',
-      user,
-    );
-    return <Redirect href={'/(member)/(tabs)/home'} />;
-  }
+  // if (user) {
+  //   console.log(
+  //     'index:-> user is logged in... so redirecting to member tabs... user: ',
+  //     user,
+  //   );
+  //   return <Redirect href={'/(member)/(tabs)/home'} />;
+  // }
+
+  useEffect(() => {
+    if (user?.role === 'admin_verification_pending') {
+      // Check admin registration status
+      const checkAdminStatus = async () => {
+        const registration = await getAdminRegistrationStatus(user.email);
+
+        if (registration) {
+          switch (registration.status) {
+            case 'pending_onboarding':
+            case 'onboarding_in_progress':
+              router.replace(
+                `/admin/onboarding/${registration.currentOnboardingStep}`,
+              );
+              break;
+
+            case 'verification_pending':
+            case 'rejected':
+              router.replace('/admin/onboarding/verification-status');
+              break;
+
+            case 'approved':
+              // Something's wrong - role should have been updated
+              // Trigger a session refresh
+              await supabase.auth.refreshSession();
+              break;
+          }
+        }
+      };
+
+      checkAdminStatus();
+    }
+  }, [user]);
 
   return (
     <View style={styles.container}>

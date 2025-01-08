@@ -19,7 +19,7 @@ import { AuthEventManager } from '@/src/utils/auth_events';
 
 // Define our core interfaces
 
-export type UserRole = 'admin' | 'member';
+export type UserRole = 'admin' | 'member' | 'admin_verification_pending';
 export interface User {
   id: string;
   email: string;
@@ -52,6 +52,30 @@ interface UserProfileUpdate {
   lastName?: string;
 }
 
+export interface AdminRegistration {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  status:
+    | 'pending_onboarding'
+    | 'onboarding_in_progress'
+    | 'verification_pending'
+    | 'approved'
+    | 'rejected';
+  currentOnboardingStep:
+    | 'mess_details'
+    | 'location_details'
+    | 'contact_details'
+    | 'timing_details'
+    | 'media_files';
+}
+
+export type EmailStatus =
+  | 'available'
+  | 'exists_in_profiles'
+  | 'exists_in_admin_registrations';
+
 interface AuthState {
   user: User | null;
   session: Session | null; // You might want to type this properly based on Supabase session
@@ -60,6 +84,9 @@ interface AuthState {
   error: HandleError | null;
   signIn: (credentials: SignInCredentials) => Promise<void>;
   signUp: (credentials: SignUpCredentials) => Promise<void>;
+  getAdminRegistrationStatus: (
+    email: string,
+  ) => Promise<AdminRegistration | null>;
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (new_password: string) => Promise<void>;
   verifyOtp: (credentials: verifyOtpCredentials) => Promise<void>;
@@ -308,6 +335,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (credentials: SignUpCredentials) => {
     console.log('auth/signUp:-> ');
     try {
+      // First check email availability
+      // const emailStatus = await get().checkEmailAvailability(credentials.email);
+
+      // if (emailStatus !== 'available') {
+      //   if (emailStatus === 'exists_in_profiles') {
+      //     throw new Error('This email is already registered as a user');
+      //   } else {
+      //     throw new Error('This email is pending admin registration approval');
+      //   }
+      // }
+
       const {
         data: { session, user },
         error,
@@ -328,6 +366,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.log('auth/signUp:-> got no error after calling auth.signUp()');
       console.log('auth/signUp:-> session: ', session);
       console.log('auth/signUp:-> user: ', user);
+
+      // If this is an admin registration, create entry in admin_registrations
+      if (credentials.role === 'admin_verification_pending') {
+        const { error: regError } = await supabase
+          .from('admin_registrations')
+          .insert([
+            {
+              id: user?.id, // Use the same ID as auth.users
+              email: credentials.email,
+              first_name: credentials.firstName,
+              last_name: credentials.lastName,
+              status: 'pending_onboarding',
+            },
+          ]);
+
+        if (regError) throw regError;
+      }
 
       if (user) {
         const transformedUser: User = {
@@ -358,6 +413,48 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }
     }
   },
+  getAdminRegistrationStatus: async (email: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('admin_registrations')
+        .select(
+          'id, email, first_name, last_name, status, current_onboarding_step',
+        ) // Include current_onboarding_step
+        .eq('email', email)
+        .single();
+
+      if (error) throw error;
+
+      // Map the response to match your AdminRegistration interface
+      const adminRegistration: AdminRegistration = {
+        id: data.id,
+        email: data.email,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        status: data.status,
+        currentOnboardingStep: data.current_onboarding_step,
+      };
+
+      return adminRegistration;
+    } catch (error) {
+      console.error('Error fetching admin registration:', error);
+      return null;
+    }
+  },
+
+  // checkEmailAvailability: async (email: string): Promise<EmailStatus> => {
+  //   try {
+  //     const { data, error } = await supabase.rpc('check_email_availability', {
+  //       check_email: email,
+  //     });
+
+  //     if (error) throw error;
+  //     return data as EmailStatus;
+  //   } catch (error) {
+  //     console.error('Error checking email availability:', error);
+  //     throw new Error('Failed to check email availability');
+  //   }
+  // },
 
   resetPassword: async (email: string) => {
     console.log('auth/resetPassword:-> ');

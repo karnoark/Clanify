@@ -37,7 +37,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // Define step information for our onboarding flow
 const ONBOARDING_STEPS = [
   {
-    id: 'messDetails',
+    id: 'mess_details',
     title: 'Basic Information',
     description: 'Tell us about your mess business',
     component: MessDetailsStep,
@@ -52,7 +52,7 @@ const ONBOARDING_STEPS = [
     },
   },
   {
-    id: 'location',
+    id: 'location_details',
     title: 'Location',
     description: 'Help customers find you easily',
     component: LocationStep,
@@ -66,7 +66,7 @@ const ONBOARDING_STEPS = [
     },
   },
   {
-    id: 'contact',
+    id: 'contact_details',
     title: 'Contact Details',
     description: 'How customers can reach you',
     component: ContactStep,
@@ -78,7 +78,7 @@ const ONBOARDING_STEPS = [
     },
   },
   {
-    id: 'timing',
+    id: 'timing_details',
     title: 'Operating Hours',
     description: 'Set your serving schedule',
     component: TimingStep,
@@ -136,7 +136,7 @@ const ONBOARDING_STEPS = [
     },
   },
   {
-    id: 'media',
+    id: 'media_files',
     title: 'Photos & Documents',
     description: 'Show your mess to potential customers',
     component: MediaStep,

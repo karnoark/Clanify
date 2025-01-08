@@ -24,12 +24,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EmailOtpParams } from '@/app/verify';
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
+import { useAuthStore, UserRole } from '@/src/store/auth';
 import {
   hasErrorsInEmail,
   hasErrorsInName,
   hasErrorsInPassword,
 } from '@/src/utils/InputValidation';
-import { useAuthStore, UserRole } from '@/src/store/auth';
 
 const { width } = Dimensions.get('window');
 
@@ -136,33 +136,6 @@ const Page = () => {
       }));
     };
 
-  // Simulate sending verification email
-  // In production, this would connect to your backend API
-  const sendVerificationEmail = async (email: string) => {
-    /*
-    return new Promise((resolve, reject) => {
-      // Simulate API call delay
-      setTimeout(() => {
-        if (email.includes("@")) {
-          resolve(true);
-        } else {
-          reject(new Error("Invalid email format"));
-        }
-      }, 1500);
-    });
-    */
-
-    console.log('signUp attempting');
-    await signUp({
-      email: formState.email,
-      password: formState.password,
-      firstName: formState.firstName,
-      lastName: formState.lastName,
-      role: formState.role,
-    });
-    console.log('signup completed');
-  };
-
   const emptyTheForm = () => {
     setFormState(initialFormState);
   };
@@ -191,11 +164,19 @@ const Page = () => {
       }
 
       setFormState(prev => ({ ...prev, isSubmitting: true }));
-      await sendVerificationEmail(formState.email);
+
+      await signUp({
+        email: formState.email,
+        password: formState.password,
+        firstName: formState.firstName,
+        lastName: formState.lastName,
+        role: formState.role,
+      });
+
       setShowEmailVerificationDialog(true);
     } catch (error) {
       setErrorMessage(
-        error instanceof Error ? error.message : 'Verification failed',
+        error instanceof Error ? error.message : 'Registration failed',
       );
     } finally {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
@@ -376,7 +357,10 @@ const Page = () => {
                 value={formState.role}
               >
                 <RadioButton.Item label="Are you a Member?" value={'member'} />
-                <RadioButton.Item label="Are you the Owner? " value={'admin'} />
+                <RadioButton.Item
+                  label="Are you the Owner? "
+                  value={'admin_verification_pending'}
+                />
               </RadioButton.Group>
             </View>
 
@@ -425,12 +409,16 @@ const Page = () => {
                   emptyTheForm();
                 }}
               >
-                <Dialog.Title>OTP Sent</Dialog.Title>
+                <Dialog.Title>
+                  {formState.role === 'member'
+                    ? 'OTP Sent'
+                    : 'Registration Initiated'}
+                </Dialog.Title>
                 <Dialog.Content>
                   <Text variant="bodyMedium">
-                    We've sent an OTP to {formState.email}. Please check your
-                    inbox and follow the instructions to complete your
-                    registration.
+                    {formState.role === 'member'
+                      ? `We've sent an OTP to ${formState.email}. Please check your inbox.`
+                      : 'Please complete the onboarding process to verify your mess details.'}
                   </Text>
                 </Dialog.Content>
                 <Dialog.Actions>
@@ -438,17 +426,23 @@ const Page = () => {
                     onPress={() => {
                       setShowEmailVerificationDialog(false);
                       emptyTheForm();
-                      const params: EmailOtpParams = {
-                        email: formState.email,
-                        emailOtpType: 'email', // or whatever value you want to pass
-                      };
-                      router.push({
-                        pathname: '/verify',
-                        params,
-                      });
+                      if (formState.role === 'member') {
+                        const params: EmailOtpParams = {
+                          email: formState.email,
+                          emailOtpType: 'email',
+                        };
+                        router.push({
+                          pathname: '/verify',
+                          params,
+                        });
+                      } else {
+                        router.push('/(admin)/onboarding');
+                      }
                     }}
                   >
-                    Ok
+                    {formState.role === 'member'
+                      ? 'Enter OTP'
+                      : 'Start Onboarding'}
                   </Button>
                 </Dialog.Actions>
               </Dialog>
