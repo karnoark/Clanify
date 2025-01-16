@@ -18,6 +18,8 @@ import {
 } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthStore } from '@/src/store/auth';
+
 import { Text } from '../../../src/components/common/Text';
 
 // Interface for user profile data
@@ -57,6 +59,7 @@ const mockUser: UserProfile = {
 export default function ProfileScreen() {
   const theme = useTheme();
   const [logoutDialogVisible, setLogoutDialogVisible] = useState(false);
+  const signout = useAuthStore(state => state.signOut);
 
   // Format dates for display
   const formatDate = (date: Date) => {
@@ -68,11 +71,16 @@ export default function ProfileScreen() {
   };
 
   // Handle user logout
-  const handleLogout = () => {
-    setLogoutDialogVisible(false);
-    // Implement your logout logic here
-    // This would typically clear auth tokens and navigate to the login screen
-    router.replace('/(auth)/login');
+  const handleLogout = async () => {
+    try {
+      setLogoutDialogVisible(false);
+      // Implement your logout logic here
+      // This would typically clear auth tokens and navigate to the login screen
+      await signout();
+      router.replace('/(auth)/signin');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   return (

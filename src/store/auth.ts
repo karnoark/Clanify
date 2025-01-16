@@ -94,6 +94,7 @@ interface AuthState {
   updateProfile: (updates: UserProfileUpdate) => Promise<void>;
   initialize: () => Promise<void>;
   getExistingSession: () => Promise<void>;
+  refreshSession: () => Promise<void>;
 }
 
 // Initialize MMKV storage with encryption
@@ -333,7 +334,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signUp: async (credentials: SignUpCredentials) => {
-    console.log('auth/signUp:-> ');
+    console.log('auth/signUp:-> Starting signup process');
     try {
       // First check email availability
       // const emailStatus = await get().checkEmailAvailability(credentials.email);
@@ -363,26 +364,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       if (error) throw error;
 
-      console.log('auth/signUp:-> got no error after calling auth.signUp()');
+      console.log('auth/signUp:-> Signup successful, user:', user);
       console.log('auth/signUp:-> session: ', session);
-      console.log('auth/signUp:-> user: ', user);
 
       // If this is an admin registration, create entry in admin_registrations
-      if (credentials.role === 'admin_verification_pending') {
-        const { error: regError } = await supabase
-          .from('admin_registrations')
-          .insert([
-            {
-              id: user?.id, // Use the same ID as auth.users
-              email: credentials.email,
-              first_name: credentials.firstName,
-              last_name: credentials.lastName,
-              status: 'pending_onboarding',
-            },
-          ]);
+      // if (credentials.role === 'admin_verification_pending') {
+      //   console.log('auth/signUp:-> adding entry to admin_registrations');
+      //   const { error: regError } = await supabase
+      //     .from('admin_registrations')
+      //     .insert([
+      //       {
+      //         id: user?.id, // Use the same ID as auth.users
+      //         email: credentials.email,
+      //         first_name: credentials.firstName,
+      //         last_name: credentials.lastName,
+      //         status: 'pending_onboarding',
+      //       },
+      //     ]);
 
-        if (regError) throw regError;
-      }
+      //   if (regError) throw regError;
+      // }
 
       if (user) {
         const transformedUser: User = {
@@ -401,8 +402,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         );
       }
     } catch (error) {
+      console.error('auth/signUp:-> Error details:', {
+        name: error instanceof Error ? error.name : 'Unknown error',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       if (error instanceof Error) {
-        console.error('auth/signUp:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
         set({ error: handledError, isLoading: false });
         throw new Error(handledError.message);
@@ -612,11 +617,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signOut: async () => {
     try {
+      // Set loading state to prevent premature redirects
+      set({ isLoading: true });
       await supabase.auth.signOut();
-      set({ user: null, session: null });
+      // Wait a tick to ensure auth listener has fired
+      await new Promise(resolve => setTimeout(resolve, 0));
+      // Final cleanup
+      set({ user: null, session: null, isLoading: false });
       storage.delete('session');
       storage.delete('user');
     } catch (error) {
+      set({ isLoading: false });
       if (error instanceof Error) {
         console.error('auth/signOut:-> Error: ', error);
         const handledError = AuthErrorHandler.handleError(error);
@@ -686,6 +697,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         throw error;
       }
     }
+  },
+
+  refreshSession: async () => {
+    await supabase.auth.refreshSession();
   },
 }));
 

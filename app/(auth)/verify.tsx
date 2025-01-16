@@ -117,12 +117,12 @@ const Page = () => {
       //   console.error("Email is not a string");
       //   throw Error("Email is not a string");
       // }
-      console.log(
-        'successfully verified the otp.... now redirecting to resetPassword page',
-      );
+      console.log('successfully verified the otp....');
       if (emailOtpType === 'recovery') {
+        console.log('redirecting to reset password page');
         router.push('/resetPassword');
       } else {
+        console.log('redirecting to root');
         router.push('/');
       }
     } catch (error) {

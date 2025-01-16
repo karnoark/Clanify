@@ -21,7 +21,7 @@ import {
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { EmailOtpParams } from '@/app/verify';
+import { EmailOtpParams } from '@/app/(auth)/verify';
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
 import { useAuthStore, UserRole } from '@/src/store/auth';
@@ -410,15 +410,17 @@ const Page = () => {
                 }}
               >
                 <Dialog.Title>
-                  {formState.role === 'member'
+                  {/* {formState.role === 'member'
                     ? 'OTP Sent'
-                    : 'Registration Initiated'}
+                    : 'Registration Initiated'} */}
+                  {'OTP Sent'}
                 </Dialog.Title>
                 <Dialog.Content>
                   <Text variant="bodyMedium">
-                    {formState.role === 'member'
+                    {/* {formState.role === 'member'
                       ? `We've sent an OTP to ${formState.email}. Please check your inbox.`
-                      : 'Please complete the onboarding process to verify your mess details.'}
+                      : 'Please complete the onboarding process to verify your mess details.'} */}
+                    {`We've sent an OTP to ${formState.email}. Please check your inbox.`}
                   </Text>
                 </Dialog.Content>
                 <Dialog.Actions>
@@ -426,23 +428,32 @@ const Page = () => {
                     onPress={() => {
                       setShowEmailVerificationDialog(false);
                       emptyTheForm();
-                      if (formState.role === 'member') {
-                        const params: EmailOtpParams = {
-                          email: formState.email,
-                          emailOtpType: 'email',
-                        };
-                        router.push({
-                          pathname: '/verify',
-                          params,
-                        });
-                      } else {
-                        router.push('/(admin)/onboarding');
-                      }
+                      // if (formState.role === 'member') {
+                      //   const params: EmailOtpParams = {
+                      //     email: formState.email,
+                      //     emailOtpType: 'email',
+                      //   };
+                      //   router.push({
+                      //     pathname: '/verify',
+                      //     params,
+                      //   });
+                      // } else {
+                      //   router.push('/(admin)/onboarding');
+                      // }
+                      const params: EmailOtpParams = {
+                        email: formState.email,
+                        emailOtpType: 'email',
+                      };
+                      router.push({
+                        pathname: '/verify',
+                        params,
+                      });
                     }}
                   >
-                    {formState.role === 'member'
+                    {/* {formState.role === 'member'
                       ? 'Enter OTP'
-                      : 'Start Onboarding'}
+                      : 'Start Onboarding'} */}
+                    {'Enter OTP'}
                   </Button>
                 </Dialog.Actions>
               </Dialog>

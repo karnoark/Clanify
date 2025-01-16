@@ -1,5 +1,5 @@
 import { Link, Redirect, router } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
@@ -21,15 +21,17 @@ const Page = () => {
   const getAdminRegistrationStatus = useAuthStore(
     state => state.getAdminRegistrationStatus,
   );
+  const refreshSession = useAuthStore(state => state.refreshSession);
+
   // const isPasswordRecovery = useAuthStore((state) => state.isPasswordRecovery);
   // console.log("index page:-> isPasswordRecovery: ", isPasswordRecovery);
 
   const colorScheme = useColorScheme() ?? 'dark';
 
-  useEffect(() => {
-    console.log('Initializing Auth');
-    initializeAuth();
-  }, []);
+  // useEffect(() => {
+  //   console.log('Initializing Auth');
+  //   initializeAuth();
+  // }, []);
 
   // if (true) {
   //   return <Redirect href={'/(admin)/onboarding/'} />;
@@ -43,38 +45,143 @@ const Page = () => {
   //   return <Redirect href={'/(member)/(tabs)/home'} />;
   // }
 
+  // useEffect(() => {
+  //   (async () => {
+  //     if (user?.role === 'admin_verification_pending') {
+  //       console.log('user role is admin_verification_pending');
+  //       const checkAdminStatus = async () => {
+  //         const registration = await getAdminRegistrationStatus(user.email);
+  //         console.log('registration status is: ', registration?.status);
+
+  //         if (registration) {
+  //           switch (registration.status) {
+  //             case 'pending_onboarding':
+  //             case 'onboarding_in_progress':
+  //               return <Redirect href="/(admin)/onboarding/" />;
+
+  //             case 'verification_pending':
+  //             case 'rejected':
+  //               return (
+  //                 <Redirect href="/(admin)/onboarding/verificationStatus" />
+  //               );
+
+  //             case 'approved':
+  //               // Something's wrong - role should have been updated
+  //               // Trigger a session refresh
+  //               await refreshSession();
+  //               break;
+  //           }
+  //         }
+  //       };
+
+  //       await checkAdminStatus();
+  //     }
+  //   })();
+  // }, [getAdminRegistrationStatus, refreshSession, user]);
+
+  // Add state to track redirection path
+  const [redirectPath, setRedirectPath] = useState<string | null>(null);
+
   useEffect(() => {
-    if (user?.role === 'admin_verification_pending') {
-      // Check admin registration status
-      const checkAdminStatus = async () => {
-        const registration = await getAdminRegistrationStatus(user.email);
+    const checkUserStatus = async () => {
+      if (!user) return;
 
-        if (registration) {
-          switch (registration.status) {
-            case 'pending_onboarding':
-            case 'onboarding_in_progress':
-              router.replace(
-                `/admin/onboarding/${registration.currentOnboardingStep}`,
-              );
-              break;
+      // Handle admin verification pending case
+      if (user.role === 'admin_verification_pending') {
+        try {
+          const registration = await getAdminRegistrationStatus(user.email);
+          console.log('registration status is: ', registration?.status);
 
-            case 'verification_pending':
-            case 'rejected':
-              router.replace('/admin/onboarding/verification-status');
-              break;
-
-            case 'approved':
-              // Something's wrong - role should have been updated
-              // Trigger a session refresh
-              await supabase.auth.refreshSession();
-              break;
+          if (registration) {
+            switch (registration.status) {
+              case 'pending_onboarding':
+              case 'onboarding_in_progress':
+                setRedirectPath('/(admin)/onboarding/');
+                break;
+              case 'verification_pending':
+              case 'rejected':
+                setRedirectPath('/(admin)/onboarding/verificationStatus');
+                break;
+              case 'approved':
+                await refreshSession();
+                break;
+            }
           }
+        } catch (error) {
+          console.error('Error checking admin status:', error);
         }
-      };
+      } else {
+        // Handle regular role-based routing
+        switch (user.role) {
+          case 'member':
+            setRedirectPath('/(member)/(tabs)/home');
+            break;
+          case 'admin':
+            setRedirectPath('/(admin)/(tabs)');
+            break;
+        }
+      }
+    };
 
-      checkAdminStatus();
-    }
-  }, [user]);
+    checkUserStatus();
+  }, [user, getAdminRegistrationStatus, refreshSession]);
+
+  // Handle redirection
+  if (redirectPath) {
+    return <Redirect href={redirectPath} />;
+  }
+
+  // Check user role and redirect accordingly - this happens during render
+  // if (user) {
+  //   // if (user.role === 'admin' || user.role === 'admin_verification_pending') {
+  //   //   return <Redirect href="/(admin)/" />;
+  //   // }
+  //   // if (user.role === 'member') {
+  //   //   return <Redirect href="/(member)/(tabs)/home" />;
+  //   // }
+  //   // Handle role-based routing
+  //   switch (user.role) {
+  //     case 'member':
+  //       return <Redirect href="/(admin)/" />;
+
+  //     case 'admin':
+  //       return <Redirect href="/(member)/(tabs)/home" />;
+
+  //     case 'admin_verification_pending':
+  //       (async () => {
+  //         try {
+  //           const registration = await getAdminRegistrationStatus(user.email);
+  //           console.log('registration status is: ', registration?.status);
+
+  //           if (registration) {
+  //             switch (registration.status) {
+  //               case 'pending_onboarding':
+  //               case 'onboarding_in_progress':
+  //                 return <Redirect href="/(admin)/onboarding/" />;
+  //                 break;
+
+  //               case 'verification_pending':
+  //               case 'rejected':
+  //                 return (
+  //                   <Redirect href="/(admin)/onboarding/verificationStatus" />
+  //                 );
+  //                 break;
+
+  //               case 'approved':
+  //                 // Something's wrong - role should have been updated
+  //                 // Trigger a session refresh
+  //                 await refreshSession();
+  //                 break;
+  //             }
+  //           }
+  //         } catch (error) {
+  //           console.error('Error checking admin status:', error);
+  //           // Handle error appropriately
+  //         }
+  //       })();
+  //       break;
+  //   }
+  // }
 
   return (
     <View style={styles.container}>
@@ -130,7 +237,7 @@ const Page = () => {
           labelStyle={Pdstyles.buttonLabelStyle}
           onPress={() => {
             console.log('Paper button pressed');
-            router.push('/signin');
+            router.push('/(auth)/signin');
           }}
         >
           <Text style={styles.buttonText}>Sign In</Text>
@@ -142,7 +249,7 @@ const Page = () => {
           labelStyle={Pdstyles.buttonLabelStyle}
           onPress={() => {
             console.log('Paper button pressed');
-            router.push('/signup');
+            router.push('/(auth)/signup');
           }}
         >
           <Text style={styles.buttonText}>Sign Up</Text>

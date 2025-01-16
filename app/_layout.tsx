@@ -10,7 +10,7 @@ import { useFonts } from 'expo-font';
 import { Redirect, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Text } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import {
   MD3DarkTheme,
   adaptNavigationTheme,
@@ -49,6 +49,11 @@ export default function RootLayout() {
   });
   const { user, session, isLoading } = useAuthStore();
 
+  // Initialize auth when the app starts
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
   useEffect(() => {
     // console.log("React native paper theme: ", theme);
     if (loaded) {
@@ -56,8 +61,18 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
+  // if (!loaded) {
+  //   return null;
+  // }
+
+  // Show loading screen while checking auth
+  console.log('RootLayout:-> isLoading: ', isLoading);
+  if (isLoading || !loaded) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
   // Initial loading state
@@ -79,27 +94,12 @@ export default function RootLayout() {
     <PaperProvider theme={paperTheme}>
       <ThemeProvider value={paperTheme}>
         <Stack>
-          {user && user.role === 'admin' ? (
-            <Stack.Screen name="(admin)" options={{ headerShown: false }} />
-          ) : (
-            <Stack.Screen name="(member)" options={{ headerShown: false }} />
-          )}
-          <Stack.Screen
-            name="(authenticated)/(tabs)"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="+not-found" />
-          <Stack.Screen name="signin" options={{ headerShown: false }} />
-          <Stack.Screen name="signup" options={{ headerShown: false }} />
-          <Stack.Screen name="verify" options={{ headerShown: false }} />
+          <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+          <Stack.Screen name="(member)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          {/* <Stack.Screen name="(member)" options={{ headerShown: false }} />
-          <Stack.Screen name="(admin)" options={{ headerShown: false }} /> */}
-          <Stack.Screen
-            name="forgotPassword"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="resetPassword" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" />
+          <Stack.Screen name="help" />
         </Stack>
       </ThemeProvider>
     </PaperProvider>

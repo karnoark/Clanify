@@ -20,8 +20,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
-import { hasErrorsInEmail } from '@/src/utils/InputValidation';
 import { useAuthStore } from '@/src/store/auth';
+import { hasErrorsInEmail } from '@/src/utils/InputValidation';
 
 const { width } = Dimensions.get('window');
 
