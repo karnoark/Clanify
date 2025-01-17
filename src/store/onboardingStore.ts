@@ -6,6 +6,9 @@ import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { adminRegistrationService } from '@/src/services/adminRegistrationService';
+import { useAuthStore } from '@/src/store/auth';
+
 // Set up persistent storage using MMKV
 const storage = new MMKV();
 const zustandStorage = {
@@ -20,6 +23,14 @@ const zustandStorage = {
     storage.delete(name);
   },
 };
+
+// Define the 'onboarding_step' enum type based on the IDs
+export type OnboardingStepId =
+  | 'mess_details'
+  | 'location_details'
+  | 'contact_details'
+  | 'timing_details'
+  | 'media_files';
 
 // Define comprehensive types for our onboarding data
 export interface MessLocation {
@@ -176,6 +187,11 @@ interface OnboardingState {
   clearError: (field: string) => void;
   resetOnboarding: () => void;
 
+  // Actions for supabase integration
+  saveStepData: (step: string) => Promise<void>;
+  completeOnboarding: () => Promise<void>;
+  loadSavedData: () => Promise<void>;
+
   // Initialization action
   initialize: () => Promise<void>;
 }
@@ -216,6 +232,7 @@ export const useOnboardingStore = create<OnboardingState>()(
       // Initialization logic
       initialize: async () => {
         const data = await zustandStorage.getItem('onboarding-storage');
+        await get().loadSavedData();
         set({ isInitialized: true });
       },
 
@@ -229,6 +246,7 @@ export const useOnboardingStore = create<OnboardingState>()(
         set({ currentStep: step });
       },
 
+      //todo integrate this with admin_registration table(current_onboarding_step) supabase
       markStepComplete: step => {
         const completedSteps = get().completedSteps;
         if (!completedSteps.includes(step)) {
@@ -320,6 +338,109 @@ export const useOnboardingStore = create<OnboardingState>()(
           },
           errors: {},
         }));
+      },
+
+      saveStepData: async (step: string) => {
+        try {
+          console.log(
+            'onbaordingStore/saveStepData:-> started saving stepdata',
+          );
+          const { user } = useAuthStore.getState();
+          if (!user?.email) throw new Error('User email not found');
+
+          let stepData;
+          switch (step) {
+            case 'mess_details':
+              stepData = get().messDetails;
+              break;
+            case 'location_details':
+              stepData = get().location;
+              break;
+            case 'contact_details':
+              stepData = get().contact;
+              break;
+            case 'timing_details':
+              stepData = get().timing;
+              break;
+            case 'media_files':
+              stepData = get().media;
+              break;
+            default:
+              throw new Error('Invalid step');
+          }
+
+          await adminRegistrationService.saveStepData(
+            user.email,
+            step,
+            stepData,
+          );
+          await adminRegistrationService.updateRegistrationStatus(
+            user.email,
+            step,
+          );
+          console.log(
+            'onbaordingStore/saveStepData:-> successfully saved stepdata in supabase',
+          );
+        } catch (error) {
+          console.error('Error saving step data:', error);
+          throw error;
+        }
+      },
+
+      completeOnboarding: async () => {
+        try {
+          console.log(
+            'onbaordingStore/completeOnboarding:-> started completion of onbaording',
+          );
+          const { user } = useAuthStore.getState();
+          if (!user?.email) throw new Error('User email not found');
+
+          const data = {
+            messDetails: get().messDetails,
+            location: get().location,
+            contact: get().contact,
+            timing: get().timing,
+            media: get().media,
+          };
+
+          await adminRegistrationService.completeOnboarding(user.email, data);
+          console.log(
+            'onbaordingStore/completeOnboarding:-> completed the onbaording',
+          );
+        } catch (error) {
+          console.error('Error completing onboarding:', error);
+          throw error;
+        }
+      },
+
+      loadSavedData: async () => {
+        console.log(
+          'onbaordingStore/loadSavedData:-> started loading saved data',
+        );
+        try {
+          const { user } = useAuthStore.getState();
+          if (!user?.email) throw new Error('User email not found');
+
+          const data = await adminRegistrationService.loadOnboardingData(
+            user.email,
+          );
+
+          set({
+            messDetails: data.messDetails,
+            location: data.location,
+            contact: data.contact,
+            timing: data.timing,
+            media: data.media,
+            isInitialized: true,
+          });
+          console.log(
+            'onbaordingStore/loadSavedData:-> successfully loaded saved data',
+          );
+        } catch (error) {
+          console.error('Error loading saved data:', error);
+          set({ isInitialized: true }); // Still mark as initialized even if loading fails
+          throw error;
+        }
       },
     }),
     {

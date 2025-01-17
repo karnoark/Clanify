@@ -28,14 +28,27 @@ import {
   MessLocation,
   MessMedia,
   MessTiming,
+  OnboardingStepId,
   useOnboardingStore,
 } from '../../../src/store/onboardingStore';
 
 // Get the screen width for animations
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+// Helper type for validation functions
+type ValidationFunction<T> = (data: Partial<T>) => string[];
+
+// Define a type for each onboarding step
+type OnboardingStep<T> = {
+  id: OnboardingStepId;
+  title: string;
+  description: string;
+  component: React.ComponentType<any>; // Adjust based on your component typing
+  validate: ValidationFunction<T>;
+};
+
 // Define step information for our onboarding flow
-const ONBOARDING_STEPS = [
+const ONBOARDING_STEPS: readonly OnboardingStep<any>[] = [
   {
     id: 'mess_details',
     title: 'Basic Information',
@@ -133,6 +146,7 @@ const ONBOARDING_STEPS = [
           }
         }
       });
+      return errors;
     },
   },
   {
@@ -166,6 +180,8 @@ export default function OnboardingScreen() {
     markStepComplete,
     setError,
     clearError,
+    saveStepData,
+    completeOnboarding,
   } = useOnboardingStore();
 
   const [validationDialogVisible, setValidationDialogVisible] = useState(false);
@@ -190,6 +206,7 @@ export default function OnboardingScreen() {
 
   // Handle next step navigation
   const validationErrorsRef = useRef<string[] | null>(null);
+
   const handleNext = useCallback(async () => {
     setLoading(true);
     try {
@@ -214,20 +231,34 @@ export default function OnboardingScreen() {
       // Clear any existing errors
       clearError(currentStepConfig.id);
 
+      // Save step data to Supabase
+      await saveStepData(currentStepConfig.id);
+
       // Mark current step as complete
       markStepComplete(currentStep);
 
       // If this is the last step, finish onboarding
       if (currentStep === ONBOARDING_STEPS.length - 1) {
-        // Navigate to dashboard or success screen
-        router.push('/(admin)/(tabs)');
-        return;
+        try {
+          await completeOnboarding();
+          // Navigate to verification status screen
+          router.replace('/(admin)/onboarding/verificationStatus');
+          return;
+        } catch (error) {
+          console.error('Error completing onboarding:', error);
+          Alert.alert(
+            'Error',
+            'Failed to complete onboarding. Please try again.',
+          );
+          return;
+        }
       }
 
       // Move to next step
       setCurrentStep(currentStep + 1);
     } catch (error) {
       console.error('Error processing step:', error);
+      Alert.alert('Error', 'Failed to save your progress. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -238,6 +269,8 @@ export default function OnboardingScreen() {
     clearError,
     markStepComplete,
     setCurrentStep,
+    saveStepData,
+    completeOnboarding,
   ]);
 
   // Handle back navigation

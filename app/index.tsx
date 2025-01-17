@@ -111,13 +111,14 @@ const Page = () => {
           console.error('Error checking admin status:', error);
         }
       } else {
+        console.log('user role is: ', user.role);
         // Handle regular role-based routing
         switch (user.role) {
           case 'member':
             setRedirectPath('/(member)/(tabs)/home');
             break;
           case 'admin':
-            setRedirectPath('/(admin)/(tabs)');
+            setRedirectPath('/(admin)/(tabs)/dashboard');
             break;
         }
       }

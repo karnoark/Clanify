@@ -14,6 +14,12 @@ import { create } from 'zustand';
 
 // import { ENV } from '../config/env'
 import 'react-native-url-polyfill/auto';
+import {
+  loadFromStorage,
+  saveToStorage,
+  storage,
+  supabase,
+} from '@/src/lib/supabase';
 import { AuthErrorHandler, HandleError } from '@/src/utils/auth_errors';
 import { AuthEventManager } from '@/src/utils/auth_events';
 
@@ -97,6 +103,8 @@ interface AuthState {
   refreshSession: () => Promise<void>;
 }
 
+/*
+FOLLOWING LOGIC MOVED TO SUPABASE.TS FILE IN LIB FOLDER
 // Initialize MMKV storage with encryption
 export const storage = new MMKV({
   id: 'auth-storage',
@@ -168,6 +176,8 @@ const loadFromStorage = <T>(key: string, defaultValue: T): T => {
     return defaultValue;
   }
 };
+
+*/
 
 // Create our authentication store using Zustand
 export const useAuthStore = create<AuthState>((set, get) => ({
