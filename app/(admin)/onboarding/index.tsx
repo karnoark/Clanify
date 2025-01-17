@@ -38,17 +38,37 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // Helper type for validation functions
 type ValidationFunction<T> = (data: Partial<T>) => string[];
 
+// First, let's define the base props that all step components will receive
+interface BaseStepProps {
+  onDataChange?: (data: any) => void;
+  // Add any other common props here
+}
+
+// Create a union type of all possible step data types
+type StepData =
+  | MessDetails
+  | MessLocation
+  | MessContact
+  | MessTiming
+  | MessMedia;
+
 // Define a type for each onboarding step
-type OnboardingStep<T> = {
+type OnboardingStep<T extends StepData> = {
   id: OnboardingStepId;
   title: string;
   description: string;
-  component: React.ComponentType<any>; // Adjust based on your component typing
+  component: React.ComponentType<BaseStepProps & { data?: T }>; // Adjust based on your component typing
   validate: ValidationFunction<T>;
 };
 
 // Define step information for our onboarding flow
-const ONBOARDING_STEPS: readonly OnboardingStep<any>[] = [
+const ONBOARDING_STEPS: readonly [
+  OnboardingStep<MessDetails>,
+  OnboardingStep<MessLocation>,
+  OnboardingStep<MessContact>,
+  OnboardingStep<MessTiming>,
+  OnboardingStep<MessMedia>,
+] = [
   {
     id: 'mess_details',
     title: 'Basic Information',

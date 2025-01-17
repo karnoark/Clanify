@@ -24,6 +24,8 @@ import {
 // import QRCode from 'react-native-qrcode-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthStore } from '@/src/store/auth';
+
 import { Text } from '../../../src/components/common/Text';
 
 // Define comprehensive types for mess profile management
@@ -355,10 +357,17 @@ export default function ProfileScreen() {
             </Button>
             <Button
               mode="contained"
-              onPress={() => {
-                setLogoutModalVisible(false);
-                // Implement logout logic
-                router.replace('/(auth)/login');
+              onPress={async () => {
+                try {
+                  setLogoutModalVisible(false);
+                  // First, call the signOut function from auth store
+                  await useAuthStore.getState().signOut();
+                  // Then redirect to login
+                  router.replace('/(auth)/signin');
+                } catch (error) {
+                  console.error('Logout error:', error);
+                  // You might want to show an error message to the user
+                }
               }}
             >
               Log Out

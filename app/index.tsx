@@ -6,8 +6,9 @@ import {
   View,
   Dimensions,
   useColorScheme,
+  ActivityIndicator,
 } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, useTheme } from 'react-native-paper';
 
 import { Text } from '@/src/components/common/Text';
 import { Colors } from '@/src/constants/Colors';
@@ -27,6 +28,7 @@ const Page = () => {
   // console.log("index page:-> isPasswordRecovery: ", isPasswordRecovery);
 
   const colorScheme = useColorScheme() ?? 'dark';
+  const theme = useTheme();
 
   // useEffect(() => {
   //   console.log('Initializing Auth');
@@ -126,6 +128,14 @@ const Page = () => {
 
     checkUserStatus();
   }, [user, getAdminRegistrationStatus, refreshSession]);
+
+  if (user && !redirectPath) {
+    return (
+      <View style={Pdstyles.activityIndicatorContainer}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
 
   // Handle redirection
   if (redirectPath) {

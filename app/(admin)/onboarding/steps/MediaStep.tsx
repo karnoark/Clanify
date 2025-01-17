@@ -88,6 +88,23 @@ export function MediaStep() {
         setIsUploading(true);
         setUploadProgress(0);
 
+        // Check file sizes
+        for (const asset of result.assets) {
+          // Convert size to MB (fileSize is in bytes)
+          const fileSizeInMB = asset.fileSize
+            ? asset.fileSize / (1024 * 1024)
+            : 0;
+
+          if (fileSizeInMB > 10) {
+            setError(
+              category.id,
+              `Image "${asset.fileName || 'unnamed'}" exceeds 10MB limit (${fileSizeInMB.toFixed(2)}MB)`,
+            );
+            setIsUploading(false);
+            return;
+          }
+        }
+
         // In a real app, you would upload to your server here
         // For now, we'll simulate the upload
         for (let i = 0; i <= 100; i += 10) {
