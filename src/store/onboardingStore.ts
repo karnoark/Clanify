@@ -451,4 +451,12 @@ export const useOnboardingStore = create<OnboardingState>()(
 );
 
 // Automatically initialize the store on app load
-useOnboardingStore.getState().initialize();
+// useOnboardingStore.getState().initialize();
+
+// Instead, create an initialization function that can be called at the right time
+export const initializeOnboarding = async () => {
+  const store = useOnboardingStore.getState();
+  if (!store.isInitialized) {
+    await store.initialize();
+  }
+};

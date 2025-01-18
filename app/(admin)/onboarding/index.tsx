@@ -3,7 +3,7 @@
 // The screen follows Material Design principles and provides immediate feedback on user actions.
 
 import { router } from 'expo-router';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, Dimensions, Alert } from 'react-native';
 import { ActivityIndicator, Surface, useTheme } from 'react-native-paper';
 import Animated, {
@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ValidationErrors } from '@/src/components/onboarding/ValidationErrors';
 import { Pdstyles } from '@/src/constants/Styles';
+import { useAuthStore } from '@/src/store/auth';
 
 import { ContactStep } from './steps/ContactStep';
 import { LocationStep } from './steps/LocationStep';
@@ -23,6 +24,7 @@ import { MessDetailsStep } from './steps/MessDetailsStep';
 import { TimingStep, validateTimeRange } from './steps/TimingStep';
 import { StepNavigation } from '../../../src/components/onboarding/StepNavigation';
 import {
+  initializeOnboarding,
   MessContact,
   MessDetails,
   MessLocation,
@@ -205,6 +207,15 @@ export default function OnboardingScreen() {
   } = useOnboardingStore();
 
   const [validationDialogVisible, setValidationDialogVisible] = useState(false);
+
+  const { user, session } = useAuthStore();
+
+  useEffect(() => {
+    // Only initialize onboarding if we have an authenticated user
+    if (user?.email) {
+      initializeOnboarding();
+    }
+  }, [user?.email]);
 
   // Get current step data based on step index
   const getCurrentStepData = useCallback(() => {

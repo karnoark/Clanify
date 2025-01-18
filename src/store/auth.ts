@@ -103,82 +103,6 @@ interface AuthState {
   refreshSession: () => Promise<void>;
 }
 
-/*
-FOLLOWING LOGIC MOVED TO SUPABASE.TS FILE IN LIB FOLDER
-// Initialize MMKV storage with encryption
-export const storage = new MMKV({
-  id: 'auth-storage',
-  // encryptionKey: ENV.MMKV_ENCRYPTION_KEY
-  encryptionKey: process.env.ENCRYPTION_KEY, // Consider moving this to env variables
-});
-
-// Create a storage adapter for Supabase to use MMKV
-const customStorageAdapter = {
-  getItem: (key: string) => {
-    const value = storage.getString(key);
-    return Promise.resolve(value ?? null);
-  },
-  setItem: (key: string, value: string) => {
-    storage.set(key, value);
-    return Promise.resolve();
-  },
-  removeItem: (key: string) => {
-    storage.delete(key);
-    return Promise.resolve();
-  },
-};
-//todo: learn about why it's used promise here? as main featture of mmkv is its synchronous nature
-
-//Supabase Configuration
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-
-// console.log("supabaseUrl: ", supabaseUrl);
-// console.log("supabaseAnonKey: ", supabaseAnonKey);
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Supabase URL or Anon Key is missing. Ensure EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY are set in the environment variables.',
-  );
-}
-
-let supabase;
-
-try {
-  supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      storage: customStorageAdapter,
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false,
-    },
-  });
-} catch (error) {
-  console.error('Failed to initialize Supabase client:', error);
-  throw error;
-}
-
-// Helper functions for managing MMKV storage
-const saveToStorage = <T>(key: string, value: T) => {
-  try {
-    storage.set(key, JSON.stringify(value));
-  } catch (error) {
-    console.error(`Error saving ${key} to storage:`, error);
-  }
-};
-
-const loadFromStorage = <T>(key: string, defaultValue: T): T => {
-  try {
-    const value = storage.getString(key);
-    return value ? JSON.parse(value) : defaultValue;
-  } catch (error) {
-    console.error(`Error loading ${key} from storage:`, error);
-    return defaultValue;
-  }
-};
-
-*/
-
 // Create our authentication store using Zustand
 export const useAuthStore = create<AuthState>((set, get) => ({
   // Initialize state from storage
@@ -346,17 +270,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signUp: async (credentials: SignUpCredentials) => {
     console.log('auth/signUp:-> Starting signup process');
     try {
-      // First check email availability
-      // const emailStatus = await get().checkEmailAvailability(credentials.email);
-
-      // if (emailStatus !== 'available') {
-      //   if (emailStatus === 'exists_in_profiles') {
-      //     throw new Error('This email is already registered as a user');
-      //   } else {
-      //     throw new Error('This email is pending admin registration approval');
-      //   }
-      // }
-
       const {
         data: { session, user },
         error,
@@ -376,24 +289,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       console.log('auth/signUp:-> Signup successful, user:', user);
       console.log('auth/signUp:-> session: ', session);
-
-      // If this is an admin registration, create entry in admin_registrations
-      // if (credentials.role === 'admin_verification_pending') {
-      //   console.log('auth/signUp:-> adding entry to admin_registrations');
-      //   const { error: regError } = await supabase
-      //     .from('admin_registrations')
-      //     .insert([
-      //       {
-      //         id: user?.id, // Use the same ID as auth.users
-      //         email: credentials.email,
-      //         first_name: credentials.firstName,
-      //         last_name: credentials.lastName,
-      //         status: 'pending_onboarding',
-      //       },
-      //     ]);
-
-      //   if (regError) throw regError;
-      // }
 
       if (user) {
         const transformedUser: User = {
@@ -456,20 +351,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return null;
     }
   },
-
-  // checkEmailAvailability: async (email: string): Promise<EmailStatus> => {
-  //   try {
-  //     const { data, error } = await supabase.rpc('check_email_availability', {
-  //       check_email: email,
-  //     });
-
-  //     if (error) throw error;
-  //     return data as EmailStatus;
-  //   } catch (error) {
-  //     console.error('Error checking email availability:', error);
-  //     throw new Error('Failed to check email availability');
-  //   }
-  // },
 
   resetPassword: async (email: string) => {
     console.log('auth/resetPassword:-> ');
@@ -534,15 +415,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       );
       set({ isPasswordRecovery: false });
       saveToStorage('isPasswordRecovery', false);
-      // if (currentUser) {
-      //   const updatedUser: User = {
-      //     ...currentUser,
-      //     firstName: updates.firstName ?? currentUser.firstName,
-      //     lastName: updates.lastName ?? currentUser.lastName,
-      //   };
-      //   set({ user: updatedUser });
-      //   saveToStorage("user", updatedUser);
-      // }
     } catch (error) {
       if (error instanceof Error) {
         console.error('auth/updatePassword:-> Error: ', error);
@@ -719,8 +591,6 @@ export const initializeAuth = () => {
   const initialize = useAuthStore.getState().initialize;
   initialize();
 };
-
-//todo integrate dotenv
 
 /* 
 we are telling supabase whether to store the data, and we are also explicitly storing the data using saveToStorage function, why?
