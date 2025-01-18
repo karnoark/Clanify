@@ -123,7 +123,7 @@ const Page = () => {
         router.push('/resetPassword');
       } else {
         console.log('redirecting to root');
-        router.push('/');
+        // router.push('/');
       }
     } catch (error) {
       console.error(error);
