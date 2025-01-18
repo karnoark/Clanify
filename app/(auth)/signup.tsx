@@ -428,18 +428,7 @@ const Page = () => {
                     onPress={() => {
                       setShowEmailVerificationDialog(false);
                       emptyTheForm();
-                      // if (formState.role === 'member') {
-                      //   const params: EmailOtpParams = {
-                      //     email: formState.email,
-                      //     emailOtpType: 'email',
-                      //   };
-                      //   router.push({
-                      //     pathname: '/verify',
-                      //     params,
-                      //   });
-                      // } else {
-                      //   router.push('/(admin)/onboarding');
-                      // }
+
                       const params: EmailOtpParams = {
                         email: formState.email,
                         emailOtpType: 'email',
@@ -450,9 +439,6 @@ const Page = () => {
                       });
                     }}
                   >
-                    {/* {formState.role === 'member'
-                      ? 'Enter OTP'
-                      : 'Start Onboarding'} */}
                     {'Enter OTP'}
                   </Button>
                 </Dialog.Actions>

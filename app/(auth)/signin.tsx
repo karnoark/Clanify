@@ -117,7 +117,7 @@ const Page = () => {
       // Supabase sign-in logic here
       console.log('Initializing signIn');
       await signIn({ email: formState.email, password: formState.password });
-      router.push('/');
+      // router.push('/');
     } catch (error) {
       console.error(error);
       Alert.alert('not able to login: ', getErrorMessage(error));

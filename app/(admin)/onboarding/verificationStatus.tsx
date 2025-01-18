@@ -1,4 +1,5 @@
 // app/(admin)/onboarding/verification-status.tsx
+//todo add button to let user delete the account. suppose user accidently creates admin account so he now he won't be able to sign up as a member unless his admin account gets deleted. delete button should first delete the entry in messes table and then in auth.users table
 import React from 'react';
 import { View } from 'react-native';
 import { useTheme } from 'react-native-paper';
