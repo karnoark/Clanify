@@ -1,3 +1,4 @@
+//todo user should be able to delete the absence. user shouldn't allowed to delte or create absence after 1 hour remaining of the supposed planned absence.
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';

@@ -21,7 +21,7 @@ const useMembershipStatus = (expiryDate: Date | null) => {
     const diffTime = expiryDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (diffDays > 7) {
+    if (diffDays > 6) {
       return { daysLeft: diffDays, status: 'active' as const };
     } else if (diffDays > 0) {
       return { daysLeft: diffDays, status: 'warning' as const };

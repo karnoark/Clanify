@@ -117,7 +117,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
       // set({ membershipExpiry: date })
 
       // inserting dummy values for now
-      const someDate: Date = new Date('2025-01-19');
+      const someDate: Date = new Date('2025-01-30');
       set({ membershipExpiry: someDate });
     } catch (error) {
       console.error('Failed to update membership expiry:', error);
