@@ -10,7 +10,9 @@ import { adminRegistrationService } from '@/src/services/adminRegistrationServic
 import { useAuthStore } from '@/src/store/auth';
 
 // Set up persistent storage using MMKV
-const storage = new MMKV();
+const storage = new MMKV({
+  id: 'onboarding-storage',
+});
 const zustandStorage = {
   getItem: async (name: string) => {
     const value = storage.getString(name);
@@ -246,7 +248,6 @@ export const useOnboardingStore = create<OnboardingState>()(
         set({ currentStep: step });
       },
 
-      //todo integrate this with admin_registration table(current_onboarding_step) supabase
       markStepComplete: step => {
         const completedSteps = get().completedSteps;
         if (!completedSteps.includes(step)) {

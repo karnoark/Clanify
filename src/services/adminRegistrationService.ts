@@ -47,8 +47,6 @@ class AdminRegistrationService {
         .update({
           [`${step}`]: data,
           current_onboarding_step: step,
-          // todo I'm not sure commenting following line will work or not, I think there is default value already exist for updated_at column
-          // updated_at: new Date().toISOString(),
         })
         .eq('email', email);
 

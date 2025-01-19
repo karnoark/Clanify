@@ -221,6 +221,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  //todo when user signs in, the zustand store should be cleared first in the same way it's cleared when user logs out.
   signIn: async (credentials: SignInCredentials) => {
     console.log('auth/signIn:-> ');
     try {
@@ -497,6 +498,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
+  //todo clear the local cache(MMKV) and reset the zustand store To prevent data from being mixed when a different user logs in, Use MMKV's clearAll method, create the reset function to clear all the stores in zustand.
   signOut: async () => {
     try {
       // Set loading state to prevent premature redirects
