@@ -1,8 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, Divider, useTheme } from 'react-native-paper';
+import { Card, Divider, useTheme } from 'react-native-paper';
 import Animated, { FadeIn } from 'react-native-reanimated';
+
+import { Text } from '@/src/components/common/Text';
 
 // Types for meal data
 interface MealType {

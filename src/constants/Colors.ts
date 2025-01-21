@@ -53,7 +53,69 @@ export const Colors = {
     onBackgroundContainer: 'rgb(42, 23, 0)',
   },
   dark: {
-    primary: 'rgb(255, 177, 194)',
+    // Primary colors
+    primary: 'rgba(230, 78, 120, 1)', // #e64e78
+    onPrimary: 'rgba(255, 255, 255, 1)', // White
+    primaryContainer: 'rgba(78, 21, 38, 1)', // #4e1526
+    onPrimaryContainer: 'rgba(255, 217, 226, 1)', // #ffd9e2
+
+    // Secondary colors
+    secondary: 'rgba(43, 78, 202, 1)', // #2b4eca
+    onSecondary: 'rgba(255, 255, 255, 1)', // White
+    secondaryContainer: 'rgba(26, 43, 117, 1)', // #1a2b75
+    onSecondaryContainer: 'rgba(218, 225, 255, 1)', // #dae1ff
+
+    // Tertiary colors
+    tertiary: 'rgba(139, 43, 202, 1)', // #8b2bca
+    onTertiary: 'rgba(255, 255, 255, 1)', // White
+    tertiaryContainer: 'rgba(58, 18, 84, 1)', // #3a1254
+    onTertiaryContainer: 'rgba(242, 218, 255, 1)', // #f2daff
+
+    // Error colors
+    error: 'rgba(202, 43, 43, 1)', // #ca2b2b
+    onError: 'rgba(255, 255, 255, 1)', // White
+    errorContainer: 'rgba(78, 21, 21, 1)', // #4e1515
+    onErrorContainer: 'rgba(255, 217, 217, 1)', // #ffd9d9
+
+    // Background and surface colors
+    background: 'rgba(18, 18, 20, 1)', // #121214
+    onBackground: 'rgba(224, 224, 229, 1)', // #e0e0e5
+    surface: 'rgba(30, 30, 33, 1)', // #1e1e21
+    onSurface: 'rgba(224, 224, 229, 1)', // #e0e0e5
+    surfaceVariant: 'rgba(42, 42, 45, 1)', // #2a2a2d
+    onSurfaceVariant: 'rgba(196, 196, 201, 1)', // #c4c4c9
+
+    // Design elements
+    outline: 'rgba(147, 143, 147, 1)', // #938f93
+    outlineVariant: 'rgba(80, 78, 80, 1)', // #504e50
+    shadow: 'rgba(0, 0, 0, 1)', // Black
+    scrim: 'rgba(0, 0, 0, 0.75)', // Semi-transparent black
+    inverseSurface: 'rgba(224, 224, 229, 1)', // #e0e0e5
+    inverseOnSurface: 'rgba(30, 30, 33, 1)', // #1e1e21
+    inversePrimary: 'rgba(202, 43, 88, 1)', // #ca2b58
+
+    // Elevation overlay colors
+    elevation: {
+      level0: 'rgba(18, 18, 20, 0)', // No elevation
+      level1: 'rgba(35, 31, 34, 0.05)', // Subtle elevation
+      level2: 'rgba(39, 35, 38, 0.08)', // Cards, raised buttons
+      level3: 'rgba(43, 39, 42, 0.11)', // Navigation drawer
+      level4: 'rgba(47, 43, 46, 0.12)', // Modal sheets
+      level5: 'rgba(51, 47, 50, 0.14)', // Maximum elevation
+    },
+
+    // Disabled states
+    surfaceDisabled: 'rgba(30, 30, 33, 1)', // #1e1e21
+    onSurfaceDisabled: 'rgba(224, 224, 229, 0.38)', // 38% opacity
+
+    // Backdrop
+    backdrop: 'rgba(0, 0, 0, 0.50)', // 50% transparent black
+  },
+};
+
+/*
+following are the colors previously used:
+primary: 'rgb(255, 177, 194)',
     onPrimary: 'rgb(102, 0, 43)',
     primaryContainer: 'rgb(143, 0, 63)',
     onPrimaryContainer: 'rgb(255, 217, 223)',
@@ -93,8 +155,9 @@ export const Colors = {
     surfaceDisabled: 'rgba(255, 177, 194, 0.5)',
     onSurfaceDisabled: 'rgba(102, 0, 43, 0.38)',
     backdrop: 'rgba(58, 45, 47, 0.4)',
-  },
-};
+
+
+*/
 
 //following are colors used till now
 /*

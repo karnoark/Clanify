@@ -19,16 +19,21 @@ const TAB_ICONS = {
 export default function TabLayout() {
   const theme = useTheme();
 
+  // Calculate bottom padding based on platform to account for safe areas
+  const bottomPadding = Platform.OS === 'ios' ? 28 : 8;
+
   return (
     <Tabs
       screenOptions={{
+        tabBarShowLabel: true,
         // Configure tab bar appearance
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
-          borderTopColor: theme.colors.outline,
+          borderTopColor: `${theme.colors.outline}40`, // 40% opacity for subtle line
           height: Platform.OS === 'ios' ? 88 : 68,
           paddingBottom: Platform.OS === 'ios' ? 28 : 8,
           paddingTop: 8,
+          borderTopWidth: 0.5,
         },
         // Configure header appearance
         headerStyle: {
@@ -39,7 +44,6 @@ export default function TabLayout() {
         // Tab bar visual feedback
         tabBarActiveTintColor: theme.colors.primary,
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
-        tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontFamily: 'PlayRegular',
         },
@@ -52,7 +56,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused, color }) => (
             <MaterialCommunityIcons
               name={focused ? TAB_ICONS.home.focused : TAB_ICONS.home.unfocused}
-              size={24}
+              size={28}
               color={color}
             />
           ),
@@ -72,7 +76,7 @@ export default function TabLayout() {
                   ? TAB_ICONS.explore.focused
                   : TAB_ICONS.explore.unfocused
               }
-              size={24}
+              size={28}
               color={color}
             />
           ),
@@ -86,7 +90,7 @@ export default function TabLayout() {
           tabBarIcon: ({ focused, color }) => (
             <MaterialCommunityIcons
               name={focused ? TAB_ICONS.chat.focused : TAB_ICONS.chat.unfocused}
-              size={24}
+              size={28}
               color={color}
             />
           ),
@@ -106,7 +110,7 @@ export default function TabLayout() {
                   ? TAB_ICONS.profile.focused
                   : TAB_ICONS.profile.unfocused
               }
-              size={24}
+              size={28}
               color={color}
             />
           ),

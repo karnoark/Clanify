@@ -1,8 +1,10 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, Button, useTheme } from 'react-native-paper';
+import { Card, Button, useTheme } from 'react-native-paper';
 import Animated, { FadeIn } from 'react-native-reanimated';
+
+import { Text } from '@/src/components/common/Text';
 
 interface MembershipCardProps {
   expiryDate: Date | null;

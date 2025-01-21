@@ -6,7 +6,6 @@ import { ScrollView, RefreshControl, StyleSheet, View } from 'react-native';
 import {
   Appbar,
   useTheme,
-  Text,
   ActivityIndicator,
   FAB,
   Portal,
@@ -15,6 +14,7 @@ import {
 import Animated, { FadeIn, Layout } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Text } from '@/src/components/common/Text';
 import { ErrorView } from '@/src/components/core/ErrorView';
 import AbsencePlannerCard from '@/src/components/home/AbsencePlannerCard';
 import MembershipCard from '@/src/components/home/MembershipCard';
