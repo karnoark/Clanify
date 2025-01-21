@@ -48,12 +48,17 @@ interface AbsencePlan {
 }
 
 interface HomeState {
-  // Membership
+  // Membership component
   membershipExpiry: Date | null;
+  membershipPeriod: number | null;
+
+  // Points component
   points: number;
 
-  // Meals
+  // Today's Menu component
   todaysMeals: MealDetails[];
+
+  // Rate the meal component
   rateableMeals: RateableMeal[];
 
   // Absences
@@ -64,6 +69,7 @@ interface HomeState {
 
   // Actions
   loadInitialData: () => Promise<void>;
+  getMembershipPeriod: () => Promise<void>;
   updateMembershipExpiry: () => void;
   updatePoints: () => void;
   updateTodaysMeals: () => void;
@@ -78,6 +84,8 @@ interface HomeState {
 export const useHomeStore = create<HomeState>()((set, get) => ({
   // Initial state
   membershipExpiry: null,
+  membershipPeriod: null,
+
   points: 0,
   todaysMeals: [],
   rateableMeals: [],
@@ -94,6 +102,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
 
       // Execute all updates concurrently for better performance
       await Promise.all([
+        get().getMembershipPeriod(),
         get().updateMembershipExpiry(),
         get().updatePoints(),
         get().updateTodaysMeals(),
@@ -108,6 +117,15 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
         isLoading: false,
       });
     }
+  },
+
+  getMembershipPeriod: async () => {
+    try {
+      //todo fetch membership period from database
+
+      // inserting dummy value for now
+      set({ membershipPeriod: 30 });
+    } catch (error) {}
   },
 
   updateMembershipExpiry: async () => {
@@ -126,7 +144,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
   },
   updatePoints: async () => {
     try {
-      //todo fetch member member from database
+      //todo fetch member points from database
       // const points = await membershipService.getPoints();
       // set({ points })
 
@@ -174,7 +192,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
   },
   updateRateableMeals: async () => {
     try {
-      //todo fetch today's meals from database
+      //todo fetch recent meals to be rated from database
       // set({ rateableMeals: meals })
 
       // inserting dummy values for now
@@ -201,7 +219,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
   },
   setPlannedAbsences: async () => {
     try {
-      //todo fetch today's meals from database
+      //todo fetch user planned abasences from database
       // set({ plannedAbsences: plans })
 
       // inserting dummy values for now

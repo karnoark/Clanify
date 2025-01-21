@@ -1,14 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-const Page = () => {
+const AbsencePlannerCard = () => {
   return (
     <View>
-      <Text>Profile Page</Text>
+      <Text>AbsencePlannerCard</Text>
     </View>
   );
 };
 
-export default Page;
+export default AbsencePlannerCard;
 
 const styles = StyleSheet.create({});

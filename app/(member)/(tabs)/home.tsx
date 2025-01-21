@@ -1,137 +1,79 @@
-//todo only caches non-dynamic states and leave out other states to fetched real time using supabase. for this use partialize option in persists() in zustandstore.
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
-import React, { useCallback, useEffect, useState } from 'react';
-import { ScrollView, RefreshControl, StyleSheet, View } from 'react-native';
-import {
-  Appbar,
-  useTheme,
-  ActivityIndicator,
-  FAB,
-  Portal,
-  Modal,
-} from 'react-native-paper';
-import Animated, { FadeIn, Layout } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// src/screens/HomeScreen.tsx
+import React, { useCallback, useEffect } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Button, useTheme } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ErrorBoundary } from '@/src/components/common/ErrorBoundary';
 import { Text } from '@/src/components/common/Text';
-import { ErrorView } from '@/src/components/core/ErrorView';
-import AbsencePlannerCard from '@/src/components/home/AbsencePlannerCard';
-import MembershipCard from '@/src/components/home/MembershipCard';
-import QRScanner from '@/src/components/home/QRScanner';
-import RatingCard from '@/src/components/home/RatingCard';
-import TodaysMealCard from '@/src/components/home/TodaysMealCard';
+import AbsencePlannerCard from '@/src/components/member/home/AbsencePlannerCard';
+import MembershipStatusCard from '@/src/components/member/home/MembershipStatusCard';
+import RatingCard from '@/src/components/member/home/RatingCard';
+import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 
-// Types for our components
-interface HomeScreenProps {
-  // Add navigation prop if needed
-}
-
-// Types for QR scan results
-interface ScanResult {
-  status: 'success' | 'warning' | 'error';
-  message: string;
-  color: string;
-}
-
-const HomeScreen: React.FC<HomeScreenProps> = () => {
-  // Theme and insets
+// Fallback component for error boundary
+const ErrorFallback = ({
+  error,
+  resetError,
+}: {
+  error: Error;
+  resetError: () => void;
+}) => {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+
+  return (
+    <View style={styles.errorContainer}>
+      <Text
+        variant="titleMedium"
+        style={[styles.errorText, { color: theme.colors.error }]}
+      >
+        Something went wrong!
+      </Text>
+      <Text
+        variant="bodyMedium"
+        style={[
+          styles.errorDescription,
+          { color: theme.colors.onSurfaceVariant },
+        ]}
+      >
+        {error.message}
+      </Text>
+      <Button mode="contained" onPress={resetError}>
+        Try Again
+      </Button>
+    </View>
+  );
+};
+
+// Main home screen component
+const HomeScreen = () => {
+  // Get state and actions from store
   const {
-    loadInitialData,
     isLoading,
     error,
-    points,
+    loadInitialData,
     membershipExpiry,
-    plannedAbsences,
-    rateableMeals,
+    points,
     todaysMeals,
+    rateableMeals,
+    plannedAbsences,
   } = useHomeStore();
 
-  // State for refresh control
-  const [refreshing, setRefreshing] = useState(false);
-  // const [points, setPoints] = useState(100); // This will come from Zustand later
-
-  const [showScanner, setShowScanner] = useState(false);
-  const [scanResult, setScanResult] = useState<ScanResult | null>(null);
-
-  // Handle refresh
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    // Add refresh logic here
-    loadInitialData();
-    setTimeout(() => setRefreshing(false), 2000); // Temporary timeout
-  }, [loadInitialData]);
-
-  // Load data when component mounts
+  // Load initial data
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
 
-  // Optionally refresh data when the screen comes into focus
-  //todo not sure about performance implication of this hook
-  useFocusEffect(
-    useCallback(() => {
-      loadInitialData();
-    }, [loadInitialData]),
-  );
+  const theme = useTheme();
 
-  // Handle meal rating submission
-  const handleRating = useCallback(async (mealId: string, rating: number) => {
-    try {
-      // Submit rating to backend
-      // Update local state
-      // setRateableMeals(prev =>
-      //   prev.map(meal =>
-      //     meal.id === mealId ? { ...meal, hasRated: true } : meal
-      //   )
-      // );
-    } catch (e) {
-      console.error('Error submitting rating:', e);
-      throw e;
-    }
-  }, []);
+  // Handle refresh
+  const handleRefresh = useCallback(async () => {
+    await loadInitialData();
+  }, [loadInitialData]);
 
-  // Handle absence registration
-  const handleAbsenceRegistration = useCallback(async (absencePlan: any) => {
-    try {
-      // Submit absence plan to backend
-      // Update local state
-      // setPlannedAbsences(prev => [...prev, { ...absencePlan, id: Date.now().toString() }]);
-    } catch (e) {
-      console.error('Error registering absence:', e);
-      throw e;
-    }
-  }, []);
-
-  // Handle QR code scanning
-  const handleScan = useCallback(
-    async (data: string) => {
-      try {
-        // Here you would validate the QR code data and mark attendance
-        // For now, we'll simulate a success response
-        setScanResult({
-          status: 'success',
-          message: 'Enjoy your meal!',
-          color: theme.colors.primary,
-        });
-        setShowScanner(false);
-      } catch (e) {
-        setScanResult({
-          status: 'error',
-          message: 'Invalid QR code',
-          color: theme.colors.error,
-        });
-      }
-    },
-    [theme],
-  );
-
-  // Show loading state while checking auth
-  if (isLoading) {
-    if (error) console.log('error loading the data from homeStore: ', error);
+  // Show loading spinner while initially loading
+  if (isLoading && !membershipExpiry) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />
@@ -139,218 +81,52 @@ const HomeScreen: React.FC<HomeScreenProps> = () => {
     );
   }
 
-  if (error) {
-    return (
-      <ErrorView
-        message={error ?? 'Unable to Load Data'}
-        details="Please check your internet connection and try again."
-        onRetry={loadInitialData}
-      />
-    );
-  }
-
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* AppBar with Points Display */}
-      <Appbar.Header
-        style={[
-          styles.appBar,
-          { backgroundColor: theme.colors.primaryContainer },
-        ]}
-      >
-        <Appbar.Content title="Home" />
-        <Animated.View
-          entering={FadeIn}
-          // layout={Layout.springify()}
-          style={styles.pointsContainer}
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ScrollView
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={handleRefresh}
+              tintColor={theme.colors.primary}
+            />
+          }
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
         >
-          <MaterialCommunityIcons
-            name="star-circle"
-            size={24}
-            color={theme.colors.primary}
-          />
-          <Text
-            variant="titleMedium"
-            style={{ color: theme.colors.primary, marginLeft: 4 }}
-          >
-            {points}
-          </Text>
-        </Animated.View>
-      </Appbar.Header>
+          {/* Header */}
+          <View style={styles.header}>
+            <Text
+              variant="headlineMedium"
+              style={[styles.title, { color: theme.colors.onSurface }]}
+            >
+              Clanify
+            </Text>
+            <View
+              style={[
+                styles.points,
+                { backgroundColor: theme.colors.surfaceVariant },
+              ]}
+            >
+              <Text
+                style={[styles.pointsText, { color: theme.colors.primary }]}
+              >
+                {points} pts
+              </Text>
+            </View>
+          </View>
 
-      {/* Main Content ScrollView */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 20 },
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[theme.colors.primary]}
-            tintColor={theme.colors.primary}
-          />
-        }
-      >
-        {/* Placeholder for MembershipCard */}
-        <Animated.View
-          entering={FadeIn.delay(150)}
-          // layout={Layout.springify()}
-          style={styles.cardContainer}
-        >
-          {/* MembershipCard component will go here */}
-          {/* <View
-            style={[
-              styles.placeholderCard,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          > */}
-          {/* <Text variant="titleMedium">Membership Status</Text> */}
-          <MembershipCard
-            expiryDate={membershipExpiry}
-            onRequestMembership={() => {
-              /* Handle request */
-            }}
-            onOpenPaymentModal={() => {
-              /* Handle payment */
-            }}
-          />
-          {/* </View> */}
-        </Animated.View>
-
-        {/* Placeholder for TodaysMealCard */}
-        <Animated.View
-          entering={FadeIn.delay(300)}
-          // layout={Layout.springify()}
-          style={styles.cardContainer}
-        >
-          {/* TodaysMealCard component will go here */}
-          {/* <View
-            style={[
-              styles.placeholderCard,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          > */}
-          {/* <Text variant="titleMedium">Today's Meals</Text> */}
-          <TodaysMealCard meals={todaysMeals} />
-          {/* </View> */}
-        </Animated.View>
-
-        {/* Placeholder for RatingCard (conditional) */}
-        <Animated.View
-          entering={FadeIn.delay(450)}
-          // layout={Layout.springify()}
-          style={styles.cardContainer}
-        >
-          {/* RatingCard component will go here */}
-          {/* <View
-            style={[
-              styles.placeholderCard,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          > */}
-          {/* <Text variant="titleMedium">Rate Your Meal</Text> */}
-          <RatingCard meals={rateableMeals} onSubmitRating={handleRating} />
-          {/* </View> */}
-        </Animated.View>
-
-        {/* Placeholder for AbsencePlannerCard */}
-        <Animated.View
-          entering={FadeIn.delay(600)}
-          // layout={Layout.springify()}
-          style={styles.cardContainer}
-        >
-          {/* AbsencePlannerCard component will go here */}
-          {/* <View
-            style={[
-              styles.placeholderCard,
-              { backgroundColor: theme.colors.surface },
-            ]}
-          > */}
-          {/* <Text variant="titleMedium">Plan Your Absence</Text> */}
-          <AbsencePlannerCard
-            onRegisterAbsence={handleAbsenceRegistration}
-            existingPlans={plannedAbsences}
-          />
-          {/* </View> */}
-        </Animated.View>
-      </ScrollView>
-
-      {/* QR Scanner Button - Fixed at bottom */}
-      {/* <Animated.View
-        entering={FadeIn.delay(750)}
-        // layout={Layout.springify()}
-        style={[styles.qrButtonContainer, { bottom: insets.bottom + 16 }]}
-      > */}
-      {/* QRScannerButton component will go here */}
-      {/* <View
-          style={[
-            styles.placeholderQRButton,
-            { backgroundColor: theme.colors.primary },
-          ]}
-        > */}
-      {/* <MaterialCommunityIcons
-            name="qrcode-scan"
-            size={24}
-            color={theme.colors.onPrimary}
-          /> */}
-      {/* </View> */}
-      {/* </Animated.View> */}
-
-      {/* QR Scanner FAB */}
-      <FAB
-        icon="qrcode-scan"
-        style={[
-          styles.fab,
-          {
-            bottom: insets.bottom + 16,
-            backgroundColor: theme.colors.primary,
-          },
-        ]}
-        color={theme.colors.onPrimary}
-        onPress={() => setShowScanner(true)}
-      />
-
-      {/* QR Scanner Modal */}
-      <Portal>
-        <Modal
-          visible={showScanner}
-          onDismiss={() => setShowScanner(false)}
-          contentContainerStyle={styles.modalContainer}
-        >
-          <QRScanner
-            onScan={handleScan}
-            onClose={() => setShowScanner(false)}
-          />
-        </Modal>
-
-        {/* Scan Result Modal */}
-        <Modal
-          visible={!!scanResult}
-          onDismiss={() => setScanResult(null)}
-          contentContainerStyle={[
-            styles.resultContainer,
-            { backgroundColor: scanResult?.color },
-          ]}
-        >
-          <MaterialCommunityIcons
-            name={
-              scanResult?.status === 'success' ? 'check-circle' : 'alert-circle'
-            }
-            size={48}
-            color={theme.colors.onPrimary}
-          />
-          <Animated.Text
-            entering={FadeIn}
-            style={[styles.resultText, { color: theme.colors.onPrimary }]}
-          >
-            {scanResult?.message}
-          </Animated.Text>
-        </Modal>
-      </Portal>
-    </View>
+          {/* Card components */}
+          <MembershipStatusCard />
+          <TodaysMenuCard />
+          <RatingCard />
+          <AbsencePlannerCard />
+        </ScrollView>
+      </ErrorBoundary>
+    </SafeAreaView>
   );
 };
 
@@ -358,65 +134,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  appBar: {
-    elevation: 0,
-  },
-  pointsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    paddingBottom: 24,
   },
-  cardContainer: {
-    marginBottom: 16,
-  },
-  placeholderCard: {
-    padding: 16,
-    borderRadius: 12,
-    elevation: 2,
-    minHeight: 100,
-    justifyContent: 'center',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  qrButtonContainer: {
-    position: 'absolute',
-    right: 16,
-    alignItems: 'center',
+  title: {
+    // fontWeight: 'bold',
   },
-  placeholderQRButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
+  points: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
-  fab: {
-    position: 'absolute',
-    right: 16,
-    elevation: 4,
+  pointsText: {
+    fontWeight: 'bold',
   },
-  modalContainer: {
-    margin: 0,
+  errorContainer: {
     flex: 1,
-    backgroundColor: 'black',
-  },
-  resultContainer: {
-    margin: 20,
-    padding: 20,
-    borderRadius: 12,
+    justifyContent: 'center',
     alignItems: 'center',
+    padding: 24,
   },
-  resultText: {
-    fontSize: 18,
-    fontWeight: '500',
-    marginTop: 12,
+  errorText: {
+    marginBottom: 8,
+  },
+  errorDescription: {
     textAlign: 'center',
+    marginBottom: 16,
   },
 });
 

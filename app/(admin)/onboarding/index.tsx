@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ValidationErrors } from '@/src/components/onboarding/ValidationErrors';
+import { ValidationErrors } from '@/src/components/admin/onboarding/ValidationErrors';
 import { Pdstyles } from '@/src/constants/Styles';
 import { useAuthStore } from '@/src/store/auth';
 
@@ -22,7 +22,7 @@ import { LocationStep } from './steps/LocationStep';
 import { MediaStep } from './steps/MediaStep';
 import { MessDetailsStep } from './steps/MessDetailsStep';
 import { TimingStep, validateTimeRange } from './steps/TimingStep';
-import { StepNavigation } from '../../../src/components/onboarding/StepNavigation';
+import { StepNavigation } from '../../../src/components/admin/onboarding/StepNavigation';
 import {
   initializeOnboarding,
   MessContact,

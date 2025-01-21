@@ -1,14 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-const Page = () => {
+const TodaysMenuCard = () => {
   return (
     <View>
-      <Text>Profile Page</Text>
+      <Text>TodaysMenuCard</Text>
     </View>
   );
 };
 
-export default Page;
+export default TodaysMenuCard;
 
 const styles = StyleSheet.create({});

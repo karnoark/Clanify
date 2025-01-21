@@ -1,14 +1,14 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-const Page = () => {
+const RatingCard = () => {
   return (
     <View>
-      <Text>Profile Page</Text>
+      <Text>RatingCard</Text>
     </View>
   );
 };
 
-export default Page;
+export default RatingCard;
 
 const styles = StyleSheet.create({});

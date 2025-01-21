@@ -2,7 +2,7 @@
 // This file defines the bottom tab navigation for mess members.
 // It creates a consistent navigation structure across the member section of the app.
 
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
@@ -12,7 +12,7 @@ import { useTheme } from 'react-native-paper';
 const TAB_ICONS = {
   home: { focused: 'home', unfocused: 'home-outline' },
   explore: { focused: 'compass', unfocused: 'compass-outline' },
-  chat: { focused: 'chat', unfocused: 'chat-outline' },
+  chat: { focused: 'chatbubbles', unfocused: 'chatbubbles-outline' },
   profile: { focused: 'account', unfocused: 'account-outline' },
 } as const;
 
@@ -88,7 +88,12 @@ export default function TabLayout() {
         options={{
           title: 'Chat',
           tabBarIcon: ({ focused, color }) => (
-            <MaterialCommunityIcons
+            // <MaterialCommunityIcons
+            //   name={focused ? TAB_ICONS.chat.focused : TAB_ICONS.chat.unfocused}
+            //   size={28}
+            //   color={color}
+            // />
+            <Ionicons
               name={focused ? TAB_ICONS.chat.focused : TAB_ICONS.chat.unfocused}
               size={28}
               color={color}
