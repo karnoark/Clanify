@@ -11,6 +11,7 @@ import { Redirect, Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import {
   MD3DarkTheme,
   adaptNavigationTheme,
@@ -182,19 +183,21 @@ export default function RootLayout() {
     colorScheme === 'dark' ? CombinedDarkTheme : CombinedDefaultTheme;
 
   return (
-    <PaperProvider theme={paperTheme}>
-      <ThemeProvider value={paperTheme}>
-        <AuthStateManager>
-          <Stack>
-            <Stack.Screen name="(admin)" options={{ headerShown: false }} />
-            <Stack.Screen name="(member)" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-            <Stack.Screen name="help" />
-          </Stack>
-        </AuthStateManager>
-      </ThemeProvider>
-    </PaperProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <PaperProvider theme={paperTheme}>
+        <ThemeProvider value={paperTheme}>
+          <AuthStateManager>
+            <Stack>
+              <Stack.Screen name="(admin)" options={{ headerShown: false }} />
+              <Stack.Screen name="(member)" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+              <Stack.Screen name="help" />
+            </Stack>
+          </AuthStateManager>
+        </ThemeProvider>
+      </PaperProvider>
+    </GestureHandlerRootView>
   );
 }

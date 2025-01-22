@@ -11,7 +11,7 @@ import {
 import React, { memo, useMemo } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import {
-  Text,
+  Text as RNText,
   ProgressBar as PaperProgressBar,
   useTheme,
 } from 'react-native-paper';
@@ -23,6 +23,7 @@ import {
 } from 'react-native-reanimated';
 
 import { Card } from '@/src/components/common/Card';
+import { Text } from '@/src/components/common/Text';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -106,7 +107,15 @@ const calculateDaysDifference = (
 };
 
 // Content component to avoid duplication
-const CardContent = ({ isLoading, progress, daysRemaining }) => {
+const CardContent = ({
+  isLoading,
+  progress,
+  daysRemaining,
+}: {
+  isLoading: boolean;
+  progress: number;
+  daysRemaining: number;
+}) => {
   console.log('CardContent isLoading: ', isLoading);
   console.log('CardContent progress: ', progress);
   console.log('CardContent daysRemaining: ', daysRemaining);

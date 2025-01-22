@@ -313,7 +313,8 @@ For Material Design elevation levels:
 
 This **RGB palette** ensures your brand identity color (#FD356D) is central while offering harmonious support from secondary, tertiary, and neutral tones. Let me know if you’d like to refine or tweak anything!
 
-
+#3B3B3D
+#2B2B2D 
 
 
 */

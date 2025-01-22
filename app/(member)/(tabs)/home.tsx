@@ -1,4 +1,5 @@
 // src/screens/HomeScreen.tsx
+import { Ionicons } from '@expo/vector-icons';
 import React, { useCallback, useEffect } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, useTheme } from 'react-native-paper';
@@ -9,6 +10,7 @@ import { Text } from '@/src/components/common/Text';
 import AbsencePlannerCard from '@/src/components/member/home/AbsencePlannerCard';
 import MembershipStatusCard from '@/src/components/member/home/MembershipStatusCard';
 import RatingCard from '@/src/components/member/home/RatingCard';
+import AnotherRatingCard from '@/src/components/member/home/RatingSlider';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 
@@ -111,18 +113,17 @@ const HomeScreen = () => {
                 { backgroundColor: theme.colors.surfaceVariant },
               ]}
             >
-              <Text
-                style={[styles.pointsText, { color: theme.colors.primary }]}
-              >
-                {points} pts
-              </Text>
+              <Ionicons name="leaf" size={24} color="#2ECC71" />
+              <Text style={[styles.pointsText]}>{points} pts</Text>
             </View>
           </View>
 
           {/* Card components */}
           <MembershipStatusCard />
           <TodaysMenuCard />
-          <RatingCard />
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <RatingCard />
+          </ErrorBoundary>
           <AbsencePlannerCard />
         </ScrollView>
       </ErrorBoundary>
@@ -154,6 +155,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   pointsText: {
     fontWeight: 'bold',
