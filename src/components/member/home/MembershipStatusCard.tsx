@@ -25,6 +25,7 @@ import {
 import { Card } from '@/src/components/common/Card';
 import { Text } from '@/src/components/common/Text';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
+import { CustomTheme } from '@/src/types/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = 16;
@@ -137,7 +138,7 @@ const CardContent = ({
 };
 
 const MembershipStatusCard = memo(() => {
-  const theme = useTheme();
+  const theme = useTheme<CustomTheme>();
   // Fetch data from store
   const membershipExpiry = useHomeStore(state => state.membershipExpiry);
   const membershipPeriod = useHomeStore(state => state.membershipPeriod);
@@ -175,7 +176,7 @@ const MembershipStatusCard = memo(() => {
           <LinearGradient
             start={vec(0, 0)}
             end={vec(CARD_WIDTH, 0)}
-            colors={['#ca2b58', '#ff6cb6', '#ffb3d9']}
+            colors={[theme.colors.pr40, theme.colors.pr60, theme.colors.pr80]}
             positions={[0, 0.7, 1]}
           />
         </RoundedRect>

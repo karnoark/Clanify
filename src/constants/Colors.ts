@@ -3,10 +3,12 @@
  * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
  */
 
+import { AppTheme } from '@/src/types/theme';
+
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
-export const Colors = {
+export const Colors: AppTheme = {
   light: {
     primary: 'rgb(168, 112, 78)',
     onPrimary: 'rgb(255, 255, 255)',
@@ -49,8 +51,18 @@ export const Colors = {
     surfaceDisabled: 'rgba(168, 112, 78, 0.5)',
     onSurfaceDisabled: 'rgba(255, 255, 255, 0.38)',
     backdrop: 'rgba(59, 45, 40, 0.4)',
-    backgroundContainer: 'rgb(255, 221, 183)',
-    onBackgroundContainer: 'rgb(42, 23, 0)',
+    // backgroundContainer: 'rgb(255, 221, 183)',
+    // onBackgroundContainer: 'rgb(42, 23, 0)',
+    pr10: '#583101',
+    pr20: '#603808',
+    pr30: '#6F4518',
+    pr40: '#8B5E34',
+    pr50: '#A47148',
+    pr60: '#BC8A5F',
+    pr70: '#D4A276',
+    pr80: '#E7BC91',
+    pr90: '#F3D5B5',
+    pr100: '#FFEDD8',
   },
   dark: {
     // Primary colors
@@ -110,6 +122,17 @@ export const Colors = {
 
     // Backdrop
     backdrop: 'rgba(0, 0, 0, 0.50)', // 50% transparent black
+    // following color pallete source: https://coolors.co/palette/590d22-800f2f-a4133c-c9184a-ff4d6d-ff758f-ff8fa3-ffb3c1-ffccd5-fff0f3
+    pr10: '#590D22',
+    pr20: '#800F2F',
+    pr30: '#A4133C',
+    pr40: '#C9184A',
+    pr50: '#FF4D6D',
+    pr60: '#FF758F',
+    pr70: '#FF8FA3',
+    pr80: '#FFB3C1',
+    pr90: '#FFCCD5',
+    pr100: '#FFF0F3',
   },
 };
 
