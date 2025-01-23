@@ -35,7 +35,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Card } from '@/src/components/common/Card';
-import RatingSliderComponent from '@/src/components/member/home/RatingSlider';
+import RatingSliderComponent from '@/src/components/member/home/RatingSliderComponent';
 
 const RatingCard = memo(() => {
   const theme = useTheme();
@@ -54,7 +54,7 @@ const RatingCard = memo(() => {
   }, []);
 
   return (
-    <Card>
+    <Card style={{ backgroundColor: theme.colors.inverseOnSurface }}>
       <Text
         variant="titleLarge"
         style={[

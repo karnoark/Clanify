@@ -16,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Card } from '@/src/components/common/Card';
+import { CustomTheme } from '@/src/types/theme';
 
 const startColors = [
   'rgba(230, 72, 10, 0.4)', // Red
@@ -26,58 +27,128 @@ const startColors = [
 ];
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
+const AnimatedCanvas = Animated.createAnimatedComponent(Canvas);
 
 // Get window dimensions for responsive sizing
 const { width: WINDOW_WIDTH } = Dimensions.get('window');
 const CARD_PADDING = 16;
-const CANVAS_WIDTH = WINDOW_WIDTH - CARD_PADDING * 4; // Account for card and screen padding
-const CANVAS_HEIGHT = 120;
-const KNOB_RADIUS = 15;
+const BASE_CANVAS_WIDTH = WINDOW_WIDTH - CARD_PADDING * 4; // Account for card and screen padding
+const COMPACT_WIDTH_FACTOR = 0.7; // Slider will be 70% of full width when not interacted
+const BASE_CANVAS_HEIGHT = 120;
+const COMPACT_HEIGHT = 80; // Smaller height when not interacted
+const BASE_KNOB_RADIUS = 15;
+const COMPACT_KNOB_RADIUS = 10; // Smaller knob when not interacted
 
 const RatingSliderComponent = () => {
-  const theme = useTheme();
+  const theme = useTheme<CustomTheme>();
 
-  const width = CANVAS_WIDTH;
-  const height = CANVAS_HEIGHT;
-  const strokeWidth = 10;
-  const moverHeight = 30;
-  const moverWidth = 30;
+  // Animated values for dimensions
   const progress = useSharedValue(0.5);
-  const pathStartX = moverWidth / 2;
-  const pathStartY = height / 2;
-  const pathEndX = width - moverWidth / 2;
-  const pathEndY = height / 2;
-  const pathLength = pathEndX - pathStartX;
-  const moverPositionY = height / 2 - moverHeight / 2;
+  const hasInteracted = useSharedValue(false);
 
-  const straightPath = useMemo(() => {
+  // Animate canvas width based on interaction
+  const canvasWidth = useDerivedValue(() => {
+    return withTiming(
+      hasInteracted.value
+        ? BASE_CANVAS_WIDTH
+        : BASE_CANVAS_WIDTH * COMPACT_WIDTH_FACTOR,
+      { duration: 300 },
+    );
+  });
+
+  // Animate canvas height based on interaction
+  const canvasHeight = useDerivedValue(() => {
+    return withTiming(
+      hasInteracted.value ? BASE_CANVAS_HEIGHT : COMPACT_HEIGHT,
+      { duration: 300 },
+    );
+  });
+
+  // Animate knob dimensions based on interaction
+  const knobRadius = useDerivedValue(() => {
+    return withTiming(
+      hasInteracted.value ? BASE_KNOB_RADIUS : COMPACT_KNOB_RADIUS,
+      { duration: 300 },
+    );
+  });
+
+  // Derived values for path calculations
+  const pathStartX = useDerivedValue(() => knobRadius.value);
+  const pathEndX = useDerivedValue(() => canvasWidth.value - knobRadius.value);
+  const pathLength = useDerivedValue(() => pathEndX.value - pathStartX.value);
+
+  // Create animated path
+  const animatedPath = useDerivedValue(() => {
     const skPath = Skia.Path.Make();
-    skPath.moveTo(pathStartX, pathStartY); // Start at pathStartX
-    skPath.lineTo(pathEndX, pathEndY);
+    const centerY = canvasHeight.value / 2;
+    skPath.moveTo(pathStartX.value, centerY);
+    skPath.lineTo(pathEndX.value, centerY);
     return skPath;
-  }, []);
+  });
 
+  // Pan gesture handler
   const gesture = Gesture.Pan()
     .onChange(e => {
-      const progressChange = e.changeX / pathLength;
+      const progressChange = e.changeX / pathLength.value;
       const newProgress = progress.value + progressChange;
       progress.value = Math.min(Math.max(newProgress, 0), 1);
-      console.log('progress value:', progress.value);
+
+      if (!hasInteracted.value) {
+        hasInteracted.value = true;
+      }
     })
     .onEnd(e => {
-      const velocityProgress = e.velocityX / pathLength;
+      const velocityProgress = e.velocityX / pathLength.value;
       progress.value = withDecay({
         velocity: velocityProgress,
         clamp: [0, 1],
       });
     });
 
-  const dynamicColors = useDerivedValue(() => {
+  // Color interpolation based on progress and interaction state
+  const sliderColor = useDerivedValue(() => {
+    // When not interacted, use primary color
+    if (!hasInteracted.value) {
+      return theme.colors.primary;
+    }
+
+    // After interaction, interpolate between rating colors
     return interpolateColor(
       progress.value,
-      [0, 0.2, 0.5, 0.7, 1], // Match the number of colors
+      [0, 0.25, 0.5, 0.75, 1],
       startColors,
     );
+  });
+
+  // Animated styles for the Canvas
+  const canvasStyle = useAnimatedStyle(() => ({
+    width: canvasWidth.value,
+    height: canvasHeight.value,
+  }));
+
+  // Animated position and size for the knob
+  const knobStyle = useAnimatedStyle(() => {
+    const xPosition = pathStartX.value + progress.value * pathLength.value;
+    return {
+      position: 'absolute',
+      left: xPosition - knobRadius.value,
+      top: canvasHeight.value / 2 - knobRadius.value,
+      width: knobRadius.value * 2,
+      height: knobRadius.value * 2,
+      borderRadius: knobRadius.value,
+      backgroundColor: sliderColor.value,
+      transform: [
+        {
+          scale: withTiming(hasInteracted.value ? 1 : 0.8, { duration: 300 }),
+        },
+      ],
+    };
+  });
+
+  const strokeWidth = useDerivedValue(() => {
+    return withTiming(hasInteracted.value ? 10 : 6, {
+      duration: 300, // Match the duration of other animations for consistency
+    });
   });
 
   const review = useDerivedValue(() => {
@@ -107,8 +178,6 @@ const RatingSliderComponent = () => {
     opacity: opacityValue.value,
   }));
 
-  const hasInteracted = useSharedValue(false);
-
   // Detect first interaction (when progress changes from initial 0.5)
   useAnimatedReaction(
     () => progress.value,
@@ -131,40 +200,25 @@ const RatingSliderComponent = () => {
     };
   });
 
-  const rStyle = useAnimatedStyle(() => {
-    const xPosition = pathStartX + progress.value * pathLength;
-    return {
-      position: 'absolute',
-      left: xPosition - moverWidth / 2, // Center the knob on the path
-      top: moverPositionY,
-      width: moverWidth,
-      height: moverHeight,
-      borderRadius: moverWidth / 2,
-      backgroundColor: '#80bfff',
-    };
-  });
-
   return (
     <View
       style={{
-        // borderWidth: 3,
-        // borderColor: 'pink',
         justifyContent: 'center',
         alignItems: 'center',
       }}
     >
-      <Canvas style={{ width, height }}>
+      <AnimatedCanvas style={canvasStyle}>
         <Path
-          path={straightPath}
+          path={animatedPath}
           style={'stroke'}
           strokeWidth={strokeWidth}
-          color={dynamicColors}
+          color={sliderColor}
           strokeCap={'round'}
         />
         <BlurMask blur={4} style={'solid'} />
-      </Canvas>
+      </AnimatedCanvas>
       <GestureDetector gesture={gesture}>
-        <Animated.View style={rStyle} />
+        <Animated.View style={knobStyle} />
       </GestureDetector>
       <Animated.View style={[styles.textRating, textRatingStyle]}>
         <AnimatedTextInput
@@ -173,8 +227,7 @@ const RatingSliderComponent = () => {
           style={[
             {
               fontSize: 20,
-              // fontWeight: 'bold',
-              color: '#fff',
+              color: theme.colors.onSurface,
               textAlign: 'center',
               borderRadius: 30,
               backgroundColor: theme.colors.background,
@@ -195,14 +248,10 @@ export default RatingSliderComponent;
 const styles = StyleSheet.create({
   textRating: {
     position: 'absolute',
-    left: CANVAS_WIDTH / 2 - 4 * CARD_PADDING, // Center horizontally
+    left: BASE_CANVAS_WIDTH / 2 - 4 * CARD_PADDING, // Center horizontally
     top: -30, // Place below the slider
-    // width: 80, // Fixed width
-    // borderWidth: 3,
     borderRadius: 1,
     margin: 10,
     marginBottom: 20,
-    // borderColor: 'pink',
-    // backgroundColor: 'pink',
   },
 });

@@ -29,7 +29,7 @@ export const Colors: AppTheme = {
     onErrorContainer: 'rgb(65, 0, 2)',
     background: 'rgb(219, 197, 174)',
     onBackground: 'rgb(153, 70, 28)',
-    surface: 'rgb(255, 251, 255)',
+    surface: 'rgb(251, 238, 234)',
     onSurface: 'rgb(32, 26, 24)',
     surfaceVariant: 'rgb(245, 222, 213)',
     onSurfaceVariant: 'rgb(83, 68, 61)',

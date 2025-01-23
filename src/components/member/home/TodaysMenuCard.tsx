@@ -137,8 +137,11 @@ const TodaysMenuCard = memo(() => {
   }
 
   return (
-    <Card>
-      <Text variant="titleLarge" style={styles.title}>
+    <Card style={{ backgroundColor: theme.colors.surface }}>
+      <Text
+        variant="titleLarge"
+        style={[styles.title, { color: theme.colors.onSurface }]}
+      >
         Today's Menu
       </Text>
       {todaysMeals.map((meal, index) => (
@@ -168,7 +171,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     fontFamily: 'System', // Using system font for better performance
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   mealContainer: {
     paddingVertical: 12,

@@ -10,7 +10,7 @@ import { Text } from '@/src/components/common/Text';
 import AbsencePlannerCard from '@/src/components/member/home/AbsencePlannerCard';
 import MembershipStatusCard from '@/src/components/member/home/MembershipStatusCard';
 import RatingCard from '@/src/components/member/home/RatingCard';
-import AnotherRatingCard from '@/src/components/member/home/RatingSlider';
+import AnotherRatingCard from '@/src/components/member/home/RatingSliderComponent';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 
