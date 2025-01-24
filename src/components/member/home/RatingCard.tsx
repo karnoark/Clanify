@@ -55,7 +55,7 @@ const RatingCard = memo(() => {
 
   return (
     <Card style={{ backgroundColor: theme.colors.inverseOnSurface }}>
-      <Text
+      {/* <Text
         variant="titleLarge"
         style={[
           styles.title,
@@ -65,8 +65,8 @@ const RatingCard = memo(() => {
         ]}
       >
         Rate The Meal
-      </Text>
-      <Text
+      </Text> */}
+      {/* <Text
         variant="titleMedium"
         style={[
           styles.subtitle,
@@ -76,7 +76,7 @@ const RatingCard = memo(() => {
         ]}
       >
         Yesterday's Dinner
-      </Text>
+      </Text> */}
 
       <View style={styles.sliderContainer}>
         {/* <RatingSlider value={rating} onChange={setRating} /> */}

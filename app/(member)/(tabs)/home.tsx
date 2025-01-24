@@ -10,7 +10,6 @@ import { Text } from '@/src/components/common/Text';
 import AbsencePlannerCard from '@/src/components/member/home/AbsencePlannerCard';
 import MembershipStatusCard from '@/src/components/member/home/MembershipStatusCard';
 import RatingCard from '@/src/components/member/home/RatingCard';
-import AnotherRatingCard from '@/src/components/member/home/RatingSliderComponent';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 
@@ -124,7 +123,9 @@ const HomeScreen = () => {
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <RatingCard />
           </ErrorBoundary>
-          <AbsencePlannerCard />
+          {/* <ErrorBoundary FallbackComponent={ErrorFallback}> */}
+          {/* <AbsencePlannerCard /> */}
+          {/* </ErrorBoundary> */}
         </ScrollView>
       </ErrorBoundary>
     </SafeAreaView>

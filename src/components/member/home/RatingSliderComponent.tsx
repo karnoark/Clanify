@@ -1,5 +1,5 @@
 import { BlurMask, Canvas, Path, Skia } from '@shopify/react-native-skia';
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { StyleSheet, View, Dimensions, TextInput } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTheme } from 'react-native-paper';
@@ -120,6 +120,22 @@ const RatingSliderComponent = () => {
     );
   });
 
+  const animatedTextFont = useDerivedValue(() => {
+    if (hasInteracted.value) {
+      return 20;
+    } else {
+      return 15;
+    }
+  });
+
+  const animatedTextBackground = useDerivedValue(() => {
+    if (hasInteracted.value) {
+      return theme.colors.background;
+    } else {
+      return 'transparent';
+    }
+  });
+
   // Animated styles for the Canvas
   const canvasStyle = useAnimatedStyle(() => ({
     width: canvasWidth.value,
@@ -151,7 +167,12 @@ const RatingSliderComponent = () => {
     });
   });
 
-  const review = useDerivedValue(() => {
+  const displayText = useDerivedValue(() => {
+    if (!hasInteracted.value) {
+      return "How was yesterday's dinner?";
+    }
+
+    // Return the appropriate review text based on progress
     if (progress.value < 0.2) return 'Awful';
     if (progress.value < 0.4) return 'Bad';
     if (progress.value < 0.6) return 'Ok';
@@ -159,46 +180,36 @@ const RatingSliderComponent = () => {
     return 'Great';
   });
 
-  const opacityValue = useSharedValue(1); // Initial opacity
+  const textOpacity = useSharedValue(1); // Start visible
 
+  // Watch for text changes to animate opacity
   useAnimatedReaction(
-    () => review.value, // Track changes in the review text
-    (currentReview, previousReview) => {
-      if (currentReview !== previousReview) {
-        // Trigger opacity animation when text changes
-        opacityValue.value = withSequence(
-          withTiming(0.3, { duration: 300 }), // Fade out
-          withTiming(1, { duration: 300 }), // Fade in
+    () => displayText.value,
+    (current, previous) => {
+      if (current !== previous) {
+        textOpacity.value = withSequence(
+          withTiming(0.3, { duration: 150 }), // Fade out faster
+          withTiming(1, { duration: 150 }), // Fade in faster
         );
       }
     },
   );
 
   const textAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: opacityValue.value,
+    opacity: textOpacity.value,
+    transform: [
+      {
+        scale: withTiming(hasInteracted.value ? 1 : 0.95, { duration: 200 }),
+      },
+    ],
+    width: hasInteracted.value ? 80 : 300,
   }));
 
-  // Detect first interaction (when progress changes from initial 0.5)
-  useAnimatedReaction(
-    () => progress.value,
-    currentProgress => {
-      if (!hasInteracted.value && currentProgress !== 0.5) {
-        hasInteracted.value = true;
-      }
-    },
-  );
-
-  // Animate text rating container opacity
-  const textRatingStyle = useAnimatedStyle(() => ({
-    opacity: hasInteracted.value ? withTiming(1) : withTiming(0),
+  // Update the animated props to use our new display text
+  const animatedText = useAnimatedProps(() => ({
+    text: displayText.value,
+    defaultValue: "How was yesterday's dinner?",
   }));
-
-  const animatedText = useAnimatedProps(() => {
-    return {
-      text: review.value,
-      defaultValue: '',
-    };
-  });
 
   return (
     <View
@@ -220,18 +231,19 @@ const RatingSliderComponent = () => {
       <GestureDetector gesture={gesture}>
         <Animated.View style={knobStyle} />
       </GestureDetector>
-      <Animated.View style={[styles.textRating, textRatingStyle]}>
+      <Animated.View style={styles.textRating}>
         <AnimatedTextInput
           editable={false}
           underlineColorAndroid={'transparent'}
           style={[
             {
-              fontSize: 20,
-              color: theme.colors.onSurface,
+              fontSize: animatedTextFont,
+              color: hasInteracted.value
+                ? theme.colors.onSurface
+                : theme.colors.onSurfaceVariant,
               textAlign: 'center',
               borderRadius: 30,
-              backgroundColor: theme.colors.background,
-              width: 100,
+              backgroundColor: animatedTextBackground,
               padding: 10,
             },
             textAnimatedStyle,
@@ -248,10 +260,10 @@ export default RatingSliderComponent;
 const styles = StyleSheet.create({
   textRating: {
     position: 'absolute',
-    left: BASE_CANVAS_WIDTH / 2 - 4 * CARD_PADDING, // Center horizontally
-    top: -30, // Place below the slider
-    borderRadius: 1,
-    margin: 10,
-    marginBottom: 20,
+    left: 0,
+    right: 0,
+    top: -30, // Adjust this value to position the text above the slider
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -74,7 +74,8 @@ interface HomeState {
   updatePoints: () => void;
   updateTodaysMeals: () => void;
   updateRateableMeals: () => void;
-  setPlannedAbsences: () => void;
+  getPlannedAbsences: () => void;
+  setPlannedAbsences: (newAbsences: AbsencePlan[]) => void;
   //todo action for registering the absence if the above action doesn't include it
   //todo action for rating a meal
 }
@@ -107,7 +108,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
         get().updatePoints(),
         get().updateTodaysMeals(),
         get().updateRateableMeals(),
-        get().setPlannedAbsences(),
+        get().getPlannedAbsences(),
       ]);
 
       set({ isLoading: false });
@@ -217,40 +218,46 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
       throw error;
     }
   },
-  setPlannedAbsences: async () => {
+  getPlannedAbsences: async () => {
+    //todo fetch user planned abasences from database
+    // set({ plannedAbsences: plans })
+
+    // inserting dummy values for now
+    const absencePlans: AbsencePlan[] = [
+      {
+        id: 'absence-001',
+        startDate: new Date('2025-02-01T00:00:00Z'),
+        endDate: new Date('2025-02-05T00:00:00Z'),
+        meals: ['lunch', 'dinner'],
+      },
+      {
+        id: 'absence-002',
+        startDate: new Date('2025-03-10T00:00:00Z'),
+        endDate: new Date('2025-03-12T00:00:00Z'),
+        meals: ['lunch'],
+      },
+      {
+        id: 'absence-003',
+        startDate: new Date('2025-04-15T00:00:00Z'),
+        endDate: new Date('2025-04-18T00:00:00Z'),
+        meals: ['dinner'],
+      },
+      {
+        id: 'absence-004',
+        startDate: new Date('2025-05-20T00:00:00Z'),
+        endDate: new Date('2025-05-22T00:00:00Z'),
+        meals: ['lunch', 'dinner'],
+      },
+    ];
+
+    set({ plannedAbsences: absencePlans });
+  },
+  setPlannedAbsences: async (newAbsences: AbsencePlan[]) => {
     try {
-      //todo fetch user planned abasences from database
-      // set({ plannedAbsences: plans })
-
-      // inserting dummy values for now
-      const absencePlans: AbsencePlan[] = [
-        {
-          id: 'absence-001',
-          startDate: new Date('2025-02-01T00:00:00Z'),
-          endDate: new Date('2025-02-05T00:00:00Z'),
-          meals: ['lunch', 'dinner'],
-        },
-        {
-          id: 'absence-002',
-          startDate: new Date('2025-03-10T00:00:00Z'),
-          endDate: new Date('2025-03-12T00:00:00Z'),
-          meals: ['lunch'],
-        },
-        {
-          id: 'absence-003',
-          startDate: new Date('2025-04-15T00:00:00Z'),
-          endDate: new Date('2025-04-18T00:00:00Z'),
-          meals: ['dinner'],
-        },
-        {
-          id: 'absence-004',
-          startDate: new Date('2025-05-20T00:00:00Z'),
-          endDate: new Date('2025-05-22T00:00:00Z'),
-          meals: ['lunch', 'dinner'],
-        },
-      ];
-
-      set({ plannedAbsences: absencePlans });
+      //todo update user planned abasences from database
+      const plannedAbsences = get().plannedAbsences;
+      const updatedPlannedAbsences = [...plannedAbsences, ...newAbsences];
+      set({ plannedAbsences: updatedPlannedAbsences });
     } catch (error) {
       console.error('Failed to update planned absence:', error);
       throw error;
