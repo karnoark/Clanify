@@ -1,357 +1,464 @@
-// src/components/home/AbsencePlannerCard.tsx
-import { format, isAfter, isBefore, addDays } from 'date-fns';
-import React, { memo, useState, useCallback, useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { format } from 'date-fns';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import {
-  Text,
   Button,
+  Card,
   IconButton,
+  Menu,
   SegmentedButtons,
+  Text,
   useTheme,
 } from 'react-native-paper';
 import { DatePickerInput } from 'react-native-paper-dates';
 
-import { Card } from '@/src/components/common/Card';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
-import { AbsencePlan } from '@/src/types/member/home';
 import { CustomTheme } from '@/src/types/theme';
 
-// Helper component for displaying individual absence items
-const AbsenceItem = memo(
-  ({
-    absence,
-    onDelete,
-  }: {
-    absence: AbsencePlan;
-    onDelete: (id: string) => void;
-  }) => {
-    const theme = useTheme<CustomTheme>();
-    // Format the date range for display
-    const dateRange = useMemo(() => {
-      const start = format(new Date(absence.startDate), 'd MMM');
-      const end = format(new Date(absence.endDate), 'd MMM');
-      const meals = absence.meals
-        .map(m => m.charAt(0).toUpperCase() + m.slice(1))
-        .join(' & ');
-      return `${start} - ${end} (${meals})`;
-    }, [absence]);
+// Create an interface for the date-meal selection pair
+interface DateMealSelection {
+  date: Date | undefined;
+  meal: MealType | undefined;
+}
 
-    return (
-      <View style={styles.absenceItem}>
-        <Text
+const AbsencePlannerCard = () => {
+  // Theme and store
+  const theme = useTheme<CustomTheme>();
+  const { plannedAbsences, setPlannedAbsences, deletePlannedAbsence } =
+    useHomeStore();
+
+  // State for selections
+  const [fromSelection, setFromSelection] = useState<DateMealSelection>({
+    date: undefined,
+    meal: undefined,
+  });
+  const [toSelection, setToSelection] = useState<DateMealSelection>({
+    date: undefined,
+    meal: undefined,
+  });
+
+  // State for menu visibility
+  const [fromMenuVisible, setFromMenuVisible] = useState(false);
+  const [toMenuVisible, setToMenuVisible] = useState(false);
+
+  // Local state for form
+  // const [fromDate, setFromDate] = useState<Date | undefined>();
+  // const [toDate, setToDate] = useState<Date | undefined>();
+  // const [selectedMeal, setSelectedMeal] = useState<MealType>('lunch');
+
+  const [error, setError] = useState<string | null>(null);
+
+  // Menu handling functions
+  const openFromMenu = () => setFromMenuVisible(true);
+  const closeFromMenu = () => setFromMenuVisible(false);
+  const openToMenu = () => setToMenuVisible(true);
+  const closeToMenu = () => setToMenuVisible(false);
+
+  useEffect(() => {
+    console.log('FromMenuVisible: ', fromMenuVisible);
+  }, [fromMenuVisible]);
+
+  // Meal selection handlers
+  const handleFromMealSelect = (meal: MealType) => {
+    setFromSelection(prev => ({ ...prev, meal }));
+    closeFromMenu();
+  };
+
+  const handleToMealSelect = (meal: MealType) => {
+    setToSelection(prev => ({ ...prev, meal }));
+    closeToMenu();
+  };
+
+  // Date selection handlers
+  const handleFromDateSelect = (date: Date | undefined) => {
+    setFromSelection(prev => ({ ...prev, date }));
+  };
+
+  const handleToDateSelect = (date: Date | undefined) => {
+    setToSelection(prev => ({ ...prev, date }));
+  };
+
+  // Function to render a meal selection menu
+  const renderMealMenu = (
+    visible: boolean,
+    onDismiss: () => void,
+    onSelect: (meal: MealType) => void,
+    selectedMeal: MealType | undefined,
+    onOpen: () => void,
+  ) => (
+    // <View style={styles.menuContainer}>
+    //   <Button
+    //     // mode="contained"
+    //     onPress={onOpen}
+    //     style={[styles.menuButton, { backgroundColor: theme.colors.pr70 }]}
+    //     icon="menu-down"
+    //     contentStyle={{ flexDirection: 'row-reverse' }}
+    //   >
+    //     {selectedMeal
+    //       ? selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)
+    //       : 'Select Meal'}
+    //   </Button>
+    //   <Menu
+    //     visible={visible}
+    //     onDismiss={onDismiss}
+    //     anchor={<View />} // The actual anchor is the button above
+    //   >
+    //     <Menu.Item
+    //       onPress={() => onSelect('lunch')}
+    //       title="Lunch"
+    //       leadingIcon="food"
+    //     />
+    //     <Menu.Item
+    //       onPress={() => onSelect('dinner')}
+    //       title="Dinner"
+    //       leadingIcon="food-turkey"
+    //     />
+    //   </Menu>
+    // </View>
+    <View style={styles.menuContainer}>
+      <Menu
+        visible={visible}
+        onDismiss={onDismiss}
+        anchor={
+          <Button
+            mode="contained"
+            onPress={onOpen}
+            style={[
+              styles.menuButton,
+              {
+                backgroundColor: theme.colors.pr70,
+
+                // borderColor: theme.colors.outline,
+              },
+            ]}
+            icon="menu-down"
+            contentStyle={[{ flexDirection: 'row-reverse' }]}
+          >
+            {selectedMeal
+              ? selectedMeal.charAt(0).toUpperCase() + selectedMeal.slice(1)
+              : 'Select Meal'}
+          </Button>
+        }
+      >
+        <Menu.Item
+          onPress={() => onSelect('lunch')}
+          title="Lunch"
+          leadingIcon="white-balance-sunny"
           style={[
-            styles.absenceText,
+            styles.menuItem,
+            {
+              backgroundColor: theme.colors.pr80,
+              borderTopStartRadius: 10,
+              borderTopEndRadius: 10,
+              borderBottomColor: theme.colors.pr100,
+              borderBottomWidth: 2,
+            },
+          ]}
+          titleStyle={[
+            styles.menuItemTitle,
             {
               color: theme.colors.onSurface,
             },
           ]}
-        >
-          {dateRange}
-        </Text>
-        <IconButton
-          icon="close-circle"
-          size={20}
-          iconColor={theme.colors.error}
-          onPress={() => onDelete(absence.id)}
         />
-      </View>
-    );
-  },
-);
-
-AbsenceItem.displayName = 'AbsenceItem';
-
-const AbsencePlannerCard = memo(() => {
-  const theme = useTheme<CustomTheme>();
-
-  // Get absences data and actions from store
-  const { plannedAbsences, isLoading, setPlannedAbsences } = useHomeStore(
-    state => ({
-      plannedAbsences: state.plannedAbsences,
-      isLoading: state.isLoading,
-      setPlannedAbsences: state.setPlannedAbsences,
-    }),
+        <Menu.Item
+          onPress={() => onSelect('dinner')}
+          title="Dinner"
+          leadingIcon="moon-waning-crescent"
+          style={[
+            styles.menuItem,
+            {
+              backgroundColor: theme.colors.pr80,
+              borderBottomStartRadius: 10,
+              borderBottomEndRadius: 10,
+            },
+          ]}
+          titleStyle={[
+            styles.menuItemTitle,
+            {
+              color: theme.colors.onSurface,
+            },
+          ]}
+        />
+      </Menu>
+    </View>
   );
 
-  // Local state for form
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  const [selectedMeals, setSelectedMeals] = useState<string[]>([
-    'lunch',
-    'dinner',
-  ]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Sort absences by start date
-  const sortedAbsences = useMemo(() => {
-    return [...plannedAbsences].sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
-  }, [plannedAbsences]);
-
-  // Validate dates and check for overlaps
-  const validateDates = useCallback(() => {
-    if (!startDate || !endDate) {
-      setError('Please select both start and end dates');
-      return false;
+  // Function to handle setting the absence
+  const handleSetAbsence = () => {
+    // Validate all required fields
+    if (
+      !fromSelection.date ||
+      !toSelection.date ||
+      !fromSelection.meal ||
+      !toSelection.meal
+    ) {
+      setError('Please select both dates and meals');
+      return;
     }
 
-    if (isBefore(endDate, startDate)) {
-      setError('End date cannot be before start date');
-      return false;
+    if (fromSelection.date > toSelection.date) {
+      setError('Start date must be before end date');
+      return;
     }
 
-    if (isBefore(startDate, new Date())) {
-      setError('Cannot set absence for past dates');
-      return false;
-    }
-
-    // Check for overlapping absences
-    const hasOverlap = plannedAbsences.some(absence => {
-      const absenceStart = new Date(absence.startDate);
-      const absenceEnd = new Date(absence.endDate);
-      return (
-        (isAfter(startDate, absenceStart) && isBefore(startDate, absenceEnd)) ||
-        (isAfter(endDate, absenceStart) && isBefore(endDate, absenceEnd)) ||
-        (isBefore(startDate, absenceStart) && isAfter(endDate, absenceEnd))
-      );
-    });
-
-    if (hasOverlap) {
-      setError('Selected dates overlap with existing absences');
-      return false;
+    // If dates are the same, validate meal order
+    if (
+      fromSelection.date.getTime() === toSelection.date.getTime() &&
+      fromSelection.meal === 'dinner' &&
+      toSelection.meal === 'lunch'
+    ) {
+      setError('Invalid meal selection for same day');
+      return;
     }
 
     setError(null);
-    return true;
-  }, [startDate, endDate, plannedAbsences]);
 
-  // Handle absence submission
-  const handleSubmit = useCallback(async () => {
-    if (!validateDates()) return;
+    // Create new absence plan with detailed meal information
+    const newAbsence: AbsencePlan = {
+      id: `absence-${Date.now()}`,
+      startDate: fromSelection.date,
+      endDate: toSelection.date,
+      startMeal: fromSelection.meal,
+      endMeal: toSelection.meal,
+    };
 
-    setIsSubmitting(true);
+    setPlannedAbsences([newAbsence]);
+
+    // Reset form
+    setFromSelection({ date: undefined, meal: undefined });
+    setToSelection({ date: undefined, meal: undefined });
+  };
+
+  const handleDeleteAbsence = async (id: string) => {
     try {
-      // Create new absence plan
-      const newAbsence: AbsencePlan = {
-        id: Date.now().toString(), // Temporary ID, should be replaced by backend
-        startDate: startDate!,
-        endDate: endDate!,
-        meals: selectedMeals as ('lunch' | 'dinner')[],
-      };
-
-      // TODO: Send to backend
-      // await api.createAbsence(newAbsence);
-
-      // Optimistic update
-      await setPlannedAbsences([...plannedAbsences, newAbsence]);
-
-      // Reset form
-      setStartDate(undefined);
-      setEndDate(undefined);
-      setSelectedMeals(['lunch', 'dinner']);
+      await deletePlannedAbsence(id);
     } catch (e) {
-      setError('Failed to set absence. Please try again.');
-      console.error('Failed to set absence:', e);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Failed to delete absence:', e);
     }
-  }, [
-    startDate,
-    endDate,
-    selectedMeals,
-    plannedAbsences,
-    setPlannedAbsences,
-    validateDates,
-  ]);
+  };
 
-  // Handle absence deletion
-  const handleDelete = useCallback(
-    async (id: string) => {
-      try {
-        // TODO: Send to backend
-        // await api.deleteAbsence(id);
+  // Handlers
+  // const handleSetAbsence = () => {
+  //   // Validate inputs
+  //   if (!fromDate || !toDate) {
+  //     setError('Please select both dates');
+  //     return;
+  //   }
 
-        // Optimistic update
-        const updatedAbsences = plannedAbsences.filter(
-          absence => absence.id !== id,
-        );
-        await setPlannedAbsences(updatedAbsences);
-      } catch (e) {
-        console.error('Failed to delete absence:', e);
-        // You might want to show an error message here
-      }
-    },
-    [plannedAbsences, setPlannedAbsences],
-  );
+  //   if (fromDate > toDate) {
+  //     setError('Start date must be before end date');
+  //     return;
+  //   }
+
+  //   // Clear any previous errors
+  //   setError(null);
+
+  //   // Create new absence plan
+  //   const newAbsence = {
+  //     id: `absence-${Date.now()}`, // Simple ID generation
+  //     startDate: fromDate,
+  //     endDate: toDate,
+  //     meals: [selectedMeal],
+  //   };
+
+  //   // Add to store
+  //   setPlannedAbsences([newAbsence]);
+
+  //   // Reset form
+  //   setFromDate(undefined);
+  //   setToDate(undefined);
+  //   setSelectedMeal('lunch');
+  // };
+
+  // const handleDeleteAbsence = async (id: string) => {
+  //   try {
+  //     await deletePlannedAbsence(id);
+  //   } catch (e) {
+  //     console.error('Failed to delete absence:', e);
+  //   }
+  // };
+
+  // Format the absence period for display
+  const formatAbsencePeriod = (absence: AbsencePlan) => {
+    const startDate = format(new Date(absence.startDate), 'd MMM');
+    const endDate = format(new Date(absence.endDate), 'd MMM');
+    return `${startDate} ${absence.startMeal} - ${endDate} ${absence.endMeal}`;
+  };
 
   return (
-    <Card>
-      <Text
-        variant="titleLarge"
-        style={[
-          styles.title,
-          {
-            color: theme.colors.onSurface,
-          },
-        ]}
-      >
-        Meal Absence Planner
-      </Text>
-
-      {/* Upcoming absences section */}
-      {sortedAbsences.length > 0 && (
-        <View style={styles.absenceList}>
-          <Text
-            variant="titleMedium"
+    <Card
+      style={[
+        styles.card,
+        {
+          backgroundColor: theme.colors.surface,
+        },
+      ]}
+    >
+      {/* Header */}
+      <View style={styles.upcomingAbsences}>
+        {plannedAbsences.map(absence => (
+          <View
+            key={absence.id}
             style={[
-              styles.subtitle,
-              {
-                color: theme.colors.onSurfaceVariant,
-              },
+              styles.absenceItem,
+              { backgroundColor: theme.colors.surfaceVariant },
             ]}
           >
-            Upcoming Absences
-          </Text>
-          {sortedAbsences.map(absence => (
-            <AbsenceItem
-              key={absence.id}
-              absence={absence}
-              onDelete={handleDelete}
+            <Text style={{ color: theme.colors.onSurfaceVariant }}>
+              {formatAbsencePeriod(absence)}
+            </Text>
+            <IconButton
+              icon="close"
+              size={20}
+              onPress={() => handleDeleteAbsence(absence.id)}
+              iconColor={theme.colors.error}
             />
-          ))}
-        </View>
-      )}
-
-      {/* Date selection section */}
-      <View
-        style={[
-          styles.dateInputs,
-          {
-            backgroundColor: theme.colors.surface,
-          },
-        ]}
-      >
-        <DatePickerInput
-          locale="en"
-          label="From"
-          value={startDate}
-          onChange={date => {
-            setStartDate(date);
-            setError(null);
-          }}
-          inputMode="start"
-          style={styles.dateInput}
-          contentStyle={{
-            backgroundColor: theme.colors.surface,
-          }}
-          validRange={{ startDate: addDays(new Date(), 1) }}
-          mode="outlined"
-        />
-        <DatePickerInput
-          locale="en"
-          label="To"
-          value={endDate}
-          onChange={date => {
-            setEndDate(date);
-            setError(null);
-          }}
-          inputMode="end"
-          style={styles.dateInput}
-          contentStyle={{
-            backgroundColor: theme.colors.surface,
-          }}
-          validRange={{
-            startDate: startDate || addDays(new Date(), 1),
-          }}
-          mode="outlined"
-        />
+          </View>
+        ))}
       </View>
 
-      {/* Meal selection */}
-      <SegmentedButtons
-        value={selectedMeals.join(',')}
-        onValueChange={value => {
-          const meals = value.split(',');
-          setSelectedMeals(meals.length ? meals : ['lunch']);
-        }}
-        buttons={[
-          { value: 'lunch', label: 'Lunch' },
-          { value: 'dinner', label: 'Dinner' },
-          { value: 'lunch,dinner', label: 'Both' },
-        ]}
-        style={styles.mealSelector}
-      />
+      {/* Date Inputs */}
+      <Card.Content style={styles.content}>
+        {/* From Date and Meal Selection */}
+        <View style={styles.dateSection}>
+          <DatePickerInput
+            locale="en"
+            label="From"
+            value={fromSelection.date}
+            onChange={handleFromDateSelect}
+            inputMode="start"
+            style={styles.dateInput}
+            mode="flat"
+          />
+          {renderMealMenu(
+            fromMenuVisible,
+            closeFromMenu,
+            handleFromMealSelect,
+            fromSelection.meal,
+            openFromMenu,
+          )}
+        </View>
 
-      {/* Error message */}
-      {error && (
-        <Text
-          style={[
-            styles.errorText,
-            {
-              color: theme.colors.error,
-            },
-          ]}
+        {/* To Date and Meal Selection */}
+        <View style={styles.dateSection}>
+          <DatePickerInput
+            locale="en"
+            label="To"
+            value={toSelection.date}
+            onChange={handleToDateSelect}
+            inputMode="end"
+            mode="flat"
+            style={styles.dateInput}
+          />
+          {renderMealMenu(
+            toMenuVisible,
+            closeToMenu,
+            handleToMealSelect,
+            toSelection.meal,
+            openToMenu,
+          )}
+        </View>
+
+        {/* Error Message */}
+        {error && (
+          <Text
+            style={[styles.errorText, { color: theme.colors.error }]}
+            variant="bodySmall"
+          >
+            {error}
+          </Text>
+        )}
+
+        {/* Set Absence Button */}
+        <Button
+          mode="contained"
+          onPress={handleSetAbsence}
+          style={styles.button}
         >
-          {error}
-        </Text>
-      )}
-
-      {/* Submit button */}
-      <Button
-        mode="contained"
-        onPress={handleSubmit}
-        loading={isSubmitting}
-        disabled={isSubmitting || !startDate || !endDate}
-        style={styles.button}
-        buttonColor={theme.colors.primary}
-      >
-        Set Absence
-      </Button>
+          Set Absence
+        </Button>
+      </Card.Content>
     </Card>
   );
-});
-
-export default AbsencePlannerCard;
-
-AbsencePlannerCard.displayName = 'AbsencePlannerCard';
+};
 
 const styles = StyleSheet.create({
-  title: {
-    marginBottom: 16,
+  card: {
+    margin: 16,
+    overflow: 'hidden',
   },
-  subtitle: {
-    marginBottom: 8,
+  content: {
+    gap: 16,
+    padding: 16,
   },
-  absenceList: {
-    marginBottom: 16,
+  dateSection: {
+    gap: 8,
+    flexDirection: 'row',
+  },
+  dateInput: {
+    backgroundColor: 'transparent',
+    flex: 0.3,
+  },
+  // menuContainer: {
+  //   position: 'relative',
+  // },
+  // menuButton: {
+  //   width: '100%',
+  // },
+  button: {
+    marginTop: 16,
+  },
+  upcomingAbsences: {
+    padding: 16,
+    gap: 8,
   },
   absenceItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 4,
-  },
-  absenceText: {
-    flex: 1,
-  },
-  dateInputs: {
-    marginBottom: 16,
-  },
-  dateInput: {
-    marginBottom: 8,
-  },
-
-  mealSelector: {
-    marginBottom: 16,
+    justifyContent: 'space-between',
+    paddingLeft: 12,
+    borderRadius: 8,
   },
   errorText: {
-    marginBottom: 16,
-    fontSize: 12,
+    marginTop: 4,
   },
-  button: {
-    marginTop: 8,
+  menuContainer: {
+    // width: '100%',
+    position: 'relative',
+    flex: 0.7,
+    // zIndex: 1, // Ensure menu appears above other elements
+  },
+  menuButton: {
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 24,
+  },
+  menuContent: {
+    // Style the menu popup itself
+    marginTop: 4, // Space between button and menu
+    borderRadius: 8,
+    // Add a subtle shadow
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 3.84,
+    elevation: 5,
+    // Match width with button
+    minWidth: '100%',
+  },
+  menuItem: {
+    // Style individual menu items
+    height: 48,
+    justifyContent: 'center',
+  },
+  menuItemTitle: {
+    fontSize: 16,
+    // Use theme color for consistent look
   },
 });
+
+export default AbsencePlannerCard;

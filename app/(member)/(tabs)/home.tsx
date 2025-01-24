@@ -123,9 +123,9 @@ const HomeScreen = () => {
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <RatingCard />
           </ErrorBoundary>
-          {/* <ErrorBoundary FallbackComponent={ErrorFallback}> */}
-          {/* <AbsencePlannerCard /> */}
-          {/* </ErrorBoundary> */}
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <AbsencePlannerCard />
+          </ErrorBoundary>
         </ScrollView>
       </ErrorBoundary>
     </SafeAreaView>

@@ -22,30 +22,6 @@ const zustandStorage = {
 };
 
 // Types
-interface MealDetails {
-  id: string;
-  type: 'lunch' | 'dinner';
-  items: string[];
-  timing: {
-    start: string;
-    end: string;
-  };
-  isActive: boolean;
-}
-
-interface RateableMeal {
-  id: string;
-  type: 'lunch' | 'dinner';
-  time: string;
-  hasRated: boolean;
-}
-
-interface AbsencePlan {
-  id: string;
-  startDate: Date;
-  endDate: Date;
-  meals: ('lunch' | 'dinner')[];
-}
 
 interface HomeState {
   // Membership component
@@ -76,6 +52,7 @@ interface HomeState {
   updateRateableMeals: () => void;
   getPlannedAbsences: () => void;
   setPlannedAbsences: (newAbsences: AbsencePlan[]) => void;
+  deletePlannedAbsence: (absenceId: string) => Promise<void>;
   //todo action for registering the absence if the above action doesn't include it
   //todo action for rating a meal
 }
@@ -225,28 +202,32 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
     // inserting dummy values for now
     const absencePlans: AbsencePlan[] = [
       {
-        id: 'absence-001',
-        startDate: new Date('2025-02-01T00:00:00Z'),
-        endDate: new Date('2025-02-05T00:00:00Z'),
-        meals: ['lunch', 'dinner'],
+        id: 'absence-1',
+        startDate: new Date('2025-02-01'),
+        endDate: new Date('2025-02-05'),
+        startMeal: 'lunch',
+        endMeal: 'dinner',
       },
       {
-        id: 'absence-002',
-        startDate: new Date('2025-03-10T00:00:00Z'),
-        endDate: new Date('2025-03-12T00:00:00Z'),
-        meals: ['lunch'],
+        id: 'absence-2',
+        startDate: new Date('2025-03-10'),
+        endDate: new Date('2025-03-12'),
+        startMeal: 'dinner',
+        endMeal: 'lunch',
       },
       {
-        id: 'absence-003',
-        startDate: new Date('2025-04-15T00:00:00Z'),
-        endDate: new Date('2025-04-18T00:00:00Z'),
-        meals: ['dinner'],
+        id: 'absence-3',
+        startDate: new Date('2025-04-15'),
+        endDate: new Date('2025-04-20'),
+        startMeal: 'lunch',
+        endMeal: 'lunch',
       },
       {
-        id: 'absence-004',
-        startDate: new Date('2025-05-20T00:00:00Z'),
-        endDate: new Date('2025-05-22T00:00:00Z'),
-        meals: ['lunch', 'dinner'],
+        id: 'absence-4',
+        startDate: new Date('2025-05-01'),
+        endDate: new Date('2025-05-03'),
+        startMeal: 'dinner',
+        endMeal: 'dinner',
       },
     ];
 
@@ -260,6 +241,19 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
       set({ plannedAbsences: updatedPlannedAbsences });
     } catch (error) {
       console.error('Failed to update planned absence:', error);
+      throw error;
+    }
+  },
+  deletePlannedAbsence: async (absenceId: string) => {
+    try {
+      //todo delete absence from database
+      const currentAbsences = get().plannedAbsences;
+      const updatedAbsences = currentAbsences.filter(
+        absence => absence.id !== absenceId,
+      );
+      set({ plannedAbsences: updatedAbsences });
+    } catch (error) {
+      console.error('Failed to delete planned absence:', error);
       throw error;
     }
   },

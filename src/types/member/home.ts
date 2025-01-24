@@ -1,6 +1,8 @@
-export interface MealDetails {
+type MealType = 'lunch' | 'dinner';
+
+interface MealDetails {
   id: string;
-  type: 'lunch' | 'dinner';
+  type: MealType;
   items: string[];
   timing: {
     start: string;
@@ -9,16 +11,17 @@ export interface MealDetails {
   isActive: boolean;
 }
 
-export interface RateableMeal {
+interface RateableMeal {
   id: string;
-  type: 'lunch' | 'dinner';
+  type: MealType;
   time: string;
   hasRated: boolean;
 }
 
-export interface AbsencePlan {
+type AbsencePlan = {
   id: string;
   startDate: Date;
   endDate: Date;
-  meals: ('lunch' | 'dinner')[];
-}
+  startMeal: MealType;
+  endMeal: MealType;
+};
