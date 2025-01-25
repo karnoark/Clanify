@@ -141,9 +141,8 @@ const HomeScreen = () => {
     error,
     loadInitialData,
     membershipExpiry,
-    // isMembershipExpired,
+    isMembershipExpired,
   } = useHomeStore();
-  const isMembershipExpired = true;
 
   // Load initial data
   useEffect(() => {

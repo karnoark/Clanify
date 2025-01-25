@@ -26,8 +26,13 @@ type AbsencePlan = {
   endMeal: MealType;
 };
 
-type RenewalRequest = {
+// Define possible renewal request states
+type RenewalRequestResult = 'pending' | 'approved' | 'rejected';
+
+interface RenewalRequest {
   id: string;
-  result: 'approved' | 'rejected' | 'pending';
+  result: RenewalRequestResult;
   message: string;
-};
+  requestDate: Date;
+  startDate: Date;
+}

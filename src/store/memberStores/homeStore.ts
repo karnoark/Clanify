@@ -59,13 +59,18 @@ interface HomeState {
   getPlannedAbsences: () => void;
   setPlannedAbsences: (newAbsences: AbsencePlan[]) => void;
   deletePlannedAbsence: (absenceId: string) => Promise<void>;
-  setRenewalRequest: () => void;
 
   // New actions for renewal
   // setSelectedRenewalDate: (date: Date) => void;
   // renewMembership: () => Promise<void>;
   // clearRenewalError: () => void;
-  sendRequestToRenewMembership: (renewalDate: Date) => void;
+  sendRequestToRenewMembership: (startDate: Date) => void;
+  setRenewalRequest: () => void;
+  clearRenewalRequest: () => Promise<void>;
+  validateRenewalEligibility: () => Promise<{
+    isEligible: boolean;
+    reason?: string;
+  }>;
 
   //todo action for rating a meal
 }
@@ -101,6 +106,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
   get isMembershipExpired() {
     return isDateExpired(get().membershipExpiry);
   },
+  // isMembershipExpired: true,
 
   // Actions
 
@@ -117,7 +123,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
         get().updateTodaysMeals(),
         get().updateRateableMeals(),
         get().getPlannedAbsences(),
-        get().setRenewalRequest(),
+        // get().setRenewalRequest(),
       ]);
 
       set({ isLoading: false });
@@ -302,11 +308,25 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
   //   set({ selectedRenewalDate: date, renewalError: null });
   // },
 
-  sendRequestToRenewMembership: async (renewalDate: Date) => {
+  sendRequestToRenewMembership: async (startDate: Date) => {
     try {
-      // send request to the admin for membership
+      // In a real implementation, this would be an API call
+      // const response = await api.createRenewalRequest(request);
+
+      // For now, simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
       console.log('sent request to admin to renew the membership');
-      // you will get a response of type RenewalRequest, then update the renewalRequest property
+
+      // Update store with the new request
+      set({
+        renewalRequest: {
+          id: 'temp-' + Date.now(), // In real app, this would come from backend
+          startDate,
+          requestDate: new Date(),
+          result: 'pending',
+          message: 'Your request is being reviewed by the mess operator.',
+        },
+      });
     } catch (error) {
       console.error(
         'Failed to send request to admin to renew the membership:',
@@ -322,10 +342,46 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
       // for now we are using dummy data
       const dummyRenewalRequest: RenewalRequest = {
         id: 'someid',
-        result: 'pending',
+        result: 'rejected',
         message: 'wait man, give me some time',
+        requestDate: new Date('2023-10-01'),
+        startDate: new Date('2023-10-02'),
       };
       set({ renewalRequest: dummyRenewalRequest });
     } catch (error) {}
+  },
+  clearRenewalRequest: async () => {
+    try {
+      // Clear the renewal request from backend if needed
+      // await api.clearRenewalRequest();
+
+      // Reset store state
+      set({ renewalRequest: null });
+    } catch (error) {
+      console.error('Failed to clear renewal request:', error);
+      throw error;
+    }
+  },
+  validateRenewalEligibility: async () => {
+    try {
+      // Check for existing pending request
+      const { renewalRequest } = get();
+      if (renewalRequest?.result === 'pending') {
+        return {
+          isEligible: false,
+          reason: 'You already have a pending renewal request',
+        };
+      }
+
+      // Add other validations as needed
+      // - Check for outstanding dues
+      // - Validate time since last rejection
+      // - etc.
+
+      return { isEligible: true };
+    } catch (error) {
+      console.error('Validation failed:', error);
+      throw error;
+    }
   },
 }));
