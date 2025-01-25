@@ -43,6 +43,12 @@ interface HomeState {
   isLoading: boolean;
   error: string | null;
 
+  // Membership Renewal
+  renewalRequest: RenewalRequest | null;
+
+  // Derived state
+  isMembershipExpired: boolean;
+
   // Actions
   loadInitialData: () => Promise<void>;
   getMembershipPeriod: () => Promise<void>;
@@ -53,9 +59,26 @@ interface HomeState {
   getPlannedAbsences: () => void;
   setPlannedAbsences: (newAbsences: AbsencePlan[]) => void;
   deletePlannedAbsence: (absenceId: string) => Promise<void>;
-  //todo action for registering the absence if the above action doesn't include it
+  setRenewalRequest: () => void;
+
+  // New actions for renewal
+  // setSelectedRenewalDate: (date: Date) => void;
+  // renewMembership: () => Promise<void>;
+  // clearRenewalError: () => void;
+  sendRequestToRenewMembership: (renewalDate: Date) => void;
+
   //todo action for rating a meal
 }
+
+// Helper function to check if a date is expired
+const isDateExpired = (date: Date | null): boolean => {
+  if (!date) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day
+  const expiryDate = new Date(date);
+  expiryDate.setHours(0, 0, 0, 0);
+  return expiryDate < today;
+};
 
 // Create store with persistence
 //todo I don't want this to persist as user should get latest updates from database
@@ -70,6 +93,14 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
   plannedAbsences: [],
   isLoading: false,
   error: null,
+
+  // Membership Renewal
+  renewalRequest: null,
+
+  // Computed property for membership expiration status
+  get isMembershipExpired() {
+    return isDateExpired(get().membershipExpiry);
+  },
 
   // Actions
 
@@ -86,6 +117,7 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
         get().updateTodaysMeals(),
         get().updateRateableMeals(),
         get().getPlannedAbsences(),
+        get().setRenewalRequest(),
       ]);
 
       set({ isLoading: false });
@@ -256,5 +288,44 @@ export const useHomeStore = create<HomeState>()((set, get) => ({
       console.error('Failed to delete planned absence:', error);
       throw error;
     }
+  },
+  // setSelectedRenewalDate: (date: Date) => {
+  //   // Validate the date is not in the past
+  //   const today = new Date();
+  //   today.setHours(0, 0, 0, 0);
+
+  //   if (date < today) {
+  //     set({ renewalError: 'Renewal date cannot be in the past' });
+  //     return;
+  //   }
+
+  //   set({ selectedRenewalDate: date, renewalError: null });
+  // },
+
+  sendRequestToRenewMembership: async (renewalDate: Date) => {
+    try {
+      // send request to the admin for membership
+      console.log('sent request to admin to renew the membership');
+      // you will get a response of type RenewalRequest, then update the renewalRequest property
+    } catch (error) {
+      console.error(
+        'Failed to send request to admin to renew the membership:',
+        error,
+      );
+      throw error;
+    }
+  },
+  setRenewalRequest: () => {
+    try {
+      //fetch renewal request from backend
+
+      // for now we are using dummy data
+      const dummyRenewalRequest: RenewalRequest = {
+        id: 'someid',
+        result: 'pending',
+        message: 'wait man, give me some time',
+      };
+      set({ renewalRequest: dummyRenewalRequest });
+    } catch (error) {}
   },
 }));

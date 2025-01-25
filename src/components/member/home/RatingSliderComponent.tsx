@@ -122,7 +122,7 @@ const RatingSliderComponent = () => {
 
   const animatedTextFont = useDerivedValue(() => {
     if (hasInteracted.value) {
-      return 20;
+      return 18;
     } else {
       return 15;
     }

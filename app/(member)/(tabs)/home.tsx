@@ -12,6 +12,7 @@ import MembershipStatusCard from '@/src/components/member/home/MembershipStatusC
 import RatingCard from '@/src/components/member/home/RatingCard';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
+import { CustomTheme } from '@/src/types/theme';
 
 // Fallback component for error boundary
 const ErrorFallback = ({
@@ -47,26 +48,107 @@ const ErrorFallback = ({
   );
 };
 
+// Component for displaying header
+const Header = ({ showPoints = true }: { showPoints?: boolean }) => {
+  const theme = useTheme<CustomTheme>();
+  const points = useHomeStore(state => state.points);
+
+  return (
+    <View style={styles.header}>
+      <Text
+        variant="headlineMedium"
+        style={[styles.title, { color: theme.colors.onSurface }]}
+      >
+        Clanify
+      </Text>
+      {showPoints && (
+        <View
+          style={[
+            styles.points,
+            { backgroundColor: theme.colors.surfaceVariant },
+          ]}
+        >
+          <Ionicons name="leaf" size={24} color="#2ECC71" />
+          <Text style={[styles.pointsText]}>{points} pts</Text>
+        </View>
+      )}
+    </View>
+  );
+};
+
+// Component for active membership state
+const ActiveMembershipContent = () => {
+  return (
+    <>
+      <TodaysMenuCard />
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <RatingCard />
+      </ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <AbsencePlannerCard />
+      </ErrorBoundary>
+    </>
+  );
+};
+
+// Component for expired membership state
+const ExpiredMembershipContent = () => {
+  const theme = useTheme<CustomTheme>();
+
+  return (
+    <View style={styles.expiredContainer}>
+      {/* Subtle watermark */}
+      <Ionicons
+        name="lock-closed"
+        size={120}
+        color={theme.colors.surfaceVariant}
+        style={styles.watermark}
+      />
+
+      {/* Information text */}
+      <Text
+        variant="bodyLarge"
+        style={[styles.expiredInfo, { color: theme.colors.onSurfaceVariant }]}
+      >
+        Your membership benefits are currently paused. Renew your membership.
+      </Text>
+
+      {/* Benefits list */}
+      {/* <View style={styles.benefitsList}>
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          • Access daily meals
+        </Text>
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          • Plan your absences
+        </Text>
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          • Rate mealss
+        </Text>
+        <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          • Get member-exclusive offers
+        </Text>
+      </View> */}
+    </View>
+  );
+};
+
 // Main home screen component
 const HomeScreen = () => {
+  const theme = useTheme<CustomTheme>();
   // Get state and actions from store
   const {
     isLoading,
     error,
     loadInitialData,
     membershipExpiry,
-    points,
-    todaysMeals,
-    rateableMeals,
-    plannedAbsences,
+    // isMembershipExpired,
   } = useHomeStore();
+  const isMembershipExpired = true;
 
   // Load initial data
   useEffect(() => {
     loadInitialData();
   }, [loadInitialData]);
-
-  const theme = useTheme();
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
@@ -84,7 +166,12 @@ const HomeScreen = () => {
 
   return (
     <SafeAreaView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
+      style={[
+        styles.container,
+        {
+          backgroundColor: theme.colors.background,
+        },
+      ]}
     >
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <ScrollView
@@ -96,10 +183,13 @@ const HomeScreen = () => {
             />
           }
           style={styles.scrollView}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isMembershipExpired && styles.expiredScrollContent,
+          ]}
         >
           {/* Header */}
-          <View style={styles.header}>
+          {/* <View style={styles.header}>
             <Text
               variant="headlineMedium"
               style={[styles.title, { color: theme.colors.onSurface }]}
@@ -115,17 +205,30 @@ const HomeScreen = () => {
               <Ionicons name="leaf" size={24} color="#2ECC71" />
               <Text style={[styles.pointsText]}>{points} pts</Text>
             </View>
-          </View>
+          </View> */}
 
           {/* Card components */}
-          <MembershipStatusCard />
-          <TodaysMenuCard />
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
+          {/* <MembershipStatusCard />
+          <TodaysMenuCard /> */}
+          {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
             <RatingCard />
-          </ErrorBoundary>
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
+          </ErrorBoundary> */}
+          {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
             <AbsencePlannerCard />
-          </ErrorBoundary>
+          </ErrorBoundary> */}
+
+          {/* Header - Points shown only for active membership */}
+          <Header showPoints={!isMembershipExpired} />
+
+          {/* Membership status card is always shown */}
+          <MembershipStatusCard />
+
+          {/* Conditional content based on membership status */}
+          {isMembershipExpired ? (
+            <ExpiredMembershipContent />
+          ) : (
+            <ActiveMembershipContent />
+          )}
         </ScrollView>
       </ErrorBoundary>
     </SafeAreaView>
@@ -175,6 +278,29 @@ const styles = StyleSheet.create({
   errorDescription: {
     textAlign: 'center',
     marginBottom: 16,
+  },
+  expiredScrollContent: {
+    flexGrow: 1, // Ensures content fills screen even if not scrollable
+  },
+  expiredContainer: {
+    padding: 24,
+    alignItems: 'center',
+  },
+  watermark: {
+    position: 'absolute',
+    top: '90%',
+    left: '50%',
+    transform: [{ translateX: -60 }, { translateY: -60 }],
+    opacity: 0.1,
+  },
+  expiredInfo: {
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 24,
+  },
+  benefitsList: {
+    width: '100%',
+    gap: 12,
   },
 });
 

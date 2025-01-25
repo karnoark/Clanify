@@ -1,4 +1,5 @@
 // src/components/home/MembershipStatusCard.tsx
+import { Ionicons } from '@expo/vector-icons';
 import {
   Canvas,
   RoundedRect,
@@ -8,13 +9,16 @@ import {
   BackdropFilter,
   Blur,
 } from '@shopify/react-native-skia';
-import React, { memo, useMemo } from 'react';
+import { differenceInDays, format } from 'date-fns';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View, Dimensions } from 'react-native';
 import {
   Text as RNText,
   ProgressBar as PaperProgressBar,
   useTheme,
+  Button,
 } from 'react-native-paper';
+import { DatePickerInput } from 'react-native-paper-dates';
 import {
   useDerivedValue,
   useSharedValue,
@@ -31,6 +35,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_MARGIN = 16;
 const CARD_WIDTH = SCREEN_WIDTH - CARD_MARGIN * 2;
 const CARD_HEIGHT = 140;
+const EXPIRED_CARD_HEIGHT = 350;
 const PROGRESS_HEIGHT = 6;
 
 /**
@@ -82,31 +87,6 @@ const ProgressBar = ({ progress }: { progress: number }) => {
   );
 };
 
-/**
- * Calculates the difference in days between two dates
- * @param date1 End date
- * @param date2 Start date (defaults to current date)
- * @returns number of days difference
- */
-const calculateDaysDifference = (
-  date1: Date | string,
-  date2: Date = new Date(),
-): number => {
-  const end = new Date(date1);
-  const start = new Date(date2);
-
-  // Convert both dates to UTC to avoid timezone issues
-  const utcEnd = Date.UTC(end.getFullYear(), end.getMonth(), end.getDate());
-  const utcStart = Date.UTC(
-    start.getFullYear(),
-    start.getMonth(),
-    start.getDate(),
-  );
-
-  // Calculate difference in milliseconds and convert to days
-  return Math.floor((utcEnd - utcStart) / (24 * 60 * 60 * 1000));
-};
-
 // Content component to avoid duplication
 const CardContent = ({
   isLoading,
@@ -137,12 +117,198 @@ const CardContent = ({
   );
 };
 
+const ExpiredMembershipContent = () => {
+  const theme = useTheme<CustomTheme>();
+  const { membershipExpiry, sendRequestToRenewMembership, renewalRequest } =
+    useHomeStore();
+
+  const [selectedRenewalDate, setSelectedRenewalDate] = useState<Date | null>();
+
+  const [isRenewing, setIsRenewing] = useState<boolean>(false);
+
+  const [renewalError, setRenewalError] = useState<string | null>(null);
+
+  //todo fetch the requestHasBeenSent from backend with more details such as from date.
+  const [requestHasBeenSent, setRequestHasBeenSent] = useState<boolean>(false);
+
+  // Calculate the default renewal date (day after expiry)
+  const getDefaultRenewalDate = () => {
+    if (!membershipExpiry) return new Date();
+    const nextDay = new Date(membershipExpiry);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return nextDay;
+  };
+
+  // Initialize date picker with default date when component mounts
+  React.useEffect(() => {
+    if (!selectedRenewalDate) {
+      setSelectedRenewalDate(getDefaultRenewalDate());
+    }
+  }, []);
+
+  // Handle renewal request
+  const handleRenewal = async () => {
+    if (!selectedRenewalDate) return;
+
+    try {
+      setIsRenewing(true);
+      setRenewalError(null);
+
+      await sendRequestToRenewMembership(selectedRenewalDate);
+      //simulate the api response
+      // Simulate an API request with a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // tells user that request has been sent
+      setRequestHasBeenSent(true);
+
+      // Clear form state after successful renewal
+      // setSelectedRenewalDate(null);
+    } catch (error) {
+      setRenewalError(
+        error instanceof Error ? error.message : 'Failed to renew membership',
+      );
+    } finally {
+      setIsRenewing(false);
+    }
+  };
+
+  useEffect(() => {
+    console.log('isRenewing: ', isRenewing);
+  }, [isRenewing]);
+
+  return (
+    // <View style={styles.expiredContent}>
+    <View
+      style={[
+        styles.expiredContainer,
+        { backgroundColor: theme.colors.surfaceVariant },
+      ]}
+    >
+      {/* Expired status header */}
+      <View style={styles.expiredHeader}>
+        <Ionicons name="alert-circle" size={32} color={theme.colors.primary} />
+        <Text variant="titleMedium" style={styles.expiredTitle}>
+          Membership Expired
+        </Text>
+      </View>
+
+      {/* Expiry date information */}
+      <Text style={styles.expiryInfo}>
+        Your membership expired on{'\n'}
+        <Text style={styles.expiryDate}>
+          {membershipExpiry
+            ? format(membershipExpiry, 'MMMM d, yyyy')
+            : 'unknown date'}
+        </Text>
+      </Text>
+
+      {/* Date picker section */}
+      <View style={styles.datePickerContainer}>
+        <Text style={styles.datePickerLabel}>Resume membership from:</Text>
+        <DatePickerInput
+          locale="en"
+          value={selectedRenewalDate ?? undefined}
+          onChange={date => {
+            if (date) {
+              setSelectedRenewalDate(date);
+            }
+          }}
+          inputMode="start"
+          mode="flat"
+          startYear={2024}
+          endYear={2025}
+          style={[
+            styles.datePicker,
+            {
+              borderColor: theme.colors.onBackground,
+              backgroundColor: theme.colors.surface,
+            },
+          ]}
+          outlineStyle={styles.datePickerOutline}
+          disabled={isRenewing}
+        />
+      </View>
+
+      {/* Error message */}
+      {renewalError && (
+        <Text style={[styles.errorText, { color: theme.colors.error }]}>
+          {renewalError}
+        </Text>
+      )}
+
+      {/* Period information */}
+      <Text style={styles.periodInfo}>Membership Period is 30 days</Text>
+
+      {/* Renewal button */}
+      {renewalRequest?.result === 'pending' ? (
+        <Text
+          style={{ margin: 20, textAlign: 'center', color: theme.colors.pr70 }}
+        >
+          Request has been sent to Mess Operator for your membership.
+        </Text>
+      ) : (
+        <Button
+          mode="contained"
+          onPress={handleRenewal}
+          loading={isRenewing}
+          disabled={isRenewing || !selectedRenewalDate}
+          style={styles.renewButton}
+          contentStyle={styles.buttonContent}
+        >
+          Renew Membership
+        </Button>
+      )}
+    </View>
+  );
+};
+
+const ActiveMembershipContent = ({
+  isLoading,
+  progress,
+  daysRemaining,
+}: {
+  isLoading: boolean;
+  progress: number;
+  daysRemaining: number;
+}) => {
+  const theme = useTheme<CustomTheme>();
+  return (
+    <View style={[styles.container]}>
+      {/* Skia Canvas for gradient background */}
+      <Canvas style={StyleSheet.absoluteFill}>
+        <RoundedRect x={0} y={0} width={CARD_WIDTH} height={CARD_HEIGHT} r={16}>
+          <LinearGradient
+            start={vec(0, 0)}
+            end={vec(CARD_WIDTH, 0)}
+            colors={[theme.colors.pr40, theme.colors.pr60, theme.colors.pr80]}
+            positions={[0, 0.7, 1]}
+          />
+        </RoundedRect>
+      </Canvas>
+      <View style={styles.content}>
+        <Text variant="titleLarge" style={styles.title}>
+          Active Membership
+        </Text>
+
+        <View style={styles.progressContainer}>
+          <Canvas style={styles.progressCanvas}>
+            <ProgressBar progress={isLoading ? 0 : progress} />
+          </Canvas>
+        </View>
+
+        <Text style={styles.daysText}>{daysRemaining} days remaining</Text>
+      </View>
+    </View>
+  );
+};
+
 const MembershipStatusCard = memo(() => {
   const theme = useTheme<CustomTheme>();
   // Fetch data from store
-  const membershipExpiry = useHomeStore(state => state.membershipExpiry);
-  const membershipPeriod = useHomeStore(state => state.membershipPeriod);
-  const isLoading = useHomeStore(state => state.isLoading);
+  const { membershipExpiry, membershipPeriod, isLoading } = useHomeStore();
+
+  const isMembershipExpired = true;
 
   // Calculate days remaining and progress
   const { daysRemaining, progress } = useMemo(() => {
@@ -150,12 +316,14 @@ const MembershipStatusCard = memo(() => {
       return { daysRemaining: 0, progress: 0 };
     }
 
-    const days = calculateDaysDifference(membershipExpiry);
+    const days = differenceInDays(membershipExpiry, new Date());
     return {
       daysRemaining: Math.max(0, days), // Ensure non-negative
       progress: Math.min(1, Math.max(0, days / membershipPeriod)), // Clamp between 0 and 1
     };
   }, [membershipExpiry, membershipPeriod]);
+
+  const cardHeight = isMembershipExpired ? EXPIRED_CARD_HEIGHT : CARD_HEIGHT;
 
   // Show loading state
   // if (isLoading && !membershipExpiry) {
@@ -169,25 +337,18 @@ const MembershipStatusCard = memo(() => {
   // }
 
   return (
-    <View style={styles.container}>
-      {/* Skia Canvas for gradient background */}
-      <Canvas style={StyleSheet.absoluteFill}>
-        <RoundedRect x={0} y={0} width={CARD_WIDTH} height={CARD_HEIGHT} r={16}>
-          <LinearGradient
-            start={vec(0, 0)}
-            end={vec(CARD_WIDTH, 0)}
-            colors={[theme.colors.pr40, theme.colors.pr60, theme.colors.pr80]}
-            positions={[0, 0.7, 1]}
-          />
-        </RoundedRect>
-      </Canvas>
-
+    // <View style={[styles.container, { height: cardHeight }]}>
+    <View>
       {/* Card content */}
-      <CardContent
-        isLoading={isLoading}
-        progress={progress}
-        daysRemaining={daysRemaining}
-      />
+      {isMembershipExpired ? (
+        <ExpiredMembershipContent />
+      ) : (
+        <ActiveMembershipContent
+          isLoading={isLoading}
+          progress={progress}
+          daysRemaining={daysRemaining}
+        />
+      )}
     </View>
   );
 });
@@ -244,7 +405,28 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     // Add elevation and shadow
-    elevation: 4,
+    elevation: 8,
+    borderWidth: 1,
+    // borderColor: 'pink',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  expiredContainer: {
+    width: CARD_WIDTH,
+    // height: CARD_HEIGHT,
+    marginHorizontal: CARD_MARGIN,
+    padding: 20,
+    marginVertical: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    // Add elevation and shadow
+    elevation: 8,
+    borderWidth: 1,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -277,6 +459,71 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 8,
     opacity: 0.9,
+  },
+  expiredContent: {
+    padding: 16,
+    // opacity: 0,
+  },
+  expiredHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  expiredTitle: {
+    marginLeft: 8,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 24,
+  },
+  expiryInfo: {
+    color: '#FFFFFF',
+    opacity: 0.9,
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  expiryDate: {
+    fontWeight: '600',
+    opacity: 1,
+    fontSize: 24,
+  },
+  datePickerContainer: {
+    marginBottom: 8,
+  },
+  datePickerLabel: {
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  datePicker: {
+    // backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    // backgroundColor: '#f5f5f5', // Light gray background
+    borderRadius: 8, // Rounded corners
+    paddingHorizontal: 12, // Horizontal padding
+    // paddingVertical: 10, // Vertical padding
+    // fontSize: 16, // Font size
+    borderWidth: 1, // Border width
+    // borderColor: '#cccccc', // Border color
+  },
+  datePickerOutline: {
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  errorText: {
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  renewButton: {
+    marginVertical: 40,
+  },
+  buttonContent: {
+    height: 48,
+  },
+  periodInfo: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    opacity: 0.6,
+    textAlign: 'center',
+    marginTop: 4,
   },
 });
 

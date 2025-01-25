@@ -25,3 +25,9 @@ type AbsencePlan = {
   startMeal: MealType;
   endMeal: MealType;
 };
+
+type RenewalRequest = {
+  id: string;
+  result: 'approved' | 'rejected' | 'pending';
+  message: string;
+};
