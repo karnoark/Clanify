@@ -6,7 +6,6 @@ import { Text as RNText, Divider, useTheme } from 'react-native-paper';
 import { Card } from '@/src/components/common/Card';
 import { Text } from '@/src/components/common/Text';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
-// import { MealDetails } from '@/src/types/member/home';
 
 // A separate component for each meal to enable better performance optimization
 const MealItem = memo(({ meal }: { meal: MealDetails }) => {

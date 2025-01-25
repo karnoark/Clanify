@@ -23,14 +23,15 @@ import { MediaStep } from './steps/MediaStep';
 import { MessDetailsStep } from './steps/MessDetailsStep';
 import { TimingStep, validateTimeRange } from './steps/TimingStep';
 import { StepNavigation } from '../../../src/components/admin/onboarding/StepNavigation';
-import {
-  initializeOnboarding,
+import type {
   MessContact,
   MessDetails,
   MessLocation,
   MessMedia,
   MessTiming,
-  OnboardingStepId,
+  OnboardingStepId} from '../../../src/store/onboardingStore';
+import {
+  initializeOnboarding,
   useOnboardingStore,
 } from '../../../src/store/onboardingStore';
 

@@ -29,7 +29,7 @@ import {
   PROGRESS_HEIGHT,
 } from '@/src/constants/member/home';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
-import { CustomTheme } from '@/src/types/theme';
+import type { CustomTheme } from '@/src/types/theme';
 
 /**
  * A custom progress bar that uses Skia for smooth rendering

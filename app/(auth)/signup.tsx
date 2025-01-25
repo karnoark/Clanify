@@ -21,10 +21,11 @@ import {
 } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { EmailOtpParams } from '@/app/(auth)/verify';
+import type { EmailOtpParams } from '@/app/(auth)/verify';
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
-import { useAuthStore, UserRole } from '@/src/store/auth';
+import type { UserRole } from '@/src/store/auth';
+import { useAuthStore } from '@/src/store/auth';
 import {
   hasErrorsInEmail,
   hasErrorsInName,

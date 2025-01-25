@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import type { ViewStyle } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Card as PaperCard } from 'react-native-paper';
 
 import { Colors } from '../../constants/Colors';

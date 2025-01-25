@@ -15,10 +15,11 @@ import {
 import { TimePickerModal } from 'react-native-paper-dates';
 
 import { Text } from '../../../../src/components/common/Text';
-import {
+import type {
   TimeSlot,
-  useOnboardingStore,
-  WeeklySchedule,
+  WeeklySchedule} from '../../../../src/store/onboardingStore';
+import {
+  useOnboardingStore
 } from '../../../../src/store/onboardingStore';
 
 // Define types

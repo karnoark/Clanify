@@ -46,6 +46,14 @@ module.exports = {
         allow: ['./assets/*'],
       },
     ],
+
+    '@typescript-eslint/consistent-type-imports': [
+      'error',
+      {
+        prefer: 'type-imports',
+        disallowTypeAnnotations: true,
+      },
+    ],
   },
 
   overrides: [

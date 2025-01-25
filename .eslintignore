@@ -3,6 +3,7 @@ android/
 ios/
 assets/
 dist/
+claude/
 coverage/
 *.config.js
 metro.config.js

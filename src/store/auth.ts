@@ -1,13 +1,14 @@
 //todo scenario: when user aprubptly closes the app when he is passwordRecovery flow before resetting the password(i.e. before calling updatePassword() function) he should be signed out
 
-import {
-  AuthError,
-  createClient,
+import type {
   EmailOtpType,
   MobileOtpType,
   Session,
-  SupabaseClient,
-  VerifyEmailOtpParams,
+  VerifyEmailOtpParams} from '@supabase/supabase-js';
+import {
+  AuthError,
+  createClient,
+  SupabaseClient
 } from '@supabase/supabase-js';
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
@@ -20,7 +21,8 @@ import {
   storage,
   supabase,
 } from '@/src/lib/supabase';
-import { AuthErrorHandler, HandleError } from '@/src/utils/auth_errors';
+import type { HandleError } from '@/src/utils/auth_errors';
+import { AuthErrorHandler } from '@/src/utils/auth_errors';
 import { AuthEventManager } from '@/src/utils/auth_events';
 
 // Define our core interfaces

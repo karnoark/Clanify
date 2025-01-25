@@ -13,6 +13,11 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ESNext",
+
+    "isolatedModules": true,
+    "noImplicitUseStrict": false,
+    "preserveConstEnums": true,
+
     "paths": {
       "@/*": ["./*"]
     }
@@ -21,11 +26,12 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "src/types/*.d.ts"
+    "expo-env.d.ts"
+    // "src/types/*.d.ts"
   ],
   "exclude": [
-    "node_modules",
+    "node_modules/*",
+    "claude/*",
     "babel.config.js",
     "metro.config.js",
     "jest.config.js",

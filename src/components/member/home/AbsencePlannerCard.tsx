@@ -15,7 +15,7 @@ import {
 import { DatePickerInput } from 'react-native-paper-dates';
 
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
-import { CustomTheme } from '@/src/types/theme';
+import type { CustomTheme } from '@/src/types/theme';
 
 // Create an interface for the date-meal selection pair
 interface DateMealSelection {

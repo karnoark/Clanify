@@ -12,7 +12,7 @@ import MembershipStatusCard from '@/src/components/member/home/MembershipStatusC
 import RatingCard from '@/src/components/member/home/RatingCard';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
-import { CustomTheme } from '@/src/types/theme';
+import type { CustomTheme } from '@/src/types/theme';
 
 // Fallback component for error boundary
 const ErrorFallback = ({

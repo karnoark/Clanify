@@ -1,6 +1,11 @@
-import { EmailOtpType } from '@supabase/supabase-js';
-import { RouteParams, router, useLocalSearchParams } from 'expo-router';
+import type { EmailOtpType } from '@supabase/supabase-js';
+import type { RouteParams} from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState, useRef, useEffect } from 'react';
+import type {
+  TextInput as RNTextInput,
+  NativeSyntheticEvent,
+  TextInputKeyPressEventData} from 'react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,10 +13,7 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
-  Alert,
-  TextInput as RNTextInput,
-  NativeSyntheticEvent,
-  TextInputKeyPressEventData,
+  Alert
 } from 'react-native';
 import { useTheme, TextInput, Button } from 'react-native-paper';
 

@@ -16,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Card } from '@/src/components/common/Card';
-import { CustomTheme } from '@/src/types/theme';
+import type { CustomTheme } from '@/src/types/theme';
 
 const startColors = [
   'rgba(230, 72, 10, 0.4)', // Red

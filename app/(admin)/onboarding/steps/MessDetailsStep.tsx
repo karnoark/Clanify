@@ -15,8 +15,9 @@ import {
 } from 'react-native-paper';
 
 import { Text } from '../../../../src/components/common/Text';
+import type {
+  MessDetails} from '../../../../src/store/onboardingStore';
 import {
-  MessDetails,
   useOnboardingStore,
 } from '../../../../src/store/onboardingStore';
 

@@ -9,7 +9,7 @@ import { Text } from '@/src/components/common/Text';
 import RenewalRequestContent from '@/src/components/member/home/RenewalRequestContent';
 import { CARD_MARGIN, CARD_WIDTH } from '@/src/constants/member/home';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
-import { CustomTheme } from '@/src/types/theme';
+import type { CustomTheme } from '@/src/types/theme';
 
 // Helper function to show renewal confirmation dialog
 const showRenewalConfirmation = async (params: {

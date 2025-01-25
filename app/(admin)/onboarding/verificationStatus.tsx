@@ -5,7 +5,8 @@ import { View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 
 import { Text } from '@/src/components/common/Text';
-import { AdminRegistration, useAuthStore } from '@/src/store/auth';
+import type { AdminRegistration} from '@/src/store/auth';
+import { useAuthStore } from '@/src/store/auth';
 
 export default function VerificationStatusScreen() {
   const theme = useTheme();

@@ -4,7 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 
 import { supabase } from '@/src/lib/supabase';
 
-import {
+import type {
   MessDetails,
   MessLocation,
   MessContact,

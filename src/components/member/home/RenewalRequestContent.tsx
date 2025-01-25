@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
 
 import { CARD_MARGIN, CARD_WIDTH } from '@/src/constants/member/home';
-import { CustomTheme } from '@/src/types/theme';
+import type { CustomTheme } from '@/src/types/theme';
 
 interface RenewalRequestContentProps {
   request: RenewalRequest;
