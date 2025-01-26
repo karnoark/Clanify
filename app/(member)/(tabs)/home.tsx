@@ -51,7 +51,7 @@ const ErrorFallback = ({
 // Component for displaying header
 const Header = ({ showPoints = true }: { showPoints?: boolean }) => {
   const theme = useTheme<CustomTheme>();
-  const points = useHomeStore(state => state.points);
+  const { points } = useHomeStore();
 
   return (
     <View style={styles.header}>
@@ -144,10 +144,12 @@ const HomeScreen = () => {
     isMembershipExpired,
   } = useHomeStore();
 
+  const IsTheMembershipExpired = isMembershipExpired();
+
   // Load initial data
-  useEffect(() => {
-    loadInitialData();
-  }, [loadInitialData]);
+  // useEffect(() => {
+  //   loadInitialData();
+  // }, [loadInitialData]);
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
@@ -184,7 +186,7 @@ const HomeScreen = () => {
           style={styles.scrollView}
           contentContainerStyle={[
             styles.scrollContent,
-            isMembershipExpired && styles.expiredScrollContent,
+            IsTheMembershipExpired && styles.expiredScrollContent,
           ]}
         >
           {/* Header */}
@@ -217,13 +219,13 @@ const HomeScreen = () => {
           </ErrorBoundary> */}
 
           {/* Header - Points shown only for active membership */}
-          <Header showPoints={!isMembershipExpired} />
+          <Header showPoints={!IsTheMembershipExpired} />
 
           {/* Membership status card is always shown */}
           <MembershipStatusCard />
 
           {/* Conditional content based on membership status */}
-          {isMembershipExpired ? (
+          {IsTheMembershipExpired ? (
             <ExpiredMembershipContent />
           ) : (
             <ActiveMembershipContent />

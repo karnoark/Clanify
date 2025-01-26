@@ -39,7 +39,14 @@ const COMPACT_HEIGHT = 80; // Smaller height when not interacted
 const BASE_KNOB_RADIUS = 15;
 const COMPACT_KNOB_RADIUS = 10; // Smaller knob when not interacted
 
-const RatingSliderComponent = () => {
+interface RatingSliderProps {
+  value: number;
+  onChange: (value: number) => void;
+  disabled: boolean;
+  meal: string;
+}
+
+const RatingSliderComponent: React.FC<RatingSliderProps> = ({ meal }) => {
   const theme = useTheme<CustomTheme>();
 
   // Animated values for dimensions
@@ -169,7 +176,7 @@ const RatingSliderComponent = () => {
 
   const displayText = useDerivedValue(() => {
     if (!hasInteracted.value) {
-      return "How was yesterday's dinner?";
+      return `how was ${meal}`;
     }
 
     // Return the appropriate review text based on progress
@@ -208,7 +215,7 @@ const RatingSliderComponent = () => {
   // Update the animated props to use our new display text
   const animatedText = useAnimatedProps(() => ({
     text: displayText.value,
-    defaultValue: "How was yesterday's dinner?",
+    defaultValue: '',
   }));
 
   return (
