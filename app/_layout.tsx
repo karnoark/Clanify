@@ -57,6 +57,7 @@ function AuthStateManager({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === '(auth)';
     const inAdminGroup = segments[0] === '(admin)';
     const inMemberGroup = segments[0] === '(member)';
+    const isIndexPage = segments.length === 0 || segments[0] === 'index';
 
     // Function to check admin status and handle routing
     const checkAdminStatusAndRoute = async () => {
@@ -93,11 +94,15 @@ function AuthStateManager({ children }: { children: React.ReactNode }) {
         if (!inAuthGroup) {
           router.replace('/(auth)/signin');
         }
+        if (isIndexPage || !inAuthGroup) {
+          // Modified this condition
+          router.replace('/(auth)/signin');
+        }
         return;
       }
 
       // Case 2: User is authenticated but on auth screens
-      if (inAuthGroup) {
+      if (isIndexPage || inAuthGroup) {
         // Redirect based on role
         if (user.role === 'member') {
           router.replace('/(member)/(tabs)/home');

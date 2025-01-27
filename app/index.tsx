@@ -21,6 +21,19 @@ const Page = () => {
   const colorScheme = useColorScheme() ?? 'dark';
   const theme = useTheme();
 
+  const { isLoading } = useAuthStore();
+
+  // If we're still loading auth state, show loading indicator
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return <Redirect href="/(auth)/signin" />;
+
   return (
     <View style={styles.container}>
       {/* Background elements that create depth and visual interest */}
