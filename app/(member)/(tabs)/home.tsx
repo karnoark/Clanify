@@ -1,6 +1,7 @@
 // src/screens/HomeScreen.tsx
 import { Ionicons } from '@expo/vector-icons';
-import React, { useCallback, useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -146,10 +147,23 @@ const HomeScreen = () => {
 
   const IsTheMembershipExpired = isMembershipExpired();
 
-  // Load initial data
-  // useEffect(() => {
-  //   loadInitialData();
-  // }, [loadInitialData]);
+  // Use a ref to track if initial load has happened
+  const initialLoadDone = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!initialLoadDone.current) {
+        loadInitialData();
+        initialLoadDone.current = true;
+      }
+
+      return () => {
+        // Reset on component unmount, not on blur
+        // This way, going to other tabs doesn't trigger a reload
+        // but closing/reopening the app does
+      };
+    }, [loadInitialData]),
+  );
 
   // Handle refresh
   const handleRefresh = useCallback(async () => {
@@ -189,47 +203,24 @@ const HomeScreen = () => {
             IsTheMembershipExpired && styles.expiredScrollContent,
           ]}
         >
-          {/* Header */}
-          {/* <View style={styles.header}>
-            <Text
-              variant="headlineMedium"
-              style={[styles.title, { color: theme.colors.onSurface }]}
-            >
-              Clanify
-            </Text>
-            <View
-              style={[
-                styles.points,
-                { backgroundColor: theme.colors.surfaceVariant },
-              ]}
-            >
-              <Ionicons name="leaf" size={24} color="#2ECC71" />
-              <Text style={[styles.pointsText]}>{points} pts</Text>
-            </View>
-          </View> */}
-
-          {/* Card components */}
-          {/* <MembershipStatusCard />
-          <TodaysMenuCard /> */}
-          {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <RatingCard />
-          </ErrorBoundary> */}
-          {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <AbsencePlannerCard />
-          </ErrorBoundary> */}
-
           {/* Header - Points shown only for active membership */}
-          <Header showPoints={!IsTheMembershipExpired} />
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Header showPoints={!IsTheMembershipExpired} />
+          </ErrorBoundary>
 
-          {/* Membership status card is always shown */}
-          <MembershipStatusCard />
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            {/* Membership status card is always shown */}
+            <MembershipStatusCard />
+          </ErrorBoundary>
 
-          {/* Conditional content based on membership status */}
-          {IsTheMembershipExpired ? (
-            <ExpiredMembershipContent />
-          ) : (
-            <ActiveMembershipContent />
-          )}
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            {/* Conditional content based on membership status */}
+            {IsTheMembershipExpired ? (
+              <ExpiredMembershipContent />
+            ) : (
+              <ActiveMembershipContent />
+            )}
+          </ErrorBoundary>
         </ScrollView>
       </ErrorBoundary>
     </SafeAreaView>

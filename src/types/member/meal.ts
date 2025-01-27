@@ -19,8 +19,8 @@ export interface MealDetails {
 
 export interface RateableMeal {
   id: string;
+  date: Date;
   type: MealType;
-  time: string;
   hasRated: boolean;
 }
 

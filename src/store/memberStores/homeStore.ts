@@ -1,4 +1,6 @@
 // src/store/memberStores/homeStore.ts
+import { create } from 'zustand';
+
 import { useAbsenceStore } from './absenceStore';
 import { useMealStore } from './mealStore';
 import { useMembershipStore } from './membershipStore';
@@ -19,16 +21,28 @@ interface ErrorStates {
   error: string | null; // Combined error state
 }
 
+// Create a separate store for loading state
+interface HomeLoadingState {
+  isInitialLoading: boolean;
+  setInitialLoading: (loading: boolean) => void;
+}
+
+const useHomeLoadingStore = create<HomeLoadingState>(set => ({
+  isInitialLoading: false,
+  setInitialLoading: loading => set({ isInitialLoading: loading }),
+}));
+
 export const useHomeStore = () => {
   // Initialize individual stores
   const membership = useMembershipStore();
   const meals = useMealStore();
   const absences = useAbsenceStore();
+  const { isInitialLoading, setInitialLoading } = useHomeLoadingStore();
 
   // Load all initial data with proper error handling
   const loadInitialData = async () => {
     try {
-      // Load data from all stores concurrently
+      setInitialLoading(true);
       await Promise.all([
         membership.loadMembershipData(),
         meals.loadMealData(),
@@ -36,7 +50,8 @@ export const useHomeStore = () => {
       ]);
     } catch (error) {
       console.error('Failed to load initial data:', error);
-      // Individual stores will handle their own error states
+    } finally {
+      setInitialLoading(false);
     }
   };
 

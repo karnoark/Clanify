@@ -1,4 +1,5 @@
 // src/components/member/home/RatingCard.tsx
+import { format } from 'date-fns';
 import React, { memo, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
@@ -30,24 +31,25 @@ const RatingCardContent = memo(({ meal }: RatingCardContentProps) => {
 
   const formattedMealType =
     meal.type.charAt(0).toUpperCase() + meal.type.slice(1);
-  const ratingTitle = `Rate Yesterday's ${formattedMealType}`;
+  const formattedDate = format(meal.date, 'do MMMM yyyy');
+  const ratingTitle = `Rate the ${formattedMealType} on ${formattedDate}`;
 
   return (
     <>
-      <Text
-        variant="titleLarge"
+      {/* <Text
+        variant="bodyLarge"
         style={[styles.title, { color: theme.colors.onSurface }]}
-      >
-        {ratingTitle}
-        {/* Rate the meal */}
-      </Text>
+      > */}
+      {/* {ratingTitle} */}
+      {/* Rate the meal */}
+      {/* </Text> */}
 
       <View style={styles.sliderContainer}>
         <RatingSliderComponent
           value={rating}
           onChange={setRating}
           disabled={isSubmitting}
-          meal={formattedMealType}
+          ratingTitle={ratingTitle}
         />
       </View>
 

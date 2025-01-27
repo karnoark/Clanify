@@ -43,10 +43,12 @@ interface RatingSliderProps {
   value: number;
   onChange: (value: number) => void;
   disabled: boolean;
-  meal: string;
+  ratingTitle: string;
 }
 
-const RatingSliderComponent: React.FC<RatingSliderProps> = ({ meal }) => {
+const RatingSliderComponent: React.FC<RatingSliderProps> = ({
+  ratingTitle,
+}) => {
   const theme = useTheme<CustomTheme>();
 
   // Animated values for dimensions
@@ -176,7 +178,7 @@ const RatingSliderComponent: React.FC<RatingSliderProps> = ({ meal }) => {
 
   const displayText = useDerivedValue(() => {
     if (!hasInteracted.value) {
-      return `how was ${meal}`;
+      return ratingTitle;
     }
 
     // Return the appropriate review text based on progress
@@ -215,7 +217,7 @@ const RatingSliderComponent: React.FC<RatingSliderProps> = ({ meal }) => {
   // Update the animated props to use our new display text
   const animatedText = useAnimatedProps(() => ({
     text: displayText.value,
-    defaultValue: '',
+    defaultValue: ratingTitle,
   }));
 
   return (

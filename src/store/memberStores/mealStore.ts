@@ -76,15 +76,15 @@ export const useMealStore = create<MealState & MealActions>()((set, get) => ({
 
       const meals: RateableMeal[] = [
         {
-          id: 'meal-001',
+          id: '2',
+          date: new Date('2025-01-27'),
           type: 'lunch',
-          time: '12:00 PM',
           hasRated: false,
         },
         {
-          id: 'meal-002',
+          id: '3',
+          date: new Date('2025-01-27'),
           type: 'dinner',
-          time: '7:00 PM',
           hasRated: true,
         },
       ];
