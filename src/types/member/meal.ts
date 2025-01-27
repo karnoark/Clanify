@@ -11,6 +11,7 @@ export interface MealTiming {
 
 export interface MealDetails {
   id: string;
+  date: Date;
   type: MealType;
   items: string[];
   timing: MealTiming;

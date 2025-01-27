@@ -1,5 +1,6 @@
 // src/components/member/home/TodaysMenuCard.tsx
-import React, { memo } from 'react';
+import { isToday } from 'date-fns';
+import React, { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Divider, useTheme } from 'react-native-paper';
 
@@ -11,7 +12,17 @@ import type { MealDetails } from '@/src/types/member/meal';
 // A separate component for each meal to enable better performance optimization
 const MealItem = memo(({ meal }: { meal: MealDetails }) => {
   const theme = useTheme();
-  const formattedType = meal.type.charAt(0).toUpperCase() + meal.type.slice(1);
+  const formattedType =
+    meal.type?.charAt(0).toUpperCase() + meal.type?.slice(1) || 'Unknown';
+
+  const timeDisplay =
+    meal.timing?.start && meal.timing?.end
+      ? `${meal.timing.start} - ${meal.timing.end}`
+      : 'Time not specified';
+
+  const itemsDisplay = Array.isArray(meal.items)
+    ? meal.items.join(' • ')
+    : 'No items specified';
 
   return (
     <View style={styles.mealContainer}>
@@ -26,7 +37,7 @@ const MealItem = memo(({ meal }: { meal: MealDetails }) => {
           variant="bodySmall"
           style={[styles.timing, { color: theme.colors.onSurfaceVariant }]}
         >
-          {meal.timing.start} - {meal.timing.end}
+          {timeDisplay}
         </Text>
       </View>
 
@@ -41,7 +52,7 @@ const MealItem = memo(({ meal }: { meal: MealDetails }) => {
           },
         ]}
       >
-        {meal.items.join(' • ')}
+        {itemsDisplay}
       </Text>
 
       {!meal.isActive && (
@@ -49,7 +60,7 @@ const MealItem = memo(({ meal }: { meal: MealDetails }) => {
           variant="bodySmall"
           style={[styles.inactiveNote, { color: theme.colors.error }]}
         >
-          Not available today
+          No more active
         </Text>
       )}
     </View>
@@ -63,6 +74,20 @@ const TodaysMenuCard = memo(() => {
 
   // Use specific selectors to prevent unnecessary rerenders
   const { todaysMeals, isMealsLoading, mealsError } = useHomeStore();
+
+  // Filter meals for today using useMemo to optimize performance
+  const todaysMealsFiltered = useMemo(() => {
+    return todaysMeals.filter(meal => {
+      try {
+        const mealDate =
+          meal.date instanceof Date ? meal.date : new Date(meal.date);
+        return isToday(mealDate);
+      } catch (error) {
+        console.error(`Invalid date format for meal ${meal.id}:`, error);
+        return false;
+      }
+    });
+  }, [todaysMeals]);
 
   // Show error state if there's an error
   if (mealsError) {
@@ -84,7 +109,7 @@ const TodaysMenuCard = memo(() => {
   }
 
   // Show loading state
-  if (isMealsLoading && todaysMeals.length === 0) {
+  if (isMealsLoading && todaysMealsFiltered.length === 0) {
     return (
       <Card style={{ backgroundColor: theme.colors.surface }}>
         <Text
@@ -106,7 +131,7 @@ const TodaysMenuCard = memo(() => {
   }
 
   // Show empty state
-  if (todaysMeals.length === 0) {
+  if (todaysMealsFiltered.length === 0) {
     return (
       <Card style={{ backgroundColor: theme.colors.surface }}>
         <Text
@@ -137,10 +162,10 @@ const TodaysMenuCard = memo(() => {
         Today's Menu
       </Text>
 
-      {todaysMeals.map((meal, index) => (
+      {todaysMealsFiltered.map((meal, index) => (
         <React.Fragment key={meal.id}>
           <MealItem meal={meal} />
-          {index < todaysMeals.length - 1 && (
+          {index < todaysMealsFiltered.length - 1 && (
             <Divider style={{ backgroundColor: theme.colors.surfaceVariant }} />
           )}
         </React.Fragment>
