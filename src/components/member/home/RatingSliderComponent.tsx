@@ -1,10 +1,11 @@
 import { BlurMask, Canvas, Path, Skia } from '@shopify/react-native-skia';
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, View, Dimensions, TextInput } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useTheme } from 'react-native-paper';
 import Animated, {
   interpolateColor,
+  runOnJS,
   useAnimatedProps,
   useAnimatedReaction,
   useAnimatedStyle,
@@ -47,6 +48,9 @@ interface RatingSliderProps {
 }
 
 const RatingSliderComponent: React.FC<RatingSliderProps> = ({
+  value,
+  onChange,
+  disabled,
   ratingTitle,
 }) => {
   const theme = useTheme<CustomTheme>();
@@ -54,6 +58,39 @@ const RatingSliderComponent: React.FC<RatingSliderProps> = ({
   // Animated values for dimensions
   const progress = useSharedValue(0.5);
   const hasInteracted = useSharedValue(false);
+
+  // Convert rating (1-5) to progress (0-1)
+  const ratingToProgress = useCallback((rating: number) => {
+    'worklet';
+    return (Math.max(1, Math.min(5, rating)) - 1) / 4;
+  }, []);
+
+  // Convert progress (0-1) to rating (1-5)
+  const progressToRating = useCallback((prgress: number) => {
+    'worklet';
+    return Math.round(prgress * 4 + 1);
+  }, []);
+
+  // Notify parent component of rating changes
+  const handleRatingChange = useCallback(
+    (newRating: number) => {
+      if (newRating !== value) {
+        onChange(newRating);
+      }
+    },
+    [onChange, value],
+  );
+
+  // Monitor progress changes and update parent
+  useAnimatedReaction(
+    () => progressToRating(progress.value),
+    (currentRating, previousRating) => {
+      if (currentRating !== previousRating) {
+        runOnJS(handleRatingChange)(currentRating);
+      }
+    },
+    [handleRatingChange],
+  );
 
   // Animate canvas width based on interaction
   const canvasWidth = useDerivedValue(() => {

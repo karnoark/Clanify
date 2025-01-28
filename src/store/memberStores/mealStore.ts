@@ -43,7 +43,7 @@ export const useMealStore = create<MealState & MealActions>()((set, get) => ({
       const meals: MealDetails[] = [
         {
           id: 'meal-001',
-          date: new Date('2025-01-27'),
+          date: new Date('2025-01-28'),
           type: 'lunch',
           items: ['Chicken Biryani', 'Raita', 'Salad'],
           timing: {
@@ -54,7 +54,7 @@ export const useMealStore = create<MealState & MealActions>()((set, get) => ({
         },
         {
           id: 'meal-002',
-          date: new Date('2025-01-25'),
+          date: new Date('2025-01-28'),
           type: 'dinner',
           items: ['Paneer Butter Masala', 'Naan', 'Gulab Jamun'],
           timing: {
@@ -87,7 +87,7 @@ export const useMealStore = create<MealState & MealActions>()((set, get) => ({
           id: '3',
           date: new Date('2025-01-27'),
           type: 'dinner',
-          hasRated: true,
+          hasRated: false,
         },
       ];
 

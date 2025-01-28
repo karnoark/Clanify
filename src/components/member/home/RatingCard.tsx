@@ -1,7 +1,10 @@
 // src/components/member/home/RatingCard.tsx
+//TODO Couldn't debug this issue:  when I submit the rating of the first unrated meal, the component disappears instead of showing me second unrated meal. I think
+
 import { format } from 'date-fns';
-import React, { memo, useCallback } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, { memo, useCallback, useEffect, useRef } from 'react';
+import type { ViewStyle } from 'react-native';
+import { StyleSheet, View, Animated } from 'react-native';
 import { Button, Text, useTheme } from 'react-native-paper';
 
 import { Card } from '@/src/components/common/Card';
@@ -11,80 +14,137 @@ import type { RateableMeal } from '@/src/types/member/meal';
 
 interface RatingCardContentProps {
   meal: RateableMeal;
+  onRatingSubmitted: () => void;
+  style?: Animated.WithAnimatedObject<ViewStyle>; // For animated styles
 }
 
-// Separate component for the rating content to optimize rerenders
-const RatingCardContent = memo(({ meal }: RatingCardContentProps) => {
-  const theme = useTheme();
-  const [rating, setRating] = React.useState(3);
-  const { rateMeal, isMealsLoading: isSubmitting } = useHomeStore();
+const RatingCardContent = memo(
+  ({ meal, onRatingSubmitted, style }: RatingCardContentProps) => {
+    const theme = useTheme();
+    const [rating, setRating] = React.useState(3);
+    const { rateMeal, isMealsLoading: isSubmitting } = useHomeStore();
+    const [isRetrying, setIsRetrying] = React.useState(false);
+    const lastRatingRef = useRef(rating);
 
-  // Handle rating submission with proper error handling
-  const handleSubmit = useCallback(async () => {
-    try {
-      await rateMeal(meal.id, rating);
-    } catch (error) {
-      // Error is handled by the store and displayed through error state
-      console.error('Rating submission failed:', error);
-    }
-  }, [meal.id, rating, rateMeal]);
+    // Store the last successful rating attempt
+    React.useEffect(() => {
+      if (!isSubmitting) {
+        lastRatingRef.current = rating;
+      }
+    }, [isSubmitting, rating]);
 
-  const formattedMealType =
-    meal.type.charAt(0).toUpperCase() + meal.type.slice(1);
-  const formattedDate = format(meal.date, 'do MMMM yyyy');
-  const ratingTitle = `Rate the ${formattedMealType} on ${formattedDate}`;
+    const handleSubmit = useCallback(async () => {
+      try {
+        setIsRetrying(false);
+        await rateMeal(meal.id, rating);
+        console.log(`rating of ${meal.id} is given ${rating}`);
+        onRatingSubmitted();
+      } catch (error) {
+        console.error('Rating submission failed:', error);
+        setIsRetrying(true);
+      }
+    }, [meal.id, rating, rateMeal, onRatingSubmitted]);
 
-  return (
-    <>
-      {/* <Text
-        variant="bodyLarge"
-        style={[styles.title, { color: theme.colors.onSurface }]}
-      > */}
-      {/* {ratingTitle} */}
-      {/* Rate the meal */}
-      {/* </Text> */}
+    const handleRetry = useCallback(() => {
+      // Restore the last attempted rating
+      setRating(lastRatingRef.current);
+      setIsRetrying(false);
+    }, []);
 
-      <View style={styles.sliderContainer}>
-        <RatingSliderComponent
-          value={rating}
-          onChange={setRating}
-          disabled={isSubmitting}
-          ratingTitle={ratingTitle}
-        />
-      </View>
+    const formattedMealType =
+      meal.type.charAt(0).toUpperCase() + meal.type.slice(1);
+    const formattedDate = format(meal.date, 'do MMMM yyyy');
+    const ratingTitle = `Rate the ${formattedMealType} on ${formattedDate}`;
 
-      <Button
-        mode="contained"
-        onPress={handleSubmit}
-        loading={isSubmitting}
-        disabled={isSubmitting}
-        style={styles.button}
-        buttonColor={theme.colors.primary}
-      >
-        Submit Rating
-      </Button>
-    </>
-  );
-});
+    return (
+      <Animated.View style={style}>
+        <View style={styles.sliderContainer}>
+          <RatingSliderComponent
+            value={rating}
+            onChange={setRating}
+            disabled={isSubmitting}
+            ratingTitle={ratingTitle}
+          />
+        </View>
+
+        {isRetrying ? (
+          <View style={styles.retryContainer}>
+            <Text style={[styles.errorText, { color: theme.colors.error }]}>
+              Failed to submit rating. Please try again.
+            </Text>
+            <Button
+              mode="contained"
+              onPress={handleRetry}
+              style={styles.retryButton}
+              buttonColor={theme.colors.primary}
+            >
+              Retry
+            </Button>
+          </View>
+        ) : (
+          <Button
+            mode="contained"
+            onPress={handleSubmit}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+            style={styles.button}
+            buttonColor={theme.colors.primary}
+            accessibilityLabel="Submit meal rating"
+            accessibilityHint="Double tap to submit your rating for this meal"
+          >
+            Submit Rating
+          </Button>
+        )}
+      </Animated.View>
+    );
+  },
+);
 
 RatingCardContent.displayName = 'RatingCardContent';
 
-// Main RatingCard component
 const RatingCard = memo(() => {
   const theme = useTheme();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const [currentMealIndex, setCurrentMealIndex] = React.useState(0);
 
-  // Get only the data we need using specific selectors
-  const { rateableMeals, isMealsLoading, mealsError } = useHomeStore();
+  const { rateableMeals, isMealsLoading, mealsError, updateRateableMeals } =
+    useHomeStore();
 
-  // Find the first unrated meal
-  const unratedMeal = rateableMeals.find(meal => !meal.hasRated);
+  // Get unrated meals with proper memoization
+  const unratedMeals = React.useMemo(
+    () => rateableMeals.filter(meal => !meal.hasRated),
+    [rateableMeals],
+  );
+
+  console.log('unratedMeals: ', unratedMeals);
+
+  const handleRatingSubmitted = useCallback(() => {
+    // Animate out current meal
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setCurrentMealIndex(0);
+    });
+  }, [fadeAnim]);
 
   // Show loading state when initially loading meals
   if (isMealsLoading && rateableMeals.length === 0) {
     return (
       <Card style={{ backgroundColor: theme.colors.surface }}>
         <View style={styles.messageContainer}>
-          <Text style={{ color: theme.colors.onSurfaceVariant }}>
+          <Text
+            style={{ color: theme.colors.onSurfaceVariant }}
+            accessibilityLabel="Loading meals"
+          >
             Loading...
           </Text>
         </View>
@@ -97,20 +157,30 @@ const RatingCard = memo(() => {
     return (
       <Card style={{ backgroundColor: theme.colors.surface }}>
         <View style={styles.messageContainer}>
-          <Text style={{ color: theme.colors.error }}>{mealsError}</Text>
+          <Text
+            style={{ color: theme.colors.error }}
+            accessibilityLabel={`Error: ${mealsError}`}
+          >
+            {mealsError}
+          </Text>
         </View>
       </Card>
     );
   }
 
-  // Don't show the card if there are no meals to rate
-  if (!unratedMeal) {
+  // Don't show the card if there are no unrated meals left
+  if (unratedMeals.length === 0 || currentMealIndex >= unratedMeals.length) {
     return null;
   }
 
   return (
     <Card style={{ backgroundColor: theme.colors.surface }}>
-      <RatingCardContent meal={unratedMeal} />
+      <RatingCardContent
+        key={unratedMeals[currentMealIndex]?.id}
+        meal={unratedMeals[currentMealIndex]}
+        onRatingSubmitted={handleRatingSubmitted}
+        style={{ opacity: fadeAnim }}
+      />
     </Card>
   );
 });
@@ -118,9 +188,6 @@ const RatingCard = memo(() => {
 RatingCard.displayName = 'RatingCard';
 
 const styles = StyleSheet.create({
-  title: {
-    marginBottom: 8,
-  },
   sliderContainer: {
     marginVertical: 16,
     alignItems: 'center',
@@ -133,6 +200,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+  },
+  retryContainer: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  retryButton: {
+    marginTop: 8,
+  },
+  errorText: {
+    textAlign: 'center',
   },
 });
 
