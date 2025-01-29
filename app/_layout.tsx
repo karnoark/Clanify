@@ -20,10 +20,16 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { en, registerTranslation } from 'react-native-paper-dates';
+import NetInfo from '@react-native-community/netinfo';
 
+import { NetworkError } from '@/src/components/core/NetworkError';
 import { Colors } from '@/src/constants/Colors';
 import { useColorScheme } from '@/src/hooks/useColorScheme';
 import { initializeAuth, useAuthStore } from '@/src/store/auth';
+import {
+  initializeNetworkMonitoring,
+  useNetworkStore,
+} from '@/src/store/networkStore';
 
 const customLightTheme = { ...MD3DarkTheme, colors: Colors.light };
 const customDarkTheme = { ...MD3LightTheme, colors: Colors.dark };
@@ -161,12 +167,22 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     PlayRegular: require('@/src/assets/fonts/PlayfairDisplay-Regular.ttf'),
   });
-  const { isLoading } = useAuthStore();
+  const { isLoading: authLoading } = useAuthStore();
+  const { isConnected, isInternetReachable } = useNetworkStore();
 
-  // Initialize auth when the app starts
   useEffect(() => {
-    initializeAuth();
+    const unsubscribe = initializeNetworkMonitoring();
+    return () => {
+      unsubscribe();
+    };
   }, []);
+
+  useEffect(() => {
+    // Only initialize auth if we have network connectivity
+    if (isConnected && isInternetReachable) {
+      initializeAuth();
+    }
+  }, [isConnected, isInternetReachable]);
 
   useEffect(() => {
     if (loaded) {
@@ -174,9 +190,27 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  // First, check network connectivity
+  if (!isConnected || !isInternetReachable) {
+    return (
+      <View style={{ flex: 1, backgroundColor: 'white' }}>
+        <NetworkError
+          onRetry={async () => {
+            // You can trigger a manual network check here if needed
+            const netInfo = await NetInfo.fetch();
+            useNetworkStore.setState({
+              isConnected: netInfo.isConnected,
+              isInternetReachable: netInfo.isInternetReachable,
+            });
+          }}
+        />
+      </View>
+    );
+  }
+
   // Show loading screen while checking auth
-  console.log('RootLayout:-> isLoading: ', isLoading);
-  if (isLoading || !loaded) {
+  console.log('RootLayout:-> authLoading: ', authLoading);
+  if (authLoading || !loaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator size="large" />

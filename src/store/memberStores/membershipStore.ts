@@ -70,7 +70,7 @@ export const useMembershipStore = create<MembershipState & MembershipActions>()(
         // const date = await api.getMembershipExpiry();
         // set({ membershipExpiry: date });
 
-        const someDate = new Date('2025-01-30');
+        const someDate = new Date('2025-02-27');
         set({ membershipExpiry: someDate });
       } catch (error) {
         throw error;
