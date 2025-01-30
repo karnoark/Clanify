@@ -9,6 +9,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ErrorBoundary } from '@/src/components/common/ErrorBoundary';
 import { Text } from '@/src/components/common/Text';
 import AbsencePlannerCard from '@/src/components/member/home/AbsencePlannerCard';
+import { MealPassCard } from '@/src/components/member/home/MealPassCard';
 import MembershipStatusCard from '@/src/components/member/home/MembershipStatusCard';
 import RatingCard from '@/src/components/member/home/RatingCard';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
@@ -81,7 +82,12 @@ const Header = ({ showPoints = true }: { showPoints?: boolean }) => {
 const ActiveMembershipContent = () => {
   return (
     <>
-      <TodaysMenuCard />
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <TodaysMenuCard />
+      </ErrorBoundary>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <MealPassCard />
+      </ErrorBoundary>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <RatingCard />
       </ErrorBoundary>

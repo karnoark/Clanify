@@ -2,8 +2,6 @@
 
 import type { BaseState } from '@/src/types/base';
 
-export type MealType = 'lunch' | 'dinner';
-
 export interface MealTiming {
   start: string;
   end: string;

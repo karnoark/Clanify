@@ -1,3 +1,4 @@
+import NetInfo from '@react-native-community/netinfo';
 import {
   NavigationContainer,
   DarkTheme as NavigationDarkTheme,
@@ -20,7 +21,6 @@ import {
   useTheme,
 } from 'react-native-paper';
 import { en, registerTranslation } from 'react-native-paper-dates';
-import NetInfo from '@react-native-community/netinfo';
 
 import { NetworkError } from '@/src/components/core/NetworkError';
 import { Colors } from '@/src/constants/Colors';
