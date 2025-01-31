@@ -1,5 +1,6 @@
 //todo add something like toast notification for messages like "invalid login credentials"
 
+import { Ionicons } from '@expo/vector-icons';
 import { Link, router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
@@ -16,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
 import { useAuthStore } from '@/src/store/auth';
+import type { CustomTheme } from '@/src/types/theme';
 import {
   hasErrorsInEmail,
   hasErrorsInPassword,
@@ -39,7 +41,7 @@ interface FormErrors {
 
 const Page = () => {
   const { top } = useSafeAreaInsets();
-  const theme = useTheme();
+  const theme = useTheme<CustomTheme>();
   const signIn = useAuthStore(state => state.signIn);
   const [formState, setFormState] = useState<FormState>({
     email: '',
@@ -126,6 +128,8 @@ const Page = () => {
     }
   };
 
+  const backgroundBlogColor = 'black';
+
   return (
     <KeyboardAvoidingView
       style={[styles.container, { paddingTop: top }]}
@@ -133,37 +137,25 @@ const Page = () => {
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
       {/* These circles create a soft, glowing background effect */}
-      <View
-        style={[
-          styles.topRightBlob,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+      {/* <View
+        style={[styles.topRightBlob, { backgroundColor: backgroundBlogColor }]}
       />
       <View
         style={[
           styles.bottomLeftBlob,
-          { backgroundColor: theme.colors.onBackground },
+          { backgroundColor: backgroundBlogColor },
         ]}
       />
       <View style={styles.gradientOverlay} />
       <View
-        style={[
-          styles.centerGlow,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+        style={[styles.centerGlow, { backgroundColor: backgroundBlogColor }]}
       />
       <View
-        style={[
-          styles.accentDot1,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+        style={[styles.accentDot1, { backgroundColor: backgroundBlogColor }]}
       />
       <View
-        style={[
-          styles.accentDot2,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
-      />
+        style={[styles.accentDot2, { backgroundColor: backgroundBlogColor }]}
+      /> */}
       <ScrollView
         ref={scrollViewRef}
         contentContainerStyle={styles.scrollContentContainer}
@@ -174,17 +166,37 @@ const Page = () => {
         <View style={styles.glassCard}>
           <View style={styles.cardContent}>
             <View style={{}}>
+              <View
+                style={{
+                  alignItems: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <Ionicons
+                  name="leaf"
+                  size={48}
+                  color={theme.colors.primary}
+                  style={{
+                    backgroundColor: theme.colors.pr100,
+                    // borderWidth: StyleSheet.hairlineWidth,
+                    padding: 16,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 40,
+                  }}
+                />
+              </View>
               <Text variant="displayMedium" style={{ textAlign: 'center' }}>
-                Welcome Back
+                Clanify
               </Text>
               <Text
                 style={{
                   textAlign: 'center',
-                  color: theme.colors.primary,
+                  opacity: 0.7,
                   margin: 10,
                 }}
               >
-                Enter the Email & password associated with your account
+                Your Mess. Our Problem. (Kinda).
               </Text>
             </View>
             <View style={{ width: '100%', margin: 10 }}>
@@ -195,8 +207,11 @@ const Page = () => {
                 error={!!errors.email}
                 disabled={formState.isSubmitting}
                 autoCapitalize="none"
-                left={<TextInput.Icon icon="email" />}
-                style={{ marginBottom: 8 }}
+                left={
+                  <TextInput.Icon icon="email" color={theme.colors.primary} />
+                }
+                underlineColor="transparent"
+                style={styles.inputContainer}
               />
               <HelperText
                 type="error"
@@ -214,15 +229,20 @@ const Page = () => {
                 secureTextEntry={!passwordVisible}
                 error={!!errors.password}
                 disabled={formState.isSubmitting}
+                style={styles.inputContainer}
+                underlineColor="transparent"
                 right={
                   <TextInput.Icon
                     icon={passwordVisible ? 'eye-off' : 'eye'}
+                    style={{ opacity: 0.7 }}
                     onPress={() => {
                       setPasswordVisible(prev => !prev);
                     }}
                   />
                 }
-                left={<TextInput.Icon icon="lock" />}
+                left={
+                  <TextInput.Icon icon="lock" color={theme.colors.primary} />
+                }
               />
               <HelperText
                 type="error"
@@ -239,19 +259,14 @@ const Page = () => {
                 marginLeft: 10,
                 marginBottom: 10,
                 width: '100%',
+                alignItems: 'flex-end',
               }}
             >
-              {/* <Link
-                href={{
-                  pathname: "/resetPassword",
-                  params: { id: 123, name: "mayuresh", token: "I'm in" },
-                }}
-              > */}
               <Link href={'/forgotPassword'}>
                 <Text
                   style={[
                     styles.forgotPasswordText,
-                    { color: theme.colors.onBackground },
+                    { color: theme.colors.primary },
                   ]}
                 >
                   forgot password ?
@@ -281,25 +296,35 @@ const Page = () => {
                 {formState.isSubmitting ? 'Signing in...' : 'Continue'}
               </Button>
             </View>
-            <View style={{ margin: 10 }}>
+            <View
+              style={{
+                margin: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <Text
                 style={{
                   color: theme.colors.onSurfaceVariant, // Slightly muted white for the main text
                   fontSize: 16,
                   textAlign: 'center',
+                  opacity: 0.7,
                 }}
               >
                 Don't have an account?{'  '}
-                <Link href={'/signup'}>
-                  <Text
-                    style={{
-                      color: theme.colors.onBackground, // Your accent color
-                    }}
-                  >
-                    Sign Up
-                  </Text>
-                </Link>{' '}
               </Text>
+              <Link href={'/signup'}>
+                <Text
+                  style={{
+                    color: theme.colors.primary, // Your accent color
+                    fontSize: 16,
+                    // opacity: 0,
+                  }}
+                >
+                  Sign Up
+                </Text>
+              </Link>
             </View>
 
             {/* Divider */}
@@ -459,5 +484,11 @@ const styles = StyleSheet.create({
     // backgroundColor: "rgba(253, 53, 109, 0.03)", // Very subtle accent color
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  inputContainer: {
+    marginBottom: 8,
+    borderRadius: 12,
+    borderTopStartRadius: 12,
+    borderTopEndRadius: 12,
   },
 });

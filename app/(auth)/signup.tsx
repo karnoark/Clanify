@@ -234,22 +234,13 @@ const Page = () => {
     >
       {/* Background elements for visual depth */}
       <View
-        style={[
-          styles.mainGlow,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+        style={[styles.mainGlow, { backgroundColor: theme.colors.primary }]}
       />
       <View
-        style={[
-          styles.topAccent,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+        style={[styles.topAccent, { backgroundColor: theme.colors.primary }]}
       />
       <View
-        style={[
-          styles.bottomAccent,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+        style={[styles.bottomAccent, { backgroundColor: theme.colors.primary }]}
       />
 
       <ScrollView
@@ -270,8 +261,9 @@ const Page = () => {
               variant="bodyLarge"
               style={{
                 textAlign: 'center',
-                color: theme.colors.primary,
-                margin: 2,
+                // color: theme.colors.primary,
+                opacity: 0.7,
+                // margin: 2,
               }}
             >
               Where every meal tells a story
@@ -280,21 +272,25 @@ const Page = () => {
 
           {/* Form section with enhanced visual hierarchy */}
           <View style={styles.formSection}>
-            <View style={{ width: '100%', margin: 3 }}>
+            <View style={{ width: '100%' }}>
               <TextInput
                 label="Email"
                 value={formState.email}
                 onChangeText={handleInputChange('email')}
                 error={!!errors.email}
                 disabled={formState.isSubmitting}
-                left={<TextInput.Icon icon="email" />}
+                left={
+                  <TextInput.Icon icon="email" color={theme.colors.primary} />
+                }
+                underlineColor="transparent"
+                style={styles.inputContainer}
               />
               <HelperText type="error" visible={errors.email !== undefined}>
                 Email address is invalid!
               </HelperText>
             </View>
 
-            <View style={{ width: '100%', margin: 3 }}>
+            <View style={{ width: '100%' }}>
               <TextInput
                 label={'password'}
                 value={formState.password}
@@ -302,9 +298,15 @@ const Page = () => {
                 secureTextEntry={!passwordVisible}
                 error={!!errors.password}
                 disabled={formState.isSubmitting}
+                underlineColor="transparent"
+                style={styles.inputContainer}
+                left={
+                  <TextInput.Icon icon="lock" color={theme.colors.primary} />
+                }
                 right={
                   <TextInput.Icon
                     icon={passwordVisible ? 'eye-off' : 'eye'}
+                    style={{ opacity: 0.7 }}
                     onPress={() => {
                       setPasswordVisible(prev => !prev);
                     }}
@@ -316,7 +318,6 @@ const Page = () => {
                 lowercase, number and special character
               </HelperText>
             </View>
-
             <View style={styles.nameInputContainer}>
               <View style={{ flex: 1 }}>
                 <TextInput
@@ -325,6 +326,14 @@ const Page = () => {
                   onChangeText={handleInputChange('firstName')}
                   error={!!errors.firstName}
                   disabled={formState.isSubmitting}
+                  underlineColor="transparent"
+                  style={styles.inputContainer}
+                  left={
+                    <TextInput.Icon
+                      icon="account"
+                      color={theme.colors.primary}
+                    />
+                  }
                 />
                 <HelperText
                   type="error"
@@ -340,6 +349,14 @@ const Page = () => {
                   onChangeText={handleInputChange('lastName')}
                   error={!!errors.lastName}
                   disabled={formState.isSubmitting}
+                  underlineColor="transparent"
+                  style={styles.inputContainer}
+                  left={
+                    <TextInput.Icon
+                      icon="account"
+                      color={theme.colors.primary}
+                    />
+                  }
                 />
                 <HelperText
                   type="error"
@@ -357,10 +374,27 @@ const Page = () => {
                 }
                 value={formState.role}
               >
-                <RadioButton.Item label="Are you a Member?" value={'member'} />
                 <RadioButton.Item
-                  label="Are you the Owner? "
+                  label="Sign up as a User"
+                  value={'member'}
+                  position="leading"
+                  labelStyle={{ textAlign: 'left' }}
+                  style={{
+                    backgroundColor: theme.colors.surfaceVariant,
+                    borderRadius: 8,
+                    marginBottom: 4,
+                  }}
+                />
+                <RadioButton.Item
+                  label="Sign up as an Owner "
                   value={'admin_verification_pending'}
+                  position="leading"
+                  labelStyle={{ textAlign: 'left' }}
+                  style={{
+                    backgroundColor: theme.colors.surfaceVariant,
+                    borderRadius: 8,
+                    marginTop: 4,
+                  }}
                 />
               </RadioButton.Group>
             </View>
@@ -381,7 +415,7 @@ const Page = () => {
             <View
               style={{
                 width: '100%',
-                margin: 2,
+                // margin: 2,
               }}
             >
               <Button
@@ -447,7 +481,7 @@ const Page = () => {
             </Portal>
 
             {/* Sign in prompt */}
-            <View style={{ margin: 2 }}>
+            <View>
               <Text
                 style={{
                   color: theme.colors.onSurfaceVariant, // Slightly muted white for the main text
@@ -459,7 +493,7 @@ const Page = () => {
                 <Link href={'/signin'}>
                   <Text
                     style={{
-                      color: theme.colors.onBackground, // Your accent color
+                      color: theme.colors.primary, // Your accent color
                     }}
                   >
                     Sign In
@@ -585,6 +619,12 @@ const styles = StyleSheet.create({
   },
   dividerText: {
     fontSize: 20,
+  },
+  inputContainer: {
+    marginBottom: 8,
+    borderRadius: 12,
+    borderTopStartRadius: 12,
+    borderTopEndRadius: 12,
   },
 });
 

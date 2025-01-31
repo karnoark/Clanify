@@ -46,14 +46,6 @@ export const ClosureItem = memo(
               {displayDate()}
             </Text>
           </View>
-
-          {/* Meal type icon on the right */}
-          {/* <Text
-            variant="bodyMedium"
-            style={[styles.mealIcon, { color: theme.colors.onSurfaceVariant }]}
-          >
-            {mealType === 'lunch' ? '🍽️' : '🍴'}
-          </Text> */}
           <View
             style={{
               flexDirection: 'row',

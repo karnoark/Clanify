@@ -1,6 +1,3 @@
-// src/components/member/home/RatingCard.tsx
-//TODO Couldn't debug this issue:  when I submit the rating of the first unrated meal, the component disappears instead of showing me second unrated meal. I think
-
 import { format } from 'date-fns';
 import React, { memo, useCallback, useEffect, useRef } from 'react';
 import type { ViewStyle } from 'react-native';
