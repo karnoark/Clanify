@@ -14,8 +14,8 @@ import {
 import { MealPassModal } from './MealPassModal';
 
 export const MealPassCard = () => {
-  // This will come from your store later
-  const currentPass: MealPass = {
+  // const { currentPass, checkMealPass } = useHomeStore();  // We'll add these to homeStore
+  const currentPass: MealPass | null = {
     id: '1',
     date: new Date().toISOString(),
     mealType: 'lunch',
@@ -26,6 +26,11 @@ export const MealPassCard = () => {
     is_eligible: true,
     // reason: MealPassIneligibilityReason.NOT_YET_AVAILABLE,
   };
+
+  // const currentPass: MealPass | null = null;
+
+  const checkMealPass = () => new Promise(resolve => setTimeout(resolve, 1000));
+
   const [modalVisible, setModalVisible] = useState(false);
   const theme = useTheme();
 
@@ -141,9 +146,31 @@ export const MealPassCard = () => {
   //   </Card>
   // );
 
+  // If we don't have a pass yet, show the check availability card
+  if (!currentPass) {
+    return (
+      <View style={styles.container}>
+        <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
+          <Card.Content style={styles.cardContent}>
+            <Text variant="titleMedium" style={styles.title}>
+              Check meal pass availability
+            </Text>
+            <IconButton
+              icon="refresh"
+              mode="contained"
+              size={24}
+              onPress={checkMealPass}
+              style={styles.button}
+            />
+          </Card.Content>
+        </Card>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      {currentPass.is_eligible ? (
+      {currentPass?.is_eligible ? (
         // Eligible state - Show View Pass button
         <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
           <Card.Content style={styles.cardContent}>

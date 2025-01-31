@@ -13,6 +13,7 @@ import { MealPassCard } from '@/src/components/member/home/MealPassCard';
 import MembershipStatusCard from '@/src/components/member/home/MembershipStatusCard';
 import RatingCard from '@/src/components/member/home/RatingCard';
 import TodaysMenuCard from '@/src/components/member/home/TodaysMenuCard';
+import UpcomingClosuresCard from '@/src/components/member/home/UpcomingClosuresCard';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 import type { CustomTheme } from '@/src/types/theme';
 
@@ -82,6 +83,9 @@ const Header = ({ showPoints = true }: { showPoints?: boolean }) => {
 const ActiveMembershipContent = () => {
   return (
     <>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <UpcomingClosuresCard />
+      </ErrorBoundary>
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <TodaysMenuCard />
       </ErrorBoundary>
