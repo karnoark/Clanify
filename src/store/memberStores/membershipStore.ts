@@ -163,7 +163,8 @@ export const useMembershipStore = create<MembershipState & MembershipActions>()(
 
     // Computed values
     isMembershipExpired: () => {
-      return isDateExpired(get().membershipExpiry);
+      // return isDateExpired(get().membershipExpiry);
+      return true;
     },
   }),
 );

@@ -7,6 +7,7 @@ import {
   View,
   Dimensions,
   ScrollView,
+  Alert,
 } from 'react-native';
 import {
   useTheme,
@@ -31,6 +32,7 @@ import {
   hasErrorsInName,
   hasErrorsInPassword,
 } from '@/src/utils/InputValidation';
+import { getErrorMessage } from '@/src/utils/errorUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -95,7 +97,7 @@ const Page = () => {
     firstName: '',
     lastName: '',
     termsAccepted: false,
-    role: 'member' as const,
+    role: 'regular' as const,
     touched: {
       email: false,
       password: false,
@@ -143,6 +145,10 @@ const Page = () => {
 
   const handleVerify = async () => {
     try {
+      // Clear any existing errors first
+      setErrors({});
+      setErrorMessage('');
+
       // Validate all fields before submission
       const formErrors: FormErrors = {};
 
@@ -176,8 +182,10 @@ const Page = () => {
 
       setShowEmailVerificationDialog(true);
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Registration failed',
+      Alert.alert(
+        'signup Failed',
+        getErrorMessage(error) || 'Failed to resend code. Please try again.',
+        [{ text: 'OK' }],
       );
     } finally {
       setFormState(prev => ({ ...prev, isSubmitting: false }));
@@ -233,7 +241,7 @@ const Page = () => {
       keyboardVerticalOffset={keyboardVerticalOffset}
     >
       {/* Background elements for visual depth */}
-      <View
+      {/* <View
         style={[styles.mainGlow, { backgroundColor: theme.colors.primary }]}
       />
       <View
@@ -241,7 +249,7 @@ const Page = () => {
       />
       <View
         style={[styles.bottomAccent, { backgroundColor: theme.colors.primary }]}
-      />
+      /> */}
 
       <ScrollView
         ref={scrollViewRef}
@@ -376,7 +384,7 @@ const Page = () => {
               >
                 <RadioButton.Item
                   label="Sign up as a User"
-                  value={'member'}
+                  value={'regular'}
                   position="leading"
                   labelStyle={{ textAlign: 'left' }}
                   style={{
@@ -439,6 +447,10 @@ const Page = () => {
             <Portal>
               <Dialog
                 visible={showEmailVerificationDialog}
+                style={[
+                  styles.dialog,
+                  { backgroundColor: theme.colors.surface },
+                ]}
                 onDismiss={() => {
                   setShowEmailVerificationDialog(false);
                   emptyTheForm();
@@ -625,6 +637,10 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderTopStartRadius: 12,
     borderTopEndRadius: 12,
+  },
+  dialog: {
+    borderRadius: 12,
+    marginHorizontal: 16,
   },
 });
 

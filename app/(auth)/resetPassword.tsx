@@ -300,6 +300,11 @@ const Page = () => {
       <Portal>
         <Dialog
           visible={showSuccessDialog}
+          style={{
+            backgroundColor: theme.colors.surface,
+            borderRadius: 12,
+            marginHorizontal: 16,
+          }}
           onDismiss={() => {
             setShowSuccessDialog(false);
             router.push('/');

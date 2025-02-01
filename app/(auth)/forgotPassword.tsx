@@ -157,6 +157,7 @@ const Page = () => {
         <Dialog
           visible={showResetDialog}
           onDismiss={() => setShowResetDialog(false)}
+          style={[styles.dialog, { backgroundColor: theme.colors.surface }]}
         >
           <Dialog.Title>Check Your Email</Dialog.Title>
           <Dialog.Content>
@@ -245,6 +246,10 @@ const styles = StyleSheet.create({
   errorText: {
     textAlign: 'center',
     marginTop: 8,
+  },
+  dialog: {
+    borderRadius: 12,
+    marginHorizontal: 16,
   },
 });
 

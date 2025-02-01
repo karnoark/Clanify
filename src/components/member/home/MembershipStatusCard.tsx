@@ -18,6 +18,7 @@ import {
   withSpring,
 } from 'react-native-reanimated';
 
+import ExpiredMembershipContent from '@/src/components/member/home/ExpiredMembershipContent';
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 import type { RenewalRequest } from '@/src/types/member/membership';
 import type { CustomTheme } from '@/src/types/theme';
@@ -164,152 +165,152 @@ const RenewalRequestStatus = memo(
 RenewalRequestStatus.displayName = 'RenewalRequestStatus';
 
 // Component for expired membership state
-const ExpiredMembershipContent = memo(() => {
-  const theme = useTheme<CustomTheme>();
-  const {
-    membershipExpiry,
-    renewalRequest,
-    isLoading,
-    error,
-    validateRenewalEligibility,
-    sendRequestToRenewMembership,
-    clearRenewalRequest,
-  } = useHomeStore();
+// const ExpiredMembershipContent = memo(() => {
+//   const theme = useTheme<CustomTheme>();
+//   const {
+//     membershipExpiry,
+//     renewalRequest,
+//     isLoading,
+//     error,
+//     validateRenewalEligibility,
+//     sendRequestToRenewMembership,
+//     clearRenewalRequest,
+//   } = useHomeStore();
 
-  // Local state for renewal date selection
-  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
-    undefined,
-  );
+//   // Local state for renewal date selection
+//   const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
+//     undefined,
+//   );
 
-  // Calculate default renewal date (day after expiry)
-  const getDefaultRenewalDate = useCallback(() => {
-    if (!membershipExpiry) return new Date();
-    const nextDay = new Date(membershipExpiry);
-    nextDay.setDate(nextDay.getDate() + 1);
-    return nextDay;
-  }, [membershipExpiry]);
+//   // Calculate default renewal date (day after expiry)
+//   const getDefaultRenewalDate = useCallback(() => {
+//     if (!membershipExpiry) return new Date();
+//     const nextDay = new Date(membershipExpiry);
+//     nextDay.setDate(nextDay.getDate() + 1);
+//     return nextDay;
+//   }, [membershipExpiry]);
 
-  // Initialize with default date
-  useEffect(() => {
-    if (!selectedDate) {
-      setSelectedDate(getDefaultRenewalDate());
-    }
-  }, [getDefaultRenewalDate, selectedDate]);
+//   // Initialize with default date
+//   useEffect(() => {
+//     if (!selectedDate) {
+//       setSelectedDate(getDefaultRenewalDate());
+//     }
+//   }, [getDefaultRenewalDate, selectedDate]);
 
-  // Handle renewal request submission
-  const handleRenewal = async () => {
-    if (!selectedDate) return;
+//   // Handle renewal request submission
+//   const handleRenewal = async () => {
+//     if (!selectedDate) return;
 
-    try {
-      const eligibility = await validateRenewalEligibility();
-      if (!eligibility.isEligible) {
-        // Handle ineligibility (show message, etc.)
-        return;
-      }
+//     try {
+//       const eligibility = await validateRenewalEligibility();
+//       if (!eligibility.isEligible) {
+//         // Handle ineligibility (show message, etc.)
+//         return;
+//       }
 
-      await sendRequestToRenewMembership(selectedDate);
-    } catch (e) {
-      console.error('Renewal request failed:', e);
-    }
-  };
+//       await sendRequestToRenewMembership(selectedDate);
+//     } catch (e) {
+//       console.error('Renewal request failed:', e);
+//     }
+//   };
 
-  // Handle new request after rejection
-  const handleNewRequest = async () => {
-    try {
-      await clearRenewalRequest();
-      setSelectedDate(getDefaultRenewalDate());
-    } catch (e) {
-      console.error('Failed to start new request:', e);
-    }
-  };
+//   // Handle new request after rejection
+//   const handleNewRequest = async () => {
+//     try {
+//       await clearRenewalRequest();
+//       setSelectedDate(getDefaultRenewalDate());
+//     } catch (e) {
+//       console.error('Failed to start new request:', e);
+//     }
+//   };
 
-  // Show renewal request status if there's an existing request
-  if (renewalRequest) {
-    return (
-      <RenewalRequestStatus
-        request={renewalRequest}
-        onNewRequest={handleNewRequest}
-      />
-    );
-  }
+//   // Show renewal request status if there's an existing request
+//   if (renewalRequest) {
+//     return (
+//       <RenewalRequestStatus
+//         request={renewalRequest}
+//         onNewRequest={handleNewRequest}
+//       />
+//     );
+//   }
 
-  // Show renewal form
-  return (
-    <View style={styles.expiredContent}>
-      <View style={styles.expiredHeader}>
-        <Ionicons name="alert-circle" size={32} color={theme.colors.error} />
-        <Text
-          variant="titleMedium"
-          style={[styles.expiredTitle, { color: theme.colors.error }]}
-        >
-          Membership is overdue
-        </Text>
-      </View>
+//   // Show renewal form
+//   return (
+//     <View style={styles.expiredContent}>
+//       <View style={styles.expiredHeader}>
+//         <Ionicons name="alert-circle" size={32} color={theme.colors.error} />
+//         <Text
+//           variant="titleMedium"
+//           style={[styles.expiredTitle, { color: theme.colors.error }]}
+//         >
+//           Membership is overdue
+//         </Text>
+//       </View>
 
-      <Text
-        style={[styles.expiryInfo, { color: theme.colors.onSurfaceVariant }]}
-      >
-        Your membership expired on{'\n'}
-        <Text style={styles.expiryDate}>
-          {membershipExpiry
-            ? format(membershipExpiry, 'MMMM d, yyyy')
-            : 'unknown date'}
-        </Text>
-      </Text>
+//       <Text
+//         style={[styles.expiryInfo, { color: theme.colors.onSurfaceVariant }]}
+//       >
+//         Your membership expired on{'\n'}
+//         <Text style={styles.expiryDate}>
+//           {membershipExpiry
+//             ? format(membershipExpiry, 'MMMM d, yyyy')
+//             : 'unknown date'}
+//         </Text>
+//       </Text>
 
-      <View style={styles.datePickerContainer}>
-        <Text
-          style={[
-            styles.datePickerLabel,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
-        >
-          Would you like to resume the membership from:
-        </Text>
-        <DatePickerInput
-          locale="en"
-          value={selectedDate}
-          onChange={date => {
-            if (date) setSelectedDate(date);
-          }}
-          inputMode="start"
-          mode="outlined"
-          startYear={2024}
-          endYear={2025}
-          style={styles.datePicker}
-          outlineColor={theme.colors.outline}
-          activeOutlineColor={theme.colors.primary}
-          disabled={isLoading}
-        />
-      </View>
+//       <View style={styles.datePickerContainer}>
+//         <Text
+//           style={[
+//             styles.datePickerLabel,
+//             { color: theme.colors.onSurfaceVariant },
+//           ]}
+//         >
+//           Would you like to resume the membership from:
+//         </Text>
+//         <DatePickerInput
+//           locale="en"
+//           value={selectedDate}
+//           onChange={date => {
+//             if (date) setSelectedDate(date);
+//           }}
+//           inputMode="start"
+//           mode="outlined"
+//           startYear={2024}
+//           endYear={2025}
+//           style={styles.datePicker}
+//           outlineColor={theme.colors.outline}
+//           activeOutlineColor={theme.colors.primary}
+//           disabled={isLoading}
+//         />
+//       </View>
 
-      {error && (
-        <Text style={[styles.errorText, { color: theme.colors.error }]}>
-          {error}
-        </Text>
-      )}
+//       {error && (
+//         <Text style={[styles.errorText, { color: theme.colors.error }]}>
+//           {error}
+//         </Text>
+//       )}
 
-      <Button
-        mode="contained"
-        onPress={handleRenewal}
-        loading={isLoading}
-        disabled={isLoading || !selectedDate}
-        style={styles.renewButton}
-        contentStyle={styles.buttonContent}
-      >
-        Request Membership Renewal
-      </Button>
+//       <Button
+//         mode="contained"
+//         onPress={handleRenewal}
+//         loading={isLoading}
+//         disabled={isLoading || !selectedDate}
+//         style={styles.renewButton}
+//         contentStyle={styles.buttonContent}
+//       >
+//         Request Membership Renewal
+//       </Button>
 
-      <Text
-        style={[styles.periodInfo, { color: theme.colors.onSurfaceVariant }]}
-      >
-        Default period is set to 30 days
-      </Text>
-    </View>
-  );
-});
+//       <Text
+//         style={[styles.periodInfo, { color: theme.colors.onSurfaceVariant }]}
+//       >
+//         Default period is set to 30 days
+//       </Text>
+//     </View>
+//   );
+// });
 
-ExpiredMembershipContent.displayName = 'ExpiredMembershipContent';
+// ExpiredMembershipContent.displayName = 'ExpiredMembershipContent';
 
 // Component for active membership state
 const ActiveMembershipContent = memo(
@@ -382,6 +383,10 @@ const MembershipStatusCard = memo(() => {
   // Determine card height based on membership status
   const cardHeight = IsTheMembershipExpired ? EXPIRED_CARD_HEIGHT : CARD_HEIGHT;
 
+  if (IsTheMembershipExpired) {
+    return <ExpiredMembershipContent />;
+  }
+
   return (
     <View style={[styles.container, { height: cardHeight }]}>
       <Canvas style={StyleSheet.absoluteFill}>
@@ -389,24 +394,15 @@ const MembershipStatusCard = memo(() => {
           <LinearGradient
             start={vec(0, 0)}
             end={vec(CARD_WIDTH, 0)}
-            colors={[
-              IsTheMembershipExpired ? theme.colors.error : theme.colors.pr40,
-              theme.colors.pr60,
-              theme.colors.pr80,
-            ]}
+            colors={[theme.colors.pr60, theme.colors.pr40, theme.colors.pr30]}
             positions={[0, 0.7, 1]}
           />
         </RoundedRect>
       </Canvas>
-
-      {IsTheMembershipExpired ? (
-        <ExpiredMembershipContent />
-      ) : (
-        <ActiveMembershipContent
-          progress={progress}
-          daysRemaining={daysRemaining}
-        />
-      )}
+      <ActiveMembershipContent
+        progress={progress}
+        daysRemaining={daysRemaining}
+      />
     </View>
   );
 });

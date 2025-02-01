@@ -1,11 +1,12 @@
 import type { EmailOtpType } from '@supabase/supabase-js';
-import type { RouteParams} from 'expo-router';
+import type { RouteParams } from 'expo-router';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState, useRef, useEffect } from 'react';
 import type {
   TextInput as RNTextInput,
   NativeSyntheticEvent,
-  TextInputKeyPressEventData} from 'react-native';
+  TextInputKeyPressEventData,
+} from 'react-native';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -13,19 +14,21 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
-  Alert
+  Alert,
 } from 'react-native';
 import { useTheme, TextInput, Button } from 'react-native-paper';
 
 import { Text } from '@/src/components/common/Text';
 import { Pdstyles } from '@/src/constants/Styles';
 import { useAuthStore } from '@/src/store/auth';
+import type { CustomTheme } from '@/src/types/theme';
 import { getErrorMessage } from '@/src/utils/errorUtils';
 
 const { width } = Dimensions.get('window');
 
-// We create a resend timer duration constant that we can easily adjust
+// Constants for retry functionality
 const RESEND_TIMER_DURATION = 30;
+const MAX_RESEND_ATTEMPTS = 3;
 
 export type EmailOtpParams = RouteParams<{
   email: string;
@@ -38,34 +41,45 @@ const Page = () => {
   console.log('verify screen -> emailOtpType in params: ', emailOtpType);
 
   const verifyOtp = useAuthStore(state => state.verifyOtp);
+  const resendOtp = useAuthStore(state => state.resendOtp);
 
   // We'll store each OTP digit separately for better control
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timer, setTimer] = useState(RESEND_TIMER_DURATION);
   const [canResend, setCanResend] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const theme = useTheme();
+  const [isResending, setIsResending] = useState(false);
+  const [resendAttempts, setResendAttempts] = useState(0);
+  const theme = useTheme<CustomTheme>();
 
+  //References
   const inputRefs = useRef<(RNTextInput | null)[]>([
     ...Array(6).map(() => null),
   ]);
+  const timerRef = useRef<NodeJS.Timeout>();
 
-  //todo: find alternate approach for following useEffect, as it is responsible for rendering this component more than 20 times
   // Timer logic for resend cooldown
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     setTimer((prev) => {
-  //       if (prev <= 1) {
-  //         clearInterval(interval);
-  //         setCanResend(true);
-  //         return 0;
-  //       }
-  //       return prev - 1;
-  //     });
-  //   }, 1000);
+  useEffect(() => {
+    // Only start timer if we haven't reached max attempts
+    if (resendAttempts < MAX_RESEND_ATTEMPTS) {
+      timerRef.current = setInterval(() => {
+        setTimer(prev => {
+          if (prev <= 1) {
+            clearInterval(timerRef.current);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-  //   return () => clearInterval(interval); // Cleanup on unmount
-  // }, []);
+      return () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      };
+    }
+  }, [resendAttempts, isResending]);
 
   // Handle input changes and auto-focus behavior
   const handleOtpChange = (text: string, index: number) => {
@@ -95,36 +109,66 @@ const Page = () => {
     }
   };
 
-  const handleResend = () => {
-    if (canResend) {
-      // Reset the timer and resend flag
+  // Reset OTP fields
+  const resetOtpFields = () => {
+    setOtp(['', '', '', '', '', '']);
+    inputRefs.current[0]?.focus();
+  };
+
+  // Handle resend OTP
+  const handleResend = async () => {
+    if (!canResend || resendAttempts >= MAX_RESEND_ATTEMPTS) {
+      return;
+    }
+
+    try {
+      setIsResending(true);
+
+      await resendOtp({
+        email: email as string,
+        type: emailOtpType as EmailOtpType,
+      });
+
+      // Reset timer and update state
       setTimer(RESEND_TIMER_DURATION);
       setCanResend(false);
-      // Here you would trigger your resend OTP logic
+      setResendAttempts(prev => prev + 1);
+      resetOtpFields();
+
+      // Show success message
+      Alert.alert(
+        'Code Resent',
+        'A new verification code has been sent to your email.',
+        [{ text: 'OK' }],
+      );
+    } catch (error) {
+      Alert.alert(
+        'Resend Failed',
+        getErrorMessage(error) || 'Failed to resend code. Please try again.',
+        [{ text: 'OK' }],
+      );
+    } finally {
+      setIsResending(false);
     }
   };
 
   const handleSubmit = async () => {
-    // Check if OTP is complete
-    // if (otp.every((digit) => digit.length === 1)) {
-    //   router.push("/(authenticated)/(tabs)/");
-    // }
-
     try {
       console.log('Initializing verifyOtp');
       setIsSubmitting(true);
       // if (typeof email === "string") {
-      await verifyOtp({ email, token: otp.join(''), type: emailOtpType });
-      // } else {
-      //   console.error("Email is not a string");
-      //   throw Error("Email is not a string");
-      // }
+      await verifyOtp({
+        email: email as string,
+        token: otp.join(''),
+        type: emailOtpType as EmailOtpType,
+      });
       console.log('successfully verified the otp....');
       if (emailOtpType === 'recovery') {
         console.log('redirecting to reset password page');
         router.push('/resetPassword');
       } else {
         console.log('redirecting to root');
+        //todo try uncommenting this line (010225)
         // router.push('/');
       }
     } catch (error) {
@@ -135,10 +179,7 @@ const Page = () => {
         [
           {
             text: 'OK',
-            onPress: () => {
-              setOtp(['', '', '', '', '', '']); // Clear the OTP input fields
-              inputRefs.current[0]?.focus(); // Refocus on the first input field
-            },
+            onPress: resetOtpFields,
           },
         ],
       );
@@ -147,21 +188,26 @@ const Page = () => {
     }
   };
 
+  // Get resend button text based on state
+  const getResendButtonText = () => {
+    if (resendAttempts >= MAX_RESEND_ATTEMPTS) {
+      return 'Maximum attempts reached';
+    }
+    if (!canResend) {
+      return `Wait ${timer}s`;
+    }
+    return 'Resend';
+  };
+
   return (
     <View style={styles.container}>
       {/* Background decorative elements */}
-      <View
-        style={[
-          styles.mainGlow,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
+      {/* <View
+        style={[styles.mainGlow, { backgroundColor: theme.colors.primary }]}
       />
       <View
-        style={[
-          styles.accentCircle,
-          { backgroundColor: theme.colors.onBackground },
-        ]}
-      />
+        style={[styles.accentCircle, { backgroundColor: theme.colors.primary }]}
+      /> */}
 
       <KeyboardAvoidingView
         style={styles.keyboardView}
@@ -184,9 +230,6 @@ const Page = () => {
             >
               Enter the 6-digit code sent to your mail
             </Text>
-            {/* <Text style={styles.subHeader}>
-              Enter the 6-digit code sent to your mail
-            </Text> */}
           </View>
 
           {/* OTP input section */}
@@ -198,8 +241,8 @@ const Page = () => {
                 ref={(ref: RNTextInput) => (inputRefs.current[index] = ref)}
                 style={[
                   styles.otpInput,
-                  { backgroundColor: theme.colors.surfaceVariant },
-                  { borderColor: theme.colors.inversePrimary },
+                  { backgroundColor: theme.colors.surface },
+                  { borderColor: theme.colors.pr90 },
                 ]}
                 maxLength={1}
                 keyboardType="numeric"
@@ -212,17 +255,6 @@ const Page = () => {
           </View>
 
           {/* Submit button */}
-          {/* <TouchableOpacity
-            style={[
-              styles.submitButton,
-              otp.every((digit) => digit.length === 1)
-                ? styles.enabled
-                : styles.disabled,
-            ]}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.buttonText}>Submit</Text>
-          </TouchableOpacity> */}
 
           <Button
             labelStyle={Pdstyles.buttonLabelStyle}
@@ -230,23 +262,40 @@ const Page = () => {
             theme={{ roundness: 10 }}
             mode="contained"
             onPress={handleSubmit}
-            disabled={!otp.every(digit => digit.length === 1)}
-            // loading={formState.isSubmitting}
+            disabled={!otp.every(digit => digit.length === 1) || isSubmitting}
+            loading={isSubmitting}
           >
-            {/* {formState.isSubmitting ? "Signing in..." : "Continue"} */}
-            Submit
+            {isSubmitting ? 'Verifying...' : 'Submit'}
+            {/* Submit */}
           </Button>
 
           {/* Resend section */}
           <View style={styles.resendContainer}>
-            <Text style={styles.resendText}>
+            <Text
+              style={[
+                styles.resendText,
+                { color: theme.colors.onBackground, opacity: 0.7 },
+              ]}
+            >
               Didn't receive the code?{' '}
-              {canResend ? (
-                <Text style={styles.resendLink} onPress={handleResend}>
-                  Resend
+              {resendAttempts < MAX_RESEND_ATTEMPTS ? (
+                <Text
+                  style={[
+                    styles.resendLink,
+                    {
+                      color: canResend
+                        ? theme.colors.error
+                        : theme.colors.error,
+                    },
+                  ]}
+                  onPress={handleResend}
+                >
+                  {isResending ? 'Sending...' : getResendButtonText()}
                 </Text>
               ) : (
-                <Text style={{ color: theme.colors.error }}>Wait {timer}s</Text>
+                <Text style={{ color: theme.colors.error }}>
+                  Maximum attempts reached
+                </Text>
               )}
             </Text>
           </View>
@@ -259,7 +308,6 @@ const Page = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "#1A1A1A",
     overflow: 'hidden',
   },
   mainGlow: {
@@ -267,7 +315,6 @@ const styles = StyleSheet.create({
     width: width * 1.5,
     height: width * 1.5,
     borderRadius: width * 0.75,
-    // backgroundColor: "#FD356D",
     top: -width * 0.5,
     left: -width * 0.25,
     opacity: 0.08,
@@ -277,7 +324,6 @@ const styles = StyleSheet.create({
     width: width * 0.8,
     height: width * 0.8,
     borderRadius: width * 0.4,
-    // backgroundColor: "#FD356D",
     bottom: -width * 0.4,
     right: -width * 0.2,
     opacity: 0.06,
@@ -294,20 +340,6 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     alignItems: 'center',
   },
-  mainHeader: {
-    fontSize: 32,
-    color: '#FD356D',
-    fontWeight: 'bold',
-    marginBottom: 12,
-    textShadowColor: 'rgba(253, 53, 109, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
-  },
-  subHeader: {
-    fontSize: 18,
-    color: 'rgba(255, 255, 255, 0.7)',
-    textAlign: 'center',
-  },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -318,13 +350,9 @@ const styles = StyleSheet.create({
     width: 65,
     height: 65,
     borderRadius: 20,
-    // backgroundColor: "rgba(69, 14, 30, 0.75)",
     borderWidth: 1,
-    // borderColor: "rgba(253, 53, 109, 0.2)",
-    // color: "#ffffff",
     fontSize: 24,
     textAlign: 'center',
-    // shadowColor: "#FD356D",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -336,17 +364,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
-  enabled: {
-    backgroundColor: '#FD356D',
-    shadowColor: '#FD356D',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  disabled: {
-    backgroundColor: 'rgba(161, 34, 69, 0.7)',
-  },
   buttonText: {
     color: 'white',
     fontSize: 18,
@@ -356,12 +373,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   resendText: {
-    color: 'rgba(255, 255, 255, 0.7)',
     fontSize: 16,
     lineHeight: 24,
   },
   resendLink: {
-    color: '#FD356D',
     fontWeight: '600',
   },
 });

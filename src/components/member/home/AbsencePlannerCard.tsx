@@ -16,7 +16,6 @@ import { DatePickerInput } from 'react-native-paper-dates';
 
 import { useHomeStore } from '@/src/store/memberStores/homeStore';
 import type { AbsencePlan } from '@/src/types/member/absence';
-import type { MealType } from '@/src/types/member/meal';
 import type { CustomTheme } from '@/src/types/theme';
 
 // Define interface for date-meal selection to improve type safety

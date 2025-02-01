@@ -13,9 +13,11 @@ export class AuthEventManager {
     SIGNED_IN: (event, session) => {
       if (!session?.user) return;
       // Handle successful sign in
+      console.log('AuthEventManager --> Sign In happened');
     },
     SIGNED_OUT: (event, session) => {
       // Clean up app state on sign out
+      console.log('AuthEventManager --> Sign Out  happened');
     },
     PASSWORD_RECOVERY: (event, session) => {
       if (!session?.user) return;

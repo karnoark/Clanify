@@ -4,12 +4,9 @@ import type {
   EmailOtpType,
   MobileOtpType,
   Session,
-  VerifyEmailOtpParams} from '@supabase/supabase-js';
-import {
-  AuthError,
-  createClient,
-  SupabaseClient
+  VerifyEmailOtpParams,
 } from '@supabase/supabase-js';
+import { AuthError, createClient, SupabaseClient } from '@supabase/supabase-js';
 import { MMKV } from 'react-native-mmkv';
 import { create } from 'zustand';
 
@@ -27,7 +24,11 @@ import { AuthEventManager } from '@/src/utils/auth_events';
 
 // Define our core interfaces
 
-export type UserRole = 'admin' | 'member' | 'admin_verification_pending';
+export type UserRole =
+  | 'admin'
+  | 'member'
+  | 'admin_verification_pending'
+  | 'regular';
 export interface User {
   id: string;
   email: string;
@@ -84,6 +85,11 @@ export type EmailStatus =
   | 'exists_in_profiles'
   | 'exists_in_admin_registrations';
 
+interface ResendOtpCredentials {
+  email: string;
+  type: EmailOtpType;
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null; // You might want to type this properly based on Supabase session
@@ -98,6 +104,7 @@ interface AuthState {
   resetPassword: (email: string) => Promise<void>;
   updatePassword: (new_password: string) => Promise<void>;
   verifyOtp: (credentials: verifyOtpCredentials) => Promise<void>;
+  resendOtp: (credentials: ResendOtpCredentials) => Promise<void>;
   signOut: () => Promise<void>;
   updateProfile: (updates: UserProfileUpdate) => Promise<void>;
   initialize: () => Promise<void>;
@@ -140,7 +147,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: session.user.email ?? '',
           firstName: session.user.user_metadata?.first_name ?? '',
           lastName: session.user.user_metadata?.last_name ?? '',
-          role: session.user.user_metadata?.role ?? 'member',
+          role: session.user.user_metadata?.role ?? 'regular',
         };
 
         set({ session, user, isPasswordRecovery });
@@ -192,7 +199,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: newSession.user.email ?? '',
             firstName: newSession.user.user_metadata?.first_name ?? '',
             lastName: newSession.user.user_metadata?.last_name ?? '',
-            role: newSession.user.user_metadata?.role ?? 'member',
+            role: newSession.user.user_metadata?.role ?? 'regular',
           };
 
           set({ session: newSession, user });
@@ -243,7 +250,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: session.user.email ?? '',
           firstName: session.user.user_metadata?.first_name ?? '',
           lastName: session.user.user_metadata?.last_name ?? '',
-          role: session.user.user_metadata?.role ?? 'member',
+          role: session.user.user_metadata?.role ?? 'regular',
         };
 
         console.log('auth/signIn:-> session: ', session);
@@ -283,12 +290,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           data: {
             first_name: credentials.firstName,
             last_name: credentials.lastName,
-            role: credentials.role,
+            role: credentials.role || 'regular',
           },
         },
       });
 
       if (error) throw error;
+
+      if (user?.identities?.length === 0) {
+        console.log('Email already exists');
+        throw new Error('Email already exists');
+      }
 
       console.log('auth/signUp:-> Signup successful, user:', user);
       console.log('auth/signUp:-> session: ', session);
@@ -299,7 +311,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           email: user.email ?? '',
           firstName: credentials.firstName,
           lastName: credentials.lastName,
-          role: credentials.role,
+          role: credentials.role || 'regular',
         };
 
         set({ session, user: transformedUser });
@@ -466,7 +478,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
             email: session.user.email ?? '',
             firstName: session.user.user_metadata?.first_name ?? '',
             lastName: session.user.user_metadata?.last_name ?? '',
-            role: session.user.user_metadata?.role ?? 'member',
+            role: session.user.user_metadata?.role ?? 'regular',
           };
 
           console.log('auth/verifyOtp:-> session: ', session);
@@ -495,6 +507,53 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       } else {
         console.error('auth/verifyOtp:-> Unknown error:', error);
         set({ isLoading: false });
+        throw error;
+      }
+    }
+  },
+
+  resendOtp: async (credentials: ResendOtpCredentials) => {
+    console.log('auth/resendOtp:-> Starting resend process');
+    console.log('auth/resendOtp:-> credentials:', credentials);
+
+    try {
+      // For email verification (signup flow)
+      if (credentials.type === 'email') {
+        const { data, error } = await supabase.auth.resend({
+          type: 'signup',
+          email: credentials.email,
+        });
+
+        if (error) throw error;
+
+        console.log(
+          'auth/resendOtp:-> Successfully resent signup verification email, data: ',
+          data,
+        );
+      }
+      // For password recovery
+      else if (credentials.type === 'recovery') {
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          credentials.email,
+          {
+            redirectTo: 'clanify://resetPassword',
+          },
+        );
+
+        if (error) throw error;
+
+        console.log(
+          'auth/resendOtp:-> Successfully resent password recovery email',
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error('auth/resendOtp:-> Error:', error);
+        const handledError = AuthErrorHandler.handleError(error);
+        set({ error: handledError });
+        throw new Error(handledError.message);
+      } else {
+        console.error('auth/resendOtp:-> Unknown error:', error);
         throw error;
       }
     }

@@ -63,6 +63,7 @@ function AuthStateManager({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === '(auth)';
     const inAdminGroup = segments[0] === '(admin)';
     const inMemberGroup = segments[0] === '(member)';
+    const inRegularGroup = segments[0] === '(regular)';
     const isIndexPage = segments.length === 0 || segments[0] === 'index';
 
     // Function to check admin status and handle routing
@@ -114,6 +115,8 @@ function AuthStateManager({ children }: { children: React.ReactNode }) {
           router.replace('/(member)/(tabs)/home');
         } else if (user.role === 'admin') {
           router.replace('/(admin)/(tabs)/dashboard');
+        } else if (user.role === 'regular') {
+          router.replace('(regular)/(tabs)/home');
         }
         return;
       }
@@ -123,6 +126,7 @@ function AuthStateManager({ children }: { children: React.ReactNode }) {
         if (
           inAuthGroup ||
           inMemberGroup ||
+          inRegularGroup ||
           (inAdminGroup && !segments.includes('onboarding'))
         ) {
           await checkAdminStatusAndRoute();
@@ -131,10 +135,12 @@ function AuthStateManager({ children }: { children: React.ReactNode }) {
       }
 
       // Case 4: Regular role-based access control
-      if (user.role === 'member' && inAdminGroup) {
+      if (user.role === 'member' && (inAdminGroup || inRegularGroup)) {
         router.replace('/(member)/(tabs)/home');
-      } else if (user.role === 'admin' && inMemberGroup) {
+      } else if (user.role === 'admin' && (inMemberGroup || inRegularGroup)) {
         router.replace('/(admin)/(tabs)/dashboard');
+      } else if (user.role === 'regular' && (inAdminGroup || inMemberGroup)) {
+        router.replace('/(regular)/(tabs)/home');
       }
     };
 
@@ -229,6 +235,7 @@ export default function RootLayout() {
             <Stack>
               <Stack.Screen name="(admin)" options={{ headerShown: false }} />
               <Stack.Screen name="(member)" options={{ headerShown: false }} />
+              <Stack.Screen name="(regular)" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />

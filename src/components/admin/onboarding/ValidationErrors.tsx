@@ -24,7 +24,15 @@ export const ValidationErrors: React.FC<ValidationErrorsProps> = ({
 
   return (
     <Portal>
-      <Dialog visible={visible} onDismiss={onDismiss}>
+      <Dialog
+        visible={visible}
+        onDismiss={onDismiss}
+        style={{
+          backgroundColor: theme.colors.surface,
+          borderRadius: 12,
+          marginHorizontal: 16,
+        }}
+      >
         <Dialog.Title>{title}</Dialog.Title>
         <Dialog.Content>
           <View style={styles.errorContainer}>

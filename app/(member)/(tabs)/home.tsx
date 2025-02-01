@@ -103,7 +103,7 @@ const ActiveMembershipContent = () => {
 };
 
 // Component for expired membership state
-const ExpiredMembershipContent = () => {
+const ExpiredMembershipWatermark = () => {
   const theme = useTheme<CustomTheme>();
 
   return (
@@ -226,7 +226,7 @@ const HomeScreen = () => {
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             {/* Conditional content based on membership status */}
             {IsTheMembershipExpired ? (
-              <ExpiredMembershipContent />
+              <ExpiredMembershipWatermark />
             ) : (
               <ActiveMembershipContent />
             )}
