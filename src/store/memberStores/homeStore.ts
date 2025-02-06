@@ -1,6 +1,8 @@
 // src/store/memberStores/homeStore.ts
 import { create } from 'zustand';
 
+import type { MembershipError } from '@/src/types/member/membership';
+
 import { useAbsenceStore } from './absenceStore';
 import { useMealStore } from './mealStore';
 import { useMembershipStore } from './membershipStore';
@@ -15,10 +17,10 @@ interface LoadingStates {
 
 // Type representing all error states
 interface ErrorStates {
-  membershipError: string | null;
+  membershipError: MembershipError | null;
   mealsError: string | null;
   absencesError: string | null;
-  error: string | null; // Combined error state
+  error: string | MembershipError | null; // Combined error state
 }
 
 // Create a separate store for loading state
@@ -73,7 +75,7 @@ export const useHomeStore = () => {
   return {
     // Membership-related properties and actions
     membershipExpiry: membership.membershipExpiry,
-    membershipPeriod: membership.membershipPeriod,
+    // membershipPeriod: membership.membershipPeriod,
     points: membership.points,
     renewalRequest: membership.renewalRequest,
     isMembershipExpired: membership.isMembershipExpired,

@@ -1,170 +1,389 @@
 // src/store/memberStores/membershipStore.ts
+
 import { differenceInDays } from 'date-fns';
+import { useEffect } from 'react';
 import { create } from 'zustand';
 
+import { eventManager, StoreEvent } from '@/src/services/events';
+import { MembershipService } from '@/src/services/membershipService';
+import { storeManager } from '@/src/services/stores';
+import { useAuthStore } from '@/src/store/auth';
 import type {
   MembershipState,
   MembershipActions,
+  MembershipError,
+  MembershipPlan,
+  // MembershipContext,
   RenewalRequest,
 } from '@/src/types/member/membership';
+import {
+  PointsCalculation,
+  MembershipErrorType,
+} from '@/src/types/member/membership';
 
-// Helper function to check if a date is expired
-const isDateExpired = (date: Date | null): boolean => {
-  if (!date) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const expiryDate = new Date(date);
-  expiryDate.setHours(0, 0, 0, 0);
-  return differenceInDays(today, expiryDate) >= 0;
-};
+const createError = (
+  type: MembershipErrorType,
+  message: string,
+  extra?: Partial<Omit<MembershipError, 'type' | 'message' | 'name'>>,
+): MembershipError => ({
+  type,
+  message,
+  name: `MembershipError.${type}`, // Add name property
+  ...extra,
+});
 
-// Create the store with combined state and actions
 export const useMembershipStore = create<MembershipState & MembershipActions>()(
-  (set, get) => ({
-    // Initial state
-    membershipExpiry: null,
-    membershipPeriod: null,
-    points: 0,
-    renewalRequest: null,
-    isLoading: false,
-    error: null,
+  (set, get) => {
+    // Register with store manager
+    storeManager.registerStore(
+      {
+        name: 'membership',
+        critical: true,
+        dependencies: ['auth'],
+      },
+      async () => {
+        // This is our store initialization logic
+        await get().loadMembershipData();
+      },
+    );
 
-    // Data loading actions
-    loadMembershipData: async () => {
-      try {
-        set({ isLoading: true, error: null });
+    return {
+      // State
+      membershipContext: null,
+      messId: null,
+      points: 0,
+      membershipExpiry: null,
+      renewalRequest: null,
+      availablePlans: [],
+      selectedPlanId: null,
+      pointsCalculation: null,
+      isLoading: false,
+      error: null,
+      initialized: false,
+      cleanup: undefined,
 
-        // Execute all membership-related updates concurrently
-        await Promise.all([
-          get().getMembershipPeriod(),
-          get().updateMembershipExpiry(),
-          get().updatePoints(),
-        ]);
-      } catch (error) {
-        set({
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Failed to load membership data',
-        });
-      } finally {
-        set({ isLoading: false });
-      }
-    },
+      // Actions
+      loadMembershipData: async () => {
+        const userId = useAuthStore.getState().user?.id;
+        if (!userId) {
+          throw createError(
+            MembershipErrorType.VALIDATION,
+            'User ID is required to load membership data',
+          );
+        }
 
-    getMembershipPeriod: async () => {
-      try {
-        // TODO: Replace with actual API call
-        // const response = await api.getMembershipPeriod();
-        // set({ membershipPeriod: response.period });
+        try {
+          set({ isLoading: true, error: null });
 
-        set({ membershipPeriod: 30 });
-      } catch (error) {
-        throw error;
-      }
-    },
+          // First get membership context
+          const membershipContext =
+            await MembershipService.getMembershipContext(userId);
 
-    updateMembershipExpiry: async () => {
-      try {
-        // TODO: Replace with actual API call
-        // const date = await api.getMembershipExpiry();
-        // set({ membershipExpiry: date });
+          // Get messId from context or current store state
+          const effectiveMessId =
+            membershipContext.currentMembership?.messId ||
+            membershipContext.lastExpiredMembership?.messId ||
+            get().messId;
 
-        const someDate = new Date('2025-02-27');
-        set({ membershipExpiry: someDate });
-      } catch (error) {
-        throw error;
-      }
-    },
+          // Only fetch plans and requests if we have a messId
+          let plans: MembershipPlan[] = [];
+          let currentRequest: RenewalRequest | null = null;
+          let cleanup: (() => void) | undefined;
 
-    updatePoints: async () => {
-      try {
-        // TODO: Replace with actual API call
-        // const points = await api.getMemberPoints();
-        // set({ points });
+          if (effectiveMessId) {
+            // Fetch other data in parallel
+            [plans, currentRequest] = await Promise.all([
+              MembershipService.getAvailablePlans(effectiveMessId).then(
+                viewModels =>
+                  viewModels.map(vm => ({
+                    id: vm.id,
+                    name: vm.name,
+                    description: vm.description,
+                    membership_period: vm.membership_period,
+                    price: vm.price,
+                    mess_id: effectiveMessId,
+                    is_active: true,
+                  })),
+              ),
+              MembershipService.getCurrentRequest({
+                memberId: userId,
+                messId: effectiveMessId,
+              }),
+            ]);
 
-        set({ points: 69 });
-      } catch (error) {
-        throw error;
-      }
-    },
+            // Set up subscription if there's a request
+            if (currentRequest) {
+              cleanup = MembershipService.subscribeToRequestUpdates(
+                currentRequest.id,
+                updatedRequest => {
+                  set({ renewalRequest: updatedRequest });
+                },
+              );
+            }
+          }
 
-    // Renewal flow actions
-    sendRequestToRenewMembership: async (startDate: Date) => {
-      try {
-        set({ isLoading: true, error: null });
+          // Update store state
+          set({
+            membershipContext,
+            messId: effectiveMessId,
+            points:
+              membershipContext.currentMembership?.points ||
+              membershipContext.lastExpiredMembership?.points ||
+              0,
+            membershipExpiry:
+              membershipContext.currentMembership?.expiryDate || null,
+            availablePlans: plans,
+            renewalRequest: currentRequest,
+            cleanup,
+            initialized: true,
+            isLoading: false,
+          });
 
-        // TODO: Replace with actual API call
-        // const response = await api.requestMembershipRenewal(startDate);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+          // Emit appropriate events based on membership status
+          if (membershipContext.currentMembership) {
+            await eventManager.emit(StoreEvent.MEMBERSHIP_LOADED, {
+              status: 'active',
+              messId: membershipContext.currentMembership.messId,
+            });
+          } else if (membershipContext.lastExpiredMembership) {
+            await eventManager.emit(StoreEvent.MEMBERSHIP_EXPIRED, {
+              memberId: membershipContext.lastExpiredMembership.id,
+              expiryDate: membershipContext.lastExpiredMembership.expiryDate,
+            });
+          }
+        } catch (error) {
+          const membershipError = createError(
+            MembershipErrorType.NETWORK,
+            'Failed to load membership data',
+            { retry: () => get().loadMembershipData() },
+          );
+          set({ error: membershipError, isLoading: false });
+          await eventManager.emit(StoreEvent.MEMBERSHIP_ERROR, {
+            error: membershipError,
+          });
+          throw error;
+        }
+      },
 
-        const request: RenewalRequest = {
-          id: 'temp-' + Date.now(),
-          startDate,
-          requestDate: new Date(),
-          result: 'pending',
-          message: 'Your request is being reviewed by the mess operator.',
-        };
+      selectPlan: async (planId: string) => {
+        try {
+          set({ isLoading: true, error: null });
 
-        set({ renewalRequest: request });
-      } catch (error) {
-        set({
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Failed to send renewal request',
-        });
-        throw error;
-      } finally {
-        set({ isLoading: false });
-      }
-    },
+          const plan = get().availablePlans.find(p => p.id === planId);
+          if (!plan) {
+            throw createError(
+              MembershipErrorType.VALIDATION,
+              'Invalid plan selected',
+            );
+          }
 
-    clearRenewalRequest: async () => {
-      try {
-        set({ isLoading: true, error: null });
+          const points = get().points;
+          const pointsCalculation =
+            await MembershipService.calculatePointsBenefit(points);
 
-        // TODO: Replace with actual API call
-        // await api.clearRenewalRequest();
-        await new Promise(resolve => setTimeout(resolve, 500));
+          set({
+            selectedPlanId: planId,
+            pointsCalculation,
+            isLoading: false,
+          });
+        } catch (error) {
+          const membershipError = createError(
+            MembershipErrorType.UNKNOWN,
+            'Failed to process plan selection',
+          );
+          set({
+            error: membershipError,
+            isLoading: false,
+          });
+          await eventManager.emit(StoreEvent.MEMBERSHIP_ERROR, {
+            error: membershipError,
+          });
+        }
+      },
 
-        set({ renewalRequest: null });
-      } catch (error) {
-        set({
-          error:
-            error instanceof Error
-              ? error.message
-              : 'Failed to clear renewal request',
-        });
-        throw error;
-      } finally {
-        set({ isLoading: false });
-      }
-    },
+      validateRenewalEligibility: async () => {
+        const { renewalRequest, selectedPlanId, messId } = get();
+        const userId = useAuthStore.getState().user?.id;
 
-    validateRenewalEligibility: async () => {
-      const { renewalRequest } = get();
+        if (!selectedPlanId) {
+          return {
+            isEligible: false,
+            reason: 'Please select a membership plan',
+            code: 'NO_PLAN_SELECTED',
+          };
+        }
 
-      // Check for existing pending request
-      if (renewalRequest?.result === 'pending') {
-        return {
-          isEligible: false,
-          reason: 'You already have a pending renewal request',
-        };
-      }
+        if (renewalRequest?.result === 'pending') {
+          return {
+            isEligible: false,
+            reason: 'You already have a pending renewal request',
+            code: 'PENDING_REQUEST_EXISTS',
+          };
+        }
 
-      // TODO: Add additional validations
-      // - Check for outstanding dues
-      // - Validate time since last rejection
-      // - Other business rules
+        if (!messId) {
+          throw new Error('messId is missing');
+        }
 
-      return { isEligible: true };
-    },
+        try {
+          if (!userId) {
+            throw new Error('User ID is missing');
+          }
 
-    // Computed values
-    isMembershipExpired: () => {
-      // return isDateExpired(get().membershipExpiry);
-      return true;
-    },
-  }),
+          return await MembershipService.checkRenewalEligibility(
+            userId,
+            messId,
+          );
+        } catch (error) {
+          const membershipError = createError(
+            MembershipErrorType.NETWORK,
+            'Failed to check renewal eligibility',
+          );
+          await eventManager.emit(StoreEvent.MEMBERSHIP_ERROR, {
+            error: membershipError,
+          });
+          throw membershipError;
+        }
+      },
+
+      sendRequestToRenewMembership: async (startDate: Date) => {
+        const { messId, selectedPlanId, pointsCalculation } = get();
+        const userId = useAuthStore.getState().user?.id;
+
+        if (!messId || !selectedPlanId) {
+          throw createError(
+            MembershipErrorType.VALIDATION,
+            'Missing required information for renewal',
+          );
+        }
+
+        try {
+          set({ isLoading: true, error: null });
+
+          const eligibility = await get().validateRenewalEligibility();
+          if (!eligibility.isEligible) {
+            throw createError(
+              MembershipErrorType.BUSINESS,
+              eligibility.reason || 'Not eligible for renewal',
+              { code: eligibility.code || 'INELIGIBLE' },
+            );
+          }
+
+          // Get current user ID from auth store
+          if (!userId) {
+            throw new Error('User ID is missing');
+          }
+
+          const result = await MembershipService.createRenewalRequest({
+            userId,
+            messId,
+            planId: selectedPlanId,
+            requestedStartDate: startDate,
+            pointsToUse: pointsCalculation?.usedPoints || 0,
+          });
+
+          const cleanup = MembershipService.subscribeToRequestUpdates(
+            result.id,
+            updatedRequest => {
+              set({ renewalRequest: updatedRequest });
+            },
+          );
+
+          set({
+            renewalRequest: result,
+            cleanup,
+            isLoading: false,
+          });
+        } catch (error) {
+          const membershipError = createError(
+            MembershipErrorType.UNKNOWN,
+            'Failed to send renewal request',
+          );
+          set({
+            error: membershipError,
+            isLoading: false,
+          });
+          await eventManager.emit(StoreEvent.MEMBERSHIP_ERROR, {
+            error: membershipError,
+          });
+          throw error;
+        }
+      },
+
+      clearRenewalRequest: async () => {
+        try {
+          set({ isLoading: true, error: null });
+
+          const { renewalRequest, cleanup } = get();
+          if (renewalRequest?.id) {
+            await MembershipService.cancelRequest(renewalRequest.id);
+            if (cleanup) cleanup();
+          }
+
+          set({
+            renewalRequest: null,
+            selectedPlanId: null,
+            pointsCalculation: null,
+            cleanup: undefined,
+            isLoading: false,
+          });
+        } catch (error) {
+          const membershipError = createError(
+            MembershipErrorType.UNKNOWN,
+            'Failed to clear renewal request',
+          );
+          set({
+            error: membershipError,
+            isLoading: false,
+          });
+          await eventManager.emit(StoreEvent.MEMBERSHIP_ERROR, {
+            error: membershipError,
+          });
+          throw error;
+        }
+      },
+
+      // Helper methods
+      isMembershipExpired: () => {
+        const { membershipContext } = get();
+        return !membershipContext?.currentMembership;
+      },
+
+      isInitialized: () => {
+        return get().initialized;
+      },
+    };
+  },
 );
+
+// Cleanup hook remains the same
+export function useCleanupMembershipStore() {
+  const cleanup = useMembershipStore(state => state.cleanup);
+
+  useEffect(() => {
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [cleanup]);
+}
+
+// Add new hooks for common membership checks
+export function useMembershipStatus() {
+  const membershipContext = useMembershipStore(
+    state => state.membershipContext,
+  );
+  const isInitialized = useMembershipStore(state => state.initialized);
+  const error = useMembershipStore(state => state.error);
+
+  return {
+    isActive: !!membershipContext?.currentMembership,
+    isExpired:
+      !membershipContext?.currentMembership &&
+      !!membershipContext?.lastExpiredMembership,
+    isInitialized,
+    error,
+    membership:
+      membershipContext?.currentMembership ||
+      membershipContext?.lastExpiredMembership,
+  };
+}
