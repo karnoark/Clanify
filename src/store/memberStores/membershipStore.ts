@@ -93,18 +93,7 @@ export const useMembershipStore = create<MembershipState & MembershipActions>()(
           if (effectiveMessId) {
             // Fetch other data in parallel
             [plans, currentRequest] = await Promise.all([
-              MembershipService.getAvailablePlans(effectiveMessId).then(
-                viewModels =>
-                  viewModels.map(vm => ({
-                    id: vm.id,
-                    name: vm.name,
-                    description: vm.description,
-                    membership_period: vm.membership_period,
-                    price: vm.price,
-                    mess_id: effectiveMessId,
-                    is_active: true,
-                  })),
-              ),
+              MembershipService.getAvailablePlans(effectiveMessId),
               MembershipService.getCurrentRequest({
                 memberId: userId,
                 messId: effectiveMessId,

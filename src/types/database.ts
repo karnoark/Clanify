@@ -6,13 +6,13 @@ export interface DatabaseMembership {
   id: string;
   member_id: string;
   mess_id: string;
-  plan_id: string;
+  // plan_id: string;
   start_date: string; // ISO date string
   expiry_date: string; // ISO date string
   points: number | null;
   status: DatabaseMembershipStatus;
-  created_at: string; // ISO timestamp
-  updated_at: string; // ISO timestamp
+  // created_at: string; // ISO timestamp
+  // updated_at: string; // ISO timestamp
 }
 
 export interface DatabaseMembershipPlan {

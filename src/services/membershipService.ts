@@ -14,11 +14,11 @@ import type {
   RenewalRequest,
   PointsCalculation,
   PointsTransaction,
-  MembershipPlanViewModel,
+  // MembershipPlanViewModel,
   RenewalRequestProcedureResult,
   CreateRenewalRequestParams,
   RenewalRequestWithBenefits,
-  transformMembershipPlan,
+  // transformMembershipPlan,
   PointsBenefitResult,
 } from '@/src/types/member/membership';
 
@@ -116,8 +116,7 @@ export class MembershipService {
   }> {
     return this.withRetry(
       async () => {
-        // First try to get active membership
-        const { data: activeData, error: activeError } = await supabase
+        const { data, error } = await supabase
           .from('memberships')
           .select(
             `
@@ -131,69 +130,21 @@ export class MembershipService {
         `,
           )
           .eq('member_id', memberId)
-          .eq('status', 'active')
-          .single();
-
-        if (activeError && activeError.code !== 'PGRST116') throw activeError;
-
-        // Then get the most recent expired membership
-        const { data: expiredData, error: expiredError } = await supabase
-          .from('memberships')
-          .select(
-            `
-          id,
-          member_id,
-          mess_id,
-          start_date,
-          expiry_date,
-          points,
-          status
-        `,
-          )
-          .eq('member_id', memberId)
-          .eq('status', 'expired')
+          .in('status', ['active', 'expired'])
+          .order('status', { ascending: true }) // 'active' comes before 'expired'
           .order('expiry_date', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(2); // We only need at most 2 records
 
-        if (expiredError && expiredError.code !== 'PGRST116')
-          throw expiredError;
+        if (error) throw error;
 
-        const transformMembership = (data: any): MembershipDetails | null => {
-          if (!data) return null;
-          return {
-            id: data.id,
-            memberId: data.member_id,
-            messId: data.mess_id,
-            // messDetails: {
-            //   id: data.messes.id,
-            //   name: data.messes.name,
-            //   description: data.messes.description,
-            // },
-            startDate: new Date(data.start_date),
-            expiryDate: new Date(data.expiry_date),
-            points: data.points,
-            status: data.status,
-          };
-        };
+        // Process results
+        const activeMembership = data?.find(m => m.status === 'active');
+        const expiredMembership = data?.find(m => m.status === 'expired');
 
         const result = {
-          currentMembership: transformMembership(activeData),
-          lastExpiredMembership: transformMembership(expiredData),
+          currentMembership: this.transformMembership(activeMembership),
+          lastExpiredMembership: this.transformMembership(expiredMembership),
         };
-
-        // Emit appropriate events based on membership status
-        if (result.currentMembership) {
-          await eventManager.emit(StoreEvent.MEMBERSHIP_LOADED, {
-            status: 'active',
-            messId: result.currentMembership.messId,
-          });
-        } else if (result.lastExpiredMembership) {
-          await eventManager.emit(StoreEvent.MEMBERSHIP_EXPIRED, {
-            memberId: result.lastExpiredMembership.id,
-            expiryDate: result.lastExpiredMembership.expiryDate,
-          });
-        }
 
         return result;
       },
@@ -201,6 +152,42 @@ export class MembershipService {
         operationType: 'GET_MEMBERSHIP_CONTEXT',
         entityId: memberId,
       },
+    );
+  }
+
+  private static transformMembership(
+    data: DatabaseMembership | null | undefined,
+  ): MembershipDetails | null {
+    if (!data) return null;
+
+    // Validate required fields
+    if (!this.isValidMembershipData(data)) {
+      console.warn('Invalid membership data structure:', data);
+      return null;
+    }
+
+    return {
+      id: data.id,
+      memberId: data.member_id,
+      messId: data.mess_id,
+      startDate: new Date(data.start_date),
+      expiryDate: new Date(data.expiry_date),
+      points: data.points ?? 0, // Provide default for null points
+      status: data.status,
+    };
+  }
+
+  private static isValidMembershipData(data: any): data is DatabaseMembership {
+    return (
+      typeof data === 'object' &&
+      data !== null &&
+      typeof data.id === 'string' &&
+      typeof data.member_id === 'string' &&
+      typeof data.mess_id === 'string' &&
+      typeof data.start_date === 'string' &&
+      typeof data.expiry_date === 'string' &&
+      (typeof data.points === 'number' || data.points === null) &&
+      ['active', 'expired', 'cancelled'].includes(data.status)
     );
   }
 
@@ -294,6 +281,7 @@ export class MembershipService {
         }
 
         // Check for pending renewal requests
+        //The membership_requests table has a unique constraint defined on the combination of user_id and mess_id when the status is 'pending'. This ensures that a user cannot have multiple pending requests for the same mess.
         const { data: pendingRequest, error: requestError } = await supabase
           .from('membership_requests')
           .select('id')
@@ -561,7 +549,6 @@ export class MembershipService {
           usedPoints: data.usable_points,
           extraDays: data.extra_days,
           remainingPoints: data.remaining_points,
-          savingsAmount: data.savings_amount,
         };
       },
       {
@@ -782,19 +769,19 @@ export class MembershipService {
     };
   }
 
-  private static transformMembershipPlanToViewModel(
-    plan: MembershipPlan,
-  ): MembershipPlanViewModel {
-    return {
-      id: plan.id,
-      name: plan.name,
-      description: plan.description,
-      membership_period: plan.membership_period, // Renamed for UI clarity
-      price: plan.price,
-      isPopular: false, // This could be determined by business logic
-      features: [], // This could be populated based on plan type
-    };
-  }
+  // private static transformMembershipPlanToViewModel(
+  //   plan: MembershipPlan,
+  // ): MembershipPlanViewModel {
+  //   return {
+  //     id: plan.id,
+  //     name: plan.name,
+  //     description: plan.description,
+  //     membership_period: plan.membership_period, // Renamed for UI clarity
+  //     price: plan.price,
+  //     isPopular: false, // This could be determined by business logic
+  //     features: [], // This could be populated based on plan type
+  //   };
+  // }
 
   // private static transformRenewalRequest(
   //   dbRequest: DatabaseMembershipRequest,
@@ -817,9 +804,7 @@ export class MembershipService {
   //   };
   // }
 
-  static async getAvailablePlans(
-    messId: string,
-  ): Promise<MembershipPlanViewModel[]> {
+  static async getAvailablePlans(messId: string): Promise<MembershipPlan[]> {
     return this.withRetry(
       async () => {
         const { data, error } = await supabase
@@ -833,9 +818,8 @@ export class MembershipService {
 
         // Transform database response to our app model
         const plans = this.handlePlanResponse(data);
-        return plans
-          .map(this.transformDatabaseToMembershipPlan)
-          .map(this.transformMembershipPlanToViewModel);
+        return plans.map(this.transformDatabaseToMembershipPlan);
+        // .map(this.transformMembershipPlanToViewModel);
       },
       {
         operationType: 'GET_AVAILABLE_PLANS',

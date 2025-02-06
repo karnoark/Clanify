@@ -31,27 +31,27 @@ export type MembershipPlan = {
 };
 
 // Add a view model type for the UI
-export type MembershipPlanViewModel = {
-  id: string;
-  name: string;
-  description: string;
-  membership_period: number;
-  price: number;
-  isPopular?: boolean;
-  features?: string[];
-};
+// export type MembershipPlanViewModel = {
+//   id: string;
+//   name: string;
+//   description: string;
+//   membership_period: number;
+//   price: number;
+//   isPopular?: boolean;
+//   features?: string[];
+// };
 
 // Add a transformation function
-export const transformMembershipPlan = (
-  plan: MembershipPlan,
-): MembershipPlanViewModel => ({
-  id: plan.id,
-  name: plan.name,
-  description: plan.description || '',
-  membership_period: plan.membership_period,
-  price: Number(plan.price),
-  // Add any UI-specific transformations here
-});
+// export const transformMembershipPlan = (
+//   plan: MembershipPlan,
+// ): MembershipPlanViewModel => ({
+//   id: plan.id,
+//   name: plan.name,
+//   description: plan.description || '',
+//   membership_period: plan.membership_period,
+//   price: Number(plan.price),
+//   // Add any UI-specific transformations here
+// });
 
 // Renewal request status type
 export type RenewalRequestStatus = 'pending' | 'approved' | 'rejected';
@@ -196,7 +196,6 @@ export interface PointsCalculation {
   usedPoints: number;
   extraDays: number;
   remainingPoints: number;
-  savingsAmount?: number;
 }
 
 // Procedure result type
