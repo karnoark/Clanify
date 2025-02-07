@@ -102,6 +102,28 @@ class StoreManager {
   }
 
   /**
+   * Initialize all stores that depend on a given store
+   * @param baseStore - The store whose dependents should be initialized
+   */
+  async initializeDependentStores(baseStore: string): Promise<void> {
+    const dependentStores = this.getDependentStores(baseStore);
+
+    for (const store of dependentStores) {
+      await this.initializeStore(store);
+    }
+  }
+
+  /**
+   * Get all stores that depend on the given store
+   * @param baseStore - The store to find dependents for
+   */
+  private getDependentStores(baseStore: string): string[] {
+    return Array.from(this.storeConfigs.entries())
+      .filter(([_, config]) => config.dependencies?.includes(baseStore))
+      .map(([name]) => name);
+  }
+
+  /**
    * Gets the current state of a store.
    */
   getStoreState(storeName: string): StoreState {

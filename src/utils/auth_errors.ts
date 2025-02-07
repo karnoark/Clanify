@@ -1,7 +1,7 @@
 import { AuthApiError, AuthError } from '@supabase/supabase-js';
 // import * as Sentry from '@sentry/react-native';
 
-export interface HandleError {
+export interface HandleError extends Error {
   category: string;
   code: string;
   message: string;
@@ -68,7 +68,7 @@ export class AuthErrorHandler {
     default: 'Something went wrong. Please try again.',
   } as const;
 
-  static handleError(error: AuthError | Error): HandleError {
+  static handleError(error: Error): HandleError {
     console.error('Auth Error: ', {
       type: error instanceof Error ? error.constructor.name : typeof error,
       message: error instanceof Error ? error.message : String(error),
@@ -98,6 +98,7 @@ export class AuthErrorHandler {
     if (error instanceof Error && this.isNetworkError(error)) {
       console.log('error is instance of NetworkError');
       return {
+        name: 'NetworkError',
         category: this.ERROR_CATEGORIES.NETWORK,
         code: 'network_error',
         message:
@@ -117,6 +118,7 @@ export class AuthErrorHandler {
         this.ERROR_MESSAGES.default;
 
       return {
+        name: 'AuthenticationError',
         category: this.ERROR_CATEGORIES.AUTHENTICATION,
         code,
         message,
@@ -129,6 +131,7 @@ export class AuthErrorHandler {
       'error is instance of neither NetworkError or AuthApiError or AuthError',
     );
     return {
+      name: 'UnexpectedError',
       category: this.ERROR_CATEGORIES.UNEXPECTED,
       code: 'unexpected_failure',
       message: error.message ?? this.ERROR_MESSAGES.default,
@@ -144,30 +147,38 @@ export class AuthErrorHandler {
   ) {
     let category;
     let shouldRetry = false;
+    let name: string;
 
     // Determine error category and retry strategy based on status code
     if (status >= 400 && status < 500) {
       if (status === 429) {
         category = this.ERROR_CATEGORIES.RATE_LIMIT;
+        name = 'RateLimitError';
         shouldRetry = true;
       } else if (status === 401) {
         category = this.ERROR_CATEGORIES.AUTHENTICATION;
+        name = 'AuthenticationError';
         shouldRetry = false;
       } else if (status === 403) {
         category = this.ERROR_CATEGORIES.AUTHORIZATION;
+        name = 'AuthorizationError';
         shouldRetry = false;
       } else {
         category = this.ERROR_CATEGORIES.VALIDATION;
+        name = 'ValidationError';
         shouldRetry = false;
       }
     } else if (status >= 500) {
       category = this.ERROR_CATEGORIES.UNEXPECTED;
+      name = 'ServerError';
       shouldRetry = true;
     } else {
       category = this.ERROR_CATEGORIES.UNEXPECTED;
+      name = 'UnexpectedError';
     }
 
     return {
+      name,
       category,
       code,
       message:

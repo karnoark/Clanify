@@ -1,11 +1,21 @@
-import type { StoreEvent, EventListener, EventPayloads } from './types';
+import type {
+  StoreEvent,
+  EventListener,
+  EventPayloads,
+  StoreEventType,
+} from './types';
 
 /**
  * The EventManager class handles the pub/sub system for store events.
  * It provides type-safe event emission and subscription with proper cleanup.
  */
 class EventManager {
-  private listeners: Map<StoreEvent, Set<EventListener<any>>> = new Map();
+  private listeners: Map<
+    StoreEventType,
+    // claude suggested that any type would be okay here
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    Set<(payload: any) => void | Promise<void>>
+  > = new Map();
   private debugMode: boolean = process.env.NODE_ENV === 'development';
 
   /**
@@ -14,7 +24,10 @@ class EventManager {
    * @param listener - The callback to execute when the event occurs
    * @returns Cleanup function to remove the listener
    */
-  on<T extends StoreEvent>(event: T, listener: EventListener<T>): () => void {
+  on<T extends StoreEventType>(
+    event: T,
+    listener: EventListener<T>,
+  ): () => void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set());
     }
@@ -34,7 +47,7 @@ class EventManager {
   /**
    * Remove a specific listener for an event
    */
-  off<T extends StoreEvent>(event: T, listener: EventListener<T>): void {
+  off<T extends StoreEventType>(event: T, listener: EventListener<T>): void {
     const eventListeners = this.listeners.get(event);
     if (eventListeners) {
       eventListeners.delete(listener);
@@ -49,7 +62,7 @@ class EventManager {
    * @param event - The event to emit
    * @param payload - The event payload
    */
-  async emit<T extends StoreEvent>(
+  async emit<T extends keyof EventPayloads>(
     event: T,
     payload: EventPayloads[T],
   ): Promise<void> {
@@ -77,7 +90,7 @@ class EventManager {
   /**
    * Remove all listeners for an event
    */
-  clearEvent(event: StoreEvent): void {
+  clearEvent(event: StoreEventType): void {
     this.listeners.delete(event);
   }
 
@@ -91,7 +104,7 @@ class EventManager {
   /**
    * Get the number of listeners for an event
    */
-  listenerCount(event: StoreEvent): number {
+  listenerCount(event: StoreEventType): number {
     return this.listeners.get(event)?.size ?? 0;
   }
 

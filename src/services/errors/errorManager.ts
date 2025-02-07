@@ -1,3 +1,4 @@
+import { isNetworkError } from '@/src/services/errors/networkErrors';
 import type { AppError } from '@/src/services/errors/types';
 import { ErrorSeverity, ErrorType } from '@/src/services/errors/types';
 
@@ -36,6 +37,7 @@ class ErrorManager {
       type: ErrorType.UNKNOWN,
       severity: ErrorSeverity.ERROR,
       message: 'An unexpected error occurred',
+      name: 'AppError',
       timestamp: new Date(),
       recoveryActions: [
         {
@@ -49,9 +51,10 @@ class ErrorManager {
 
     if (error instanceof Error) {
       // Network errors
-      if ('isAxiosError' in error || error.name === 'NetworkError') {
+      if (isNetworkError(error)) {
         return {
           ...baseError,
+          name: 'NetworkError',
           type: ErrorType.NETWORK,
           message: 'Network connection problem',
           technical: error.message,
@@ -60,7 +63,10 @@ class ErrorManager {
               label: 'Check Connection',
               action: async () => {
                 // Trigger network check
-                await eventManager.emit(StoreEvent.NETWORK_CHECK, undefined);
+                await eventManager.emit(
+                  StoreEvent.CONNECTIVITY_CHECK,
+                  undefined,
+                );
               },
             },
           ],

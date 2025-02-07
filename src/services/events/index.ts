@@ -2,12 +2,12 @@
 import { useEffect } from 'react';
 
 import { eventManager } from './eventManager';
-import type { StoreEvent, EventListener } from './types';
+import type { StoreEvent, EventListener, StoreEventType } from './types';
 
 export * from './types';
 export { eventManager } from './eventManager';
 
-export function useStoreEvent<T extends StoreEvent>(
+export function useStoreEvent<T extends StoreEventType>(
   event: T,
   listener: EventListener<T>,
 ): void {
