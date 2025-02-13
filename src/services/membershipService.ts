@@ -561,16 +561,20 @@ export class MembershipService {
   /**
    * Cancel an existing renewal request
    */
-  static async cancelRequest(requestId: string): Promise<void> {
+  static async cancelRequest(requestId: string): Promise<boolean> {
     return this.withRetry(
       async () => {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('membership_requests')
           .update({ status: 'cancelled' })
           .eq('id', requestId)
-          .eq('status', 'pending');
+          .eq('status', 'pending')
+          .single();
 
         if (error) throw error;
+
+      // If no rows were affected, return false (e.g., request already cancelled)
+      return !!data;
       },
       {
         operationType: 'CANCEL_REQUEST',
@@ -578,60 +582,7 @@ export class MembershipService {
       },
     );
   }
-
-  /**
-   * Gets available membership plans for a mess
-   */
-  // static async getAvailablePlans(
-  //   messId: string,
-  // ): Promise<MembershipPlanViewModel[]> {
-  //   return this.withRetry(
-  //     async () => {
-  //       const { data, error } = await supabase
-  //         .from('membership_plans')
-  //         .select('*')
-  //         .eq('mess_id', messId)
-  //         .eq('is_active', true)
-  //         .order('price', { ascending: true });
-
-  //       if (error) throw error;
-
-  //       // Transform database models to view models
-  //       return data.map(transformMembershipPlan);
-  //     },
-  //     {
-  //       operationType: 'GET_AVAILABLE_PLANS',
-  //       entityId: messId,
-  //     },
-  //   );
-  // }
-
-  /**
-   * Gets available membership plans for a mess.
-   * This method properly handles the database response and transforms it to our app model.
-   */
-  // static async getAvailablePlans(messId: string): Promise<MembershipPlan[]> {
-  //   return this.withRetry(
-  //     async () => {
-  //       const { data, error } = await supabase
-  //         .from('membership_plans')
-  //         .select('*')
-  //         .eq('mess_id', messId)
-  //         .eq('is_active', true)
-  //         .order('price', { ascending: true });
-
-  //       if (error) throw error;
-
-  //       // Transform database response to our app model
-  //       const plans = this.handlePlanResponse(data);
-  //       return plans.map(plan => this.transformMembershipPlan(plan));
-  //     },
-  //     {
-  //       operationType: 'GET_AVAILABLE_PLANS',
-  //       entityId: messId,
-  //     },
-  //   );
-  // }
+  
 
   /**
    * Gets a single membership plan by ID.
@@ -768,41 +719,6 @@ export class MembershipService {
       is_active: dbPlan.is_active,
     };
   }
-
-  // private static transformMembershipPlanToViewModel(
-  //   plan: MembershipPlan,
-  // ): MembershipPlanViewModel {
-  //   return {
-  //     id: plan.id,
-  //     name: plan.name,
-  //     description: plan.description,
-  //     membership_period: plan.membership_period, // Renamed for UI clarity
-  //     price: plan.price,
-  //     isPopular: false, // This could be determined by business logic
-  //     features: [], // This could be populated based on plan type
-  //   };
-  // }
-
-  // private static transformRenewalRequest(
-  //   dbRequest: DatabaseMembershipRequest,
-  // ): RenewalRequest {
-  //   return {
-  //     id: dbRequest.id,
-  //     startDate: new Date(dbRequest.requested_start_date),
-  //     requestDate: new Date(dbRequest.created_at),
-  //     result: dbRequest.status as RenewalRequestStatus,
-  //     message: dbRequest.message || '',
-  //     pointsUsed: dbRequest.points_to_use || 0,
-  //     extraDays: dbRequest.points_days_added || 0,
-  //     plan: dbRequest.membership_plans
-  //       ? this.transformDatabaseToMembershipPlan(dbRequest.membership_plans)
-  //       : undefined,
-  //     processedAt: dbRequest.processed_at
-  //       ? new Date(dbRequest.processed_at)
-  //       : undefined,
-  //     processedBy: dbRequest.processed_by || undefined
-  //   };
-  // }
 
   static async getAvailablePlans(messId: string): Promise<MembershipPlan[]> {
     return this.withRetry(
