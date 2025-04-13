@@ -1,4 +1,4 @@
-# Transforming Community Dining: The $7.5B Operating System for Mass-Scale Food Services
+# Transforming Community Dining
 
 _Building the infrastructure layer for the world's most overlooked food ecosystem_
 
